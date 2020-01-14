@@ -1,0 +1,1 @@
+cmd.exe /c start java -jar -Djava.library.path=C:\Users\Kevin\Documents\Data\NEW\WORK\INPROGRESS\BOTUSERS\JAVA\scannerv0.2.0\natives scanner8610v0.2.0.jar
