@@ -1,2 +1,0 @@
-g++ -I"C:\Program Files\Java\jdk-12.0.1\include" -I"C:\Program Files\Java\jdk-12.0.1\include\win32" -c -o com_scanner_main_OtherMethods.o com_scanner_main_OtherMethods.cpp
-g++ -shared -o com_scanner_main_OtherMethods.dll com_scanner_main_OtherMethods.o
