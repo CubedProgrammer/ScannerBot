@@ -1,5 +1,6 @@
 package com.cpscanner.cmd;
 import java.util.*;
+import net.dv8tion.jda.api.entities.*;
 public class CmdParser
 {
 	public static final String SKIP_TOKEN_SIGNIFIER="_skip_";
@@ -12,9 +13,8 @@ public class CmdParser
 			this.cmds.put(names[i],parsers[i]);
 		}
 	}
-	public String parse(String command)
+	public String parse(Guild guild,User author,long channel,String[]tokens)
 	{
-		String[]tokens=command.split("\\s");
 		String[]args=null;
 		ArrayList<String>argsal=new ArrayList<String>();
 		Stack<String>stackCMD=new Stack<String>();
@@ -22,6 +22,7 @@ public class CmdParser
 		String name="";
 		String result="";
 		int start=0;
+		int end=0;
 		for(int i=0;i<tokens.length;i++)
 		{
 			if(this.cmds.containsKey(tokens[i]))
@@ -29,16 +30,17 @@ public class CmdParser
 				stackCMD.push(tokens[i]);
 				stack.push(i);
 			}
-			else if(i+1==tokens.length||"end".equals(tokens[i]))
+			if(stackCMD.size()>0&&(i+1==tokens.length||"end".equals(tokens[i])))
 			{
 				do
 				{
 					name=stackCMD.pop();
 					start=stack.pop();
 					argsal.clear();
-					for(int j=start+1;j<i;j++)
+					end=i+1==tokens.length?tokens.length:i;
+					for(int j=start+1;j<end;j++)
 					{
-						if(CmdParser.SKIP_TOKEN_SIGNIFIER.equals(tokens[j].substring(0,CmdParser.SKIP_TOKEN_SIGNIFIER.length())))
+						if(tokens[j].length()>CmdParser.SKIP_TOKEN_SIGNIFIER.length()&&CmdParser.SKIP_TOKEN_SIGNIFIER.equals(tokens[j].substring(0,CmdParser.SKIP_TOKEN_SIGNIFIER.length())))
 						{
 							argsal.add(tokens[j].substring(CmdParser.SKIP_TOKEN_SIGNIFIER.length()+8));
 							j+=Integer.parseInt(tokens[j].substring(CmdParser.SKIP_TOKEN_SIGNIFIER.length(),CmdParser.SKIP_TOKEN_SIGNIFIER.length()+8))-1;
@@ -50,13 +52,13 @@ public class CmdParser
 					}
 					args=new String[argsal.size()];
 					for(int j=0;j<args.length;args[j]=argsal.get(j++));
-					result=this.cmds.get(name).parse(args);
+					result=this.cmds.get(name).parse(guild,author,channel,args);
 					name="";
-					for(int j=0;j<Integer.numberOfLeadingZeros(i-start+1)>>2;j++)
+					for(int j=0;j<Integer.numberOfLeadingZeros(end-start+1)>>2;j++)
 					{
 						name+="0";
 					}
-					tokens[start]=CmdParser.SKIP_TOKEN_SIGNIFIER+name+Integer.toString(i-start+1,16)+result;
+					tokens[start]=CmdParser.SKIP_TOKEN_SIGNIFIER+name+Integer.toString(end-start+1,16)+result;
 				}
 				while(i+1==tokens.length&&!stack.empty());
 			}
