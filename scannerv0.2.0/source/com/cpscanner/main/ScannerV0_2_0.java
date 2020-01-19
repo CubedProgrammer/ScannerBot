@@ -1,6 +1,7 @@
 package com.cpscanner.main;
 import static java.lang.System.out;
 import java.io.*;
+import java.math.*;
 import java.util.*;
 import javax.security.auth.login.LoginException;
 import com.cpscanner.cmd.*;
@@ -22,6 +23,16 @@ public class ScannerV0_2_0
 			valid=s.charAt(i)>=48&&s.charAt(i)<58;
 		}
 		return valid;
+	}
+	public static final BigDecimal strToNum(String s)
+	{
+		String[]parts=s.split("/");
+		BigDecimal n=new BigDecimal(parts[0]);
+		for(int i=1;i<parts.length;i++)
+		{
+			n=n.divide(new BigDecimal(parts[i]),MathContext.DECIMAL128);
+		}
+		return n;
 	}
 	private JDA jda;
 	private Thread thread1;
@@ -59,8 +70,8 @@ public class ScannerV0_2_0
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="list change".split(" ");
-		ScCmd[]parsers={this::parseListGuildsAndChannels,this::parseChangeChannel};
+		String[]names="list change average".split(" ");
+		ScCmd[]parsers={this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseListAverage};
 		this.consoleCommandParser=new CmdParser(parsers,names);
 	}
 	public String parseChangeChannel(Guild guild,User author,long channel,String...args)
@@ -166,6 +177,15 @@ public class ScannerV0_2_0
 			}
 		}
 		return result;
+	}
+	public String parseListAverage(Guild guild,User user,long channel,String...args)
+	{
+		BigDecimal n=BigDecimal.ZERO;
+		for(int i=0;i<args.length;i++)
+		{
+			n=n.add(ScannerV0_2_0.strToNum(args[i]));
+		}
+		return args.length==0?"0":n.divide(new BigDecimal(args.length),MathContext.DECIMAL128).toString();
 	}
 	public void run1()
 	{
