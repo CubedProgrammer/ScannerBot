@@ -1,10 +1,25 @@
 package com.cpscanner.cmd;
 import java.util.*;
 import net.dv8tion.jda.api.entities.*;
+/**
+ * Advanced nested command parser.
+ * @author CubedProgrammer.
+ */
 public class CmdParser
 {
+	/**
+	 * The prefix that signals to the command parser that some number of arguments should be skipped.
+	 */
 	public static final String SKIP_TOKEN_SIGNIFIER="_skip_";
+	/**
+	 * The map of commands, maps from command name to function.
+	 */
 	private HashMap<String,ScCmd>cmds;
+	/**
+	 * Constructs a new CmdParser.
+	 * @param parsers The array of functions for command parsing.
+	 * @param names The array of command names that correspond to the functions.
+	 */
 	public CmdParser(ScCmd[]parsers,String...names)
 	{
 		this.cmds=new HashMap<String,ScCmd>();
@@ -13,6 +28,14 @@ public class CmdParser
 			this.cmds.put(names[i],parsers[i]);
 		}
 	}
+	/**
+	 * Parses a command that is an array of tokens.
+	 * @param guild The guild the command was sent from.
+	 * @param author The user who sent the command.
+	 * @param channel The ID of the channel that the command was sent from.
+	 * @param tokens The list of tokens for this command.
+	 * @return The message that is to be printed or sent over to discord.
+	 */
 	public String parse(Guild guild,User author,long channel,String[]tokens)
 	{
 		String[]args=null;

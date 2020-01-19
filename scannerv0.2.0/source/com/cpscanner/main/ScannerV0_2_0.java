@@ -8,13 +8,37 @@ import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
 import com.cpscanner.cmd.*;
 import com.cpscanner.algorithm.*;
+/**
+ * Main class that contains the main method.
+ * @author CubedProgrammer
+ */
 public class ScannerV0_2_0
 {
+	/**
+	 * Token for bot authentication.
+	 */
 	public static final String TOKEN="MzY3NDI2MTc4MDE5MjI5Njk3.DuSQ2w.hjmrZBrDSrRZRibXbls_rccXBM0";
+	/**
+	 * Bot snowflake identifier.
+	 */
 	public static final long ID=367426178019229697L;
+	/**
+	 * Delimiter character.
+	 */
 	public static final char DELIMITER=' ';
+	/**
+	 * Escape character.
+	 */
 	public static final char ESCAPE='\\';
+	/**
+	 * Quotation character.
+	 */
 	public static final char BRACKET=34;
+	/**
+	 * Parse a string into space-separated arguments.
+	 * @param s The string to parse.
+	 * @return An array of strings where each string is an argument.
+	 */
 	public static final String[]getCmdArgs(String s)
 	{
 		StringBuilder builder=new StringBuilder();
@@ -45,6 +69,11 @@ public class ScannerV0_2_0
 		}
 		return argsal.toArray(new String[argsal.size()]);
 	}
+	/**
+	 * Checks if a string is a valid number.
+	 * @param The string to check.
+	 * @return True if the string is a valid non-negative integer, false otherwise.
+	 */
 	public static final boolean isValidNumber(String s)
 	{
 		boolean valid=true;
@@ -54,6 +83,11 @@ public class ScannerV0_2_0
 		}
 		return valid;
 	}
+	/**
+	 * Converts a string that is potentially a fraction into a BigDecimal
+	 * @param s The string representation of a number.
+	 * @return The BigDecimal that the string represents.
+	 */
 	public static final BigDecimal strToNum(String s)
 	{
 		String[]parts=s.split("/");
@@ -64,16 +98,50 @@ public class ScannerV0_2_0
 		}
 		return n;
 	}
+	/**
+	 * The main JDA object of the bot.
+	 */
 	private JDA jda;
+	/**
+	 * The thread for parsing console commands.
+	 */
 	private Thread thread1;
+	/**
+	 * The thread for reading messages and parsing discord commands.
+	 */
 	private Thread thread2;
+	/**
+	 * The message listener that listens for messages.
+	 */
 	private volatile MessageListener msgs;
+	/**
+	 * Channel to print messages from to the console.
+	 */
 	private volatile MessageChannel channel;
+	/**
+	 * Guild the selected channel is in.
+	 */
 	private volatile Guild guild;
+	/**
+	 * Whether or not this application is running.
+	 */
 	private boolean running;
+	/**
+	 * The map of guilds this bot is in.
+	 */
 	private LinkedHashMap<Long,Guild>guilds;
+	/**
+	 * The parser for console commands.
+	 */
 	private CmdParser consoleCommandParser;
+	/**
+	 * The parser for discord commands.
+	 */
 	private CmdParser discordCommandParser;
+	/**
+	 * Constructor for the bot's main class.
+	 * @throws LoginException
+	 */
 	public ScannerV0_2_0()throws LoginException
 	{
 		this.jda=new JDABuilder(AccountType.BOT).setToken(ScannerV0_2_0.TOKEN).build();
@@ -106,10 +174,26 @@ public class ScannerV0_2_0
 		this.consoleCommandParser=new CmdParser(parsers,names);
 		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
 	}
+	/**
+	 * Gets the current guild and channel.
+	 * @param guild The guild the command was sent from.
+	 * @param author The user who sent the command.
+	 * @param channel The ID of the channel that the command was sent from.
+	 * @param args The list of arguments for this command.
+	 * @return The current guild and channel.
+	 */
 	public String parseCurrentChannel(Guild guild,User author,long channel,String...args)
 	{
 		return this.guild.toString()+", "+this.channel.toString();
 	}
+	/**
+	 * Command for changing the current channel to print the messages from. Requires two arguments, guild the channel is in, and then the channel, either name or snowflake ID.
+	 * @param guild The guild the command was sent from.
+	 * @param author The user who sent the command.
+	 * @param channel The ID of the channel that the command was sent from.
+	 * @param args The list of arguments for this command.
+	 * @return A message saying whether or not the change was successful.
+	 */
 	public String parseChangeChannel(Guild guild,User author,long channel,String...args)
 	{
 		String result="";
@@ -166,6 +250,14 @@ public class ScannerV0_2_0
 		}
 		return result;
 	}
+	/**
+	 * Displays a list of guilds, channels in current guild, or all.
+	 * @param guild The guild the command was sent from.
+	 * @param author The user who sent the command.
+	 * @param channel The ID of the channel that the command was sent from.
+	 * @param args The list of arguments for this command.
+	 * @return A string that represents the list of guilds or channels as requested by the user.
+	 */
 	public String parseListGuildsAndChannels(Guild guild,User user,long channel,String[]args)
 	{
 		String result="Usage: list <all|guilds|channels>";
@@ -213,6 +305,14 @@ public class ScannerV0_2_0
 		}
 		return result;
 	}
+	/**
+	 * Sends a message to currently selected channel.
+	 * @param guild The guild the command was sent from.
+	 * @param author The user who sent the command.
+	 * @param channel The ID of the channel that the command was sent from.
+	 * @param args The list of arguments for this command.
+	 * @return A message indicating whether or not the message could be sent.
+	 */
 	public String parseSendMsg(Guild guild,User user,long channel,String...args)
 	{
 		String result="Error, no message to be sent!";
@@ -223,6 +323,14 @@ public class ScannerV0_2_0
 		}
 		return result;
 	}
+	/**
+	 * Gets the average of a list of numbers, more precisely the arithmetic mean.
+	 * @param guild The guild the command was sent from.
+	 * @param author The user who sent the command.
+	 * @param channel The ID of the channel that the command was sent from.
+	 * @param args The list of arguments for this command.
+	 * @return The string representation of the arithmetic mean of the arguments.
+	 */
 	public String parseListAverage(Guild guild,User user,long channel,String...args)
 	{
 		BigDecimal n=BigDecimal.ZERO;
@@ -232,6 +340,14 @@ public class ScannerV0_2_0
 		}
 		return args.length==0?"0":n.divide(new BigDecimal(args.length),MathContext.DECIMAL128).toString();
 	}
+	/**
+	 * Gets the geometric mean of a list of numbers.
+	 * @param guild The guild the command was sent from.
+	 * @param author The user who sent the command.
+	 * @param channel The ID of the channel that the command was sent from.
+	 * @param args The list of arguments for this command.
+	 * @return The string representation of the geometric mean of the arguments.
+	 */
 	public String parseGeometricMean(Guild guild,User user,long channel,String...args)
 	{
 		BigDecimal n=BigDecimal.ONE;
@@ -241,6 +357,9 @@ public class ScannerV0_2_0
 		}
 		return args.length==0?"0":MathAlgs.yroot(n,args.length).toString();
 	}
+	/**
+	 * Run method for the thread for parsing console commands.
+	 */
 	public void run1()
 	{
 		BufferedReader reader=new BufferedReader(new InputStreamReader(System.in));
@@ -259,6 +378,9 @@ public class ScannerV0_2_0
 		}
 		System.exit(0);
 	}
+	/**
+	 * Run method for thread for parsing discord commands.
+	 */
 	public void run2()
 	{
 		Message msg=null;
@@ -298,12 +420,19 @@ public class ScannerV0_2_0
 			}
 		}
 	}
+	/**
+	 * Start both threads.
+	 */
 	public synchronized void start()
 	{
 		this.thread1.start();
 		this.thread2.start();
 		this.running=true;
 	}
+	/**
+	 * The main method that is first called during program execution.
+	 * @param args The command line arguments for this program.
+	 */
 	public static final void main(String[]args)
 	{
 		try
