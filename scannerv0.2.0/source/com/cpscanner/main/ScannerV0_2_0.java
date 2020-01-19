@@ -4,16 +4,46 @@ import java.io.*;
 import java.math.*;
 import java.util.*;
 import javax.security.auth.login.LoginException;
-import com.cpscanner.cmd.*;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
+import com.cpscanner.cmd.*;
+import com.cpscanner.algorithm.*;
 public class ScannerV0_2_0
 {
 	public static final String TOKEN="MzY3NDI2MTc4MDE5MjI5Njk3.DuSQ2w.hjmrZBrDSrRZRibXbls_rccXBM0";
 	public static final long ID=367426178019229697L;
+	public static final char DELIMITER=' ';
+	public static final char ESCAPE='\\';
+	public static final char BRACKET=34;
 	public static final String[]getCmdArgs(String s)
 	{
-		return s.split("\\s");
+		StringBuilder builder=new StringBuilder();
+		boolean open=false;
+		boolean escaped=false;
+		char[]cs=s.toCharArray();
+		ArrayList<String>argsal=new ArrayList<String>();
+		for(int i=0;i<cs.length;i++)
+		{
+			if(cs[i]==ScannerV0_2_0.BRACKET&&!escaped)
+			{
+				open=!open;
+			}
+			else if(cs[i]==ScannerV0_2_0.DELIMITER&&!open)
+			{
+				argsal.add(builder.toString());
+				builder.delete(0,builder.length());
+			}
+			else
+			{
+				builder.append(cs[i]);
+			}
+			escaped=!escaped&&cs[i]==ScannerV0_2_0.ESCAPE;
+		}
+		if(builder.length()>0)
+		{
+			argsal.add(builder.toString());
+		}
+		return argsal.toArray(new String[argsal.size()]);
 	}
 	public static final boolean isValidNumber(String s)
 	{
@@ -43,6 +73,7 @@ public class ScannerV0_2_0
 	private boolean running;
 	private LinkedHashMap<Long,Guild>guilds;
 	private CmdParser consoleCommandParser;
+	private CmdParser discordCommandParser;
 	public ScannerV0_2_0()throws LoginException
 	{
 		this.jda=new JDABuilder(AccountType.BOT).setToken(ScannerV0_2_0.TOKEN).build();
@@ -70,9 +101,14 @@ public class ScannerV0_2_0
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="list change average".split(" ");
-		ScCmd[]parsers={this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseListAverage};
+		String[]names="current list change message average gmean".split(" ");
+		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseListAverage,this::parseGeometricMean};
 		this.consoleCommandParser=new CmdParser(parsers,names);
+		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
+	}
+	public String parseCurrentChannel(Guild guild,User author,long channel,String...args)
+	{
+		return this.guild.toString()+", "+this.channel.toString();
 	}
 	public String parseChangeChannel(Guild guild,User author,long channel,String...args)
 	{
@@ -84,7 +120,6 @@ public class ScannerV0_2_0
 			String schannel=args[1];
 			if(!ScannerV0_2_0.isValidNumber(sguild))
 			{
-				out.println("a string");
 				Iterator<Guild>_it_=this.guilds.values().iterator();
 				boolean found=false;
 				while(!found&&_it_.hasNext())
@@ -178,6 +213,16 @@ public class ScannerV0_2_0
 		}
 		return result;
 	}
+	public String parseSendMsg(Guild guild,User user,long channel,String...args)
+	{
+		String result="Error, no message to be sent!";
+		if(args.length>=1)
+		{
+			this.channel.sendMessage(args[0]).queue();
+			result="Sent message to channel "+this.channel.getName()+" in guild "+this.guild.getName()+".";
+		}
+		return result;
+	}
 	public String parseListAverage(Guild guild,User user,long channel,String...args)
 	{
 		BigDecimal n=BigDecimal.ZERO;
@@ -186,6 +231,15 @@ public class ScannerV0_2_0
 			n=n.add(ScannerV0_2_0.strToNum(args[i]));
 		}
 		return args.length==0?"0":n.divide(new BigDecimal(args.length),MathContext.DECIMAL128).toString();
+	}
+	public String parseGeometricMean(Guild guild,User user,long channel,String...args)
+	{
+		BigDecimal n=BigDecimal.ONE;
+		for(int i=0;i<args.length;i++)
+		{
+			n=n.multiply(ScannerV0_2_0.strToNum(args[i]));
+		}
+		return args.length==0?"0":MathAlgs.yroot(n,args.length).toString();
 	}
 	public void run1()
 	{
@@ -209,6 +263,7 @@ public class ScannerV0_2_0
 	{
 		Message msg=null;
 		boolean printed=false;
+		String[]args=null;
 		while(this.running)
 		{
 			if(this.msgs.isMessageNew())
@@ -218,12 +273,28 @@ public class ScannerV0_2_0
 			}
 			if(this.channel!=null&&msg!=null)
 			{
-				if(!printed&&msg.getChannel().equals(this.channel))
+				if(!printed)
 				{
-					out.printf("Server: %x (%s), Channel: %x (%s)"+System.getProperty("line.separator"),msg.getGuild().getIdLong(),msg.getGuild().getName(),msg.getChannel().getIdLong(),msg.getChannel().getName());
-					out.printf("%x (%s AKA %s): %s"+System.getProperty("line.separator"),msg.getAuthor().getIdLong(),msg.getAuthor().getName(),msg.getGuild().getMember(msg.getAuthor()).getEffectiveName(),msg.getContentDisplay());
+					if(msg.getChannel().equals(this.channel))
+					{
+						out.printf("Server: %x (%s), Channel: %x (%s)"+System.getProperty("line.separator"),msg.getGuild().getIdLong(),msg.getGuild().getName(),msg.getChannel().getIdLong(),msg.getChannel().getName());
+						out.printf("%x (%s AKA %s): %s"+System.getProperty("line.separator"),msg.getAuthor().getIdLong(),msg.getAuthor().getName(),msg.getGuild().getMember(msg.getAuthor()).getEffectiveName(),msg.getContentRaw());
+					}
+					args=ScannerV0_2_0.getCmdArgs(msg.getContentRaw());
+					if(args[0].equals("<@!"+Long.toString(ScannerV0_2_0.ID)+">"))
+					{
+						msg.getChannel().sendMessage(this.discordCommandParser.parse(msg.getGuild(),msg.getAuthor(),msg.getChannel().getIdLong(),Arrays.copyOfRange(args,1,args.length))).queue();
+					}
 					printed=true;
 				}
+			}
+			try
+			{
+				Thread.sleep(10);
+			}
+			catch(InterruptedException e)
+			{
+				e.printStackTrace();
 			}
 		}
 	}
