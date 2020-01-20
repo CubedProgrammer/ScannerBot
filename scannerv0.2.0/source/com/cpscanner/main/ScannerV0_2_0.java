@@ -169,8 +169,8 @@ public class ScannerV0_2_0
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="current list change message average gmean".split(" ");
-		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseListAverage,this::parseGeometricMean};
+		String[]names="current list change message info average gmean".split(" ");
+		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseListAverage,this::parseGeometricMean};
 		this.consoleCommandParser=new CmdParser(parsers,names);
 		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
 	}
@@ -320,6 +320,46 @@ public class ScannerV0_2_0
 		{
 			this.channel.sendMessage(args[0]).queue();
 			result="Sent message to channel "+this.channel.getName()+" in guild "+this.guild.getName()+".";
+		}
+		return result;
+	}
+	/**
+	 * Gets the information on an entity, whether it be a guild, channel, or user.
+	 * @param guild The guild the command was sent from.
+	 * @param author The user who sent the command.
+	 * @param channel The ID of the channel that the command was sent from.
+	 * @param args The list of arguments for this command.
+	 * @return The information on the requested entity.
+	 */
+	public String parseEntityInfo(Guild guild,User user,long channel,String...args)
+	{
+		String result="Usage: info <{name}|{id}|server>";
+		if(args.length>=1)
+		{
+			long id=0;
+			if("server".equals(args[0]))
+			{
+				result=String.format("Guild has %d members, %d roles, %d channels and %d categories, system channel is %s, with snowflake ID of 0x%x.",guild.getMemberCount(),guild.getRoles().size(),guild.getChannels().size(),guild.getCategories().size(),guild.getSystemChannel().getName(),guild.getSystemChannel().getIdLong());
+			}
+			else if(args[0].length()>4&&args[0].charAt(0)=='<'&&args[0].charAt(args[0].length()-1)=='>'&&args[0].charAt(1)=='@')
+			{
+				id=Long.parseLong(args[0].substring(3,args[0].length()-1));
+				Date join=new Date((id>>22)*1000);
+				switch(args[0].charAt(2))
+				{
+					case'!':
+						user=this.jda.getUserById(id);
+						result=String.format("User %s was created on %s, snowflake id is 0x%x, avatar is %s.",user.getName(),join.toString(),id,user.getAvatarUrl());
+						break;
+					case'#':
+						GuildChannel ch=this.jda.getGuildChannelById(id);
+						result=String.format("Channel %s was created on %s, snowflake id is 0x%x, typ is %s.",ch.getName(),join.toString(),id,ch.getType());
+						break;
+					case'&':
+						Role r=this.jda.getRoleById(id);
+						result=String.format("Role %s was created on %s, snowflake id is 0x%x, permission value is 0x%x.",r.getName(),join.toString(),id,r.getPermissionsRaw());
+				}
+			}
 		}
 		return result;
 	}
