@@ -4,6 +4,7 @@ import java.io.*;
 import java.math.*;
 import java.util.*;
 import javax.security.auth.login.LoginException;
+import org.json.simple.parser.JSONParser;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
 import com.cpscanner.cmd.*;
@@ -143,9 +144,15 @@ public class ScannerV0_2_0
 	 */
 	private String prefix;
 	/**
+	 * Data for economy.
+	 */
+	@SuppressWarnings("rawtypes")
+	private LinkedHashMap<Long,LinkedHashMap>economy;
+	/**
 	 * Constructor for the bot's main class.
 	 * @throws LoginException
 	 */
+	@SuppressWarnings("rawtypes")
 	public ScannerV0_2_0()throws LoginException
 	{
 		this.jda=new JDABuilder(AccountType.BOT).setToken(ScannerV0_2_0.TOKEN).build();
@@ -164,20 +171,61 @@ public class ScannerV0_2_0
 		out.println(this.jda.getGuilds());
 		Iterator<Guild>it=this.jda.getGuilds().iterator();
 		Guild g=null;
+		File f=null;
+		File ff=null;
 		while(it.hasNext())
 		{
 			g=it.next();
 			this.guilds.put(g.getIdLong(),g);
+			f=new File(g.getId());
+			if(!f.exists())
+			{
+				f.mkdir();
+				try
+				{
+					ff=new File(f.getAbsolutePath()+"\\roleinfo.dat");
+					ff.createNewFile();
+					ff=new File(f.getAbsolutePath()+"\\ecogame.dat");
+					ff.createNewFile();
+				}
+				catch(IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
 		}
 		out.println(this.guilds);
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="current list change message info sum product average gmean".split(" ");
-		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean};
+		String[]names="current list change message info sum product average gmean work".split(" ");
+		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork};
 		this.consoleCommandParser=new CmdParser(parsers,names);
 		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
 		this.prefix="--";
+		this.economy=new LinkedHashMap<Long,LinkedHashMap>();
+		JSONParser parser=new JSONParser();
+		Object o=null;
+		try
+		{
+			BufferedReader reader=null;
+			it=this.guilds.values().iterator();
+			while(it.hasNext())
+			{
+				g=it.next();
+				reader=new BufferedReader(new InputStreamReader(new FileInputStream(g.getId()+"\\ecogame.dat")));
+				parser.parse(reader);
+				if(o!=null)
+				{
+					out.println(o.getClass());
+					out.println(o);
+				}
+			}
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 	/**
 	 * Gets the current guild and channel.
@@ -435,6 +483,40 @@ public class ScannerV0_2_0
 			n=n.multiply(ScannerV0_2_0.strToNum(args[i]));
 		}
 		return args.length==0?"0":MathAlgs.yroot(n,args.length).toString();
+	}
+	/**
+	 * Parses work command on discord, currently only gives 100 dollars.
+	 * @param guild The guild the command was sent from.
+	 * @param author The user who sent the command.
+	 * @param channel The ID of the channel that the command was sent from.
+	 * @param args The list of arguments for this command.
+	 * @return The string representation of the geometric mean of the arguments.
+	 */
+	@SuppressWarnings("rawtypes")
+	public String parseWork(Guild guild,User user,long channel,String...args)
+	{
+		if(!this.economy.containsKey(guild.getIdLong()))
+		{
+			File file=new File(guild.getId());
+			File ff=null;
+			if(!file.exists())
+			{
+				file.mkdirs();
+				try
+				{
+					ff=new File(file.getAbsolutePath()+"\\roleinfo.dat");
+					ff.createNewFile();
+					ff=new File(file.getAbsolutePath()+"\\ecogame.dat");
+					ff.createNewFile();
+				}
+				catch(IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
+			this.economy.put(guild.getIdLong(),new LinkedHashMap<Long,LinkedHashMap>());
+		}
+		return"You worked for $100.";
 	}
 	/**
 	 * Run method for the thread for parsing console commands.
