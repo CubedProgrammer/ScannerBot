@@ -198,8 +198,8 @@ public class ScannerV0_2_0
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="current list change message info addrole sum product average gmean work".split(" ");
-		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseAddRole,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork};
+		String[]names="current list change message info sum product average gmean work addrole rmrole".split(" ");
+		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole};
 		this.consoleCommandParser=new CmdParser(parsers,names);
 		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
 		this.prefix="--";
@@ -497,6 +497,23 @@ public class ScannerV0_2_0
 			{
 				guild.addRoleToMember(target,role).queue();
 				ans="Added that role to the member.";
+			}
+		}
+		return ans;
+	}
+	public String parseRemoveRole(Guild guild,User user,long channel,String...args)
+	{
+		String ans="Usage: <role> <member>";
+		if(args.length>=2)
+		{
+			ans="You do not have permission to use this command!";
+			Role role=guild.getRoleById(args[0].substring(3,args[0].length()-1));
+			Member target=guild.getMemberById(args[1].substring(3,args[1].length()-1));
+			Member author=user==null?null:guild.getMember(user);
+			if(author==null||author.hasPermission(Permission.MANAGE_ROLES))
+			{
+				guild.removeRoleFromMember(target,role).queue();
+				ans="Removed that role to the member.";
 			}
 		}
 		return ans;
