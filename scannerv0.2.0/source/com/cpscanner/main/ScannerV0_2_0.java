@@ -4,6 +4,7 @@ import java.io.*;
 import java.math.*;
 import java.util.*;
 import javax.security.auth.login.LoginException;
+import org.json.simple.parser.JSONParser;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
 import com.cpscanner.cmd.*;
@@ -17,7 +18,7 @@ public class ScannerV0_2_0
 	/**
 	 * Token for bot authentication.
 	 */
-	public static final String TOKEN="MzY3NDI2MTc4MDE5MjI5Njk3.DuSQ2w.hjmrZBrDSrRZRibXbls_rccXBM0";
+	public static final String TOKEN="MzY3NDI2MTc4MDE5MjI5Njk3.XtkugQ.Z7o1Wj5JoBRr2Cz7WnJzh9-VLP8";
 	/**
 	 * Bot snowflake identifier.
 	 */
@@ -139,9 +140,19 @@ public class ScannerV0_2_0
 	 */
 	private CmdParser discordCommandParser;
 	/**
+	 * Prefix for commands on discord
+	 */
+	private String prefix;
+	/**
+	 * Data for economy.
+	 */
+	@SuppressWarnings("rawtypes")
+	private LinkedHashMap<Long,LinkedHashMap>economy;
+	/**
 	 * Constructor for the bot's main class.
 	 * @throws LoginException
 	 */
+	@SuppressWarnings("rawtypes")
 	public ScannerV0_2_0()throws LoginException
 	{
 		this.jda=new JDABuilder(AccountType.BOT).setToken(ScannerV0_2_0.TOKEN).build();
@@ -160,19 +171,61 @@ public class ScannerV0_2_0
 		out.println(this.jda.getGuilds());
 		Iterator<Guild>it=this.jda.getGuilds().iterator();
 		Guild g=null;
+		File f=null;
+		File ff=null;
 		while(it.hasNext())
 		{
 			g=it.next();
 			this.guilds.put(g.getIdLong(),g);
+			f=new File(g.getId());
+			if(!f.exists())
+			{
+				f.mkdir();
+				try
+				{
+					ff=new File(f.getAbsolutePath()+"\\roleinfo.dat");
+					ff.createNewFile();
+					ff=new File(f.getAbsolutePath()+"\\ecogame.dat");
+					ff.createNewFile();
+				}
+				catch(IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
 		}
 		out.println(this.guilds);
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="current list change message average gmean".split(" ");
-		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseListAverage,this::parseGeometricMean};
+		String[]names="current list change message info sum product average gmean work addrole rmrole".split(" ");
+		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole};
 		this.consoleCommandParser=new CmdParser(parsers,names);
 		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
+		this.prefix="--";
+		this.economy=new LinkedHashMap<Long,LinkedHashMap>();
+		JSONParser parser=new JSONParser();
+		Object o=null;
+		try
+		{
+			BufferedReader reader=null;
+			it=this.guilds.values().iterator();
+			while(it.hasNext())
+			{
+				g=it.next();
+				reader=new BufferedReader(new InputStreamReader(new FileInputStream(g.getId()+"\\ecogame.dat")));
+				parser.parse(reader);
+				if(o!=null)
+				{
+					out.println(o.getClass());
+					out.println(o);
+				}
+			}
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 	/**
 	 * Gets the current guild and channel.
@@ -324,6 +377,80 @@ public class ScannerV0_2_0
 		return result;
 	}
 	/**
+	 * Gets the information on an entity, whether it be a guild, channel, or user.
+	 * @param guild The guild the command was sent from.
+	 * @param author The user who sent the command.
+	 * @param channel The ID of the channel that the command was sent from.
+	 * @param args The list of arguments for this command.
+	 * @return The information on the requested entity.
+	 */
+	public String parseEntityInfo(Guild guild,User user,long channel,String...args)
+	{
+		String result="Usage: info <{name}|{id}|server>";
+		if(args.length>=1)
+		{
+			long id=0;
+			if("server".equals(args[0]))
+			{
+				result=String.format("Guild has %d members, %d roles, %d channels and %d categories, system channel is %s, with snowflake ID of 0x%x.",guild.getMemberCount(),guild.getRoles().size(),guild.getChannels().size(),guild.getCategories().size(),guild.getSystemChannel().getName(),guild.getSystemChannel().getIdLong());
+			}
+			else if(args[0].length()>4&&args[0].charAt(0)=='<'&&args[0].charAt(args[0].length()-1)=='>'&&args[0].charAt(1)=='@')
+			{
+				id=Long.parseLong(args[0].substring(3,args[0].length()-1));
+				Date join=new Date((id>>22)*1000);
+				switch(args[0].charAt(2))
+				{
+					case'!':
+						user=this.jda.getUserById(id);
+						result=String.format("User %s was created on %s, snowflake id is 0x%x, avatar is %s.",user.getName(),join.toString(),id,user.getAvatarUrl());
+						break;
+					case'#':
+						GuildChannel ch=this.jda.getGuildChannelById(id);
+						result=String.format("Channel %s was created on %s, snowflake id is 0x%x, typ is %s.",ch.getName(),join.toString(),id,ch.getType());
+						break;
+					case'&':
+						Role r=this.jda.getRoleById(id);
+						result=String.format("Role %s was created on %s, snowflake id is 0x%x, permission value is 0x%x.",r.getName(),join.toString(),id,r.getPermissionsRaw());
+				}
+			}
+		}
+		return result;
+	}
+	/**
+	 * Gets the sum of a list of numbers.
+	 * @param guild The guild the command was sent from.
+	 * @param author The user who sent the command.
+	 * @param channel The ID of the channel that the command was sent from.
+	 * @param args The list of arguments for this command.
+	 * @return The string representation of the arithmetic mean of the arguments.
+	 */
+	public String parseSum(Guild guild,User user,long channel,String...args)
+	{
+		BigDecimal n=BigDecimal.ZERO;
+		for(int i=0;i<args.length;i++)
+		{
+			n=n.add(ScannerV0_2_0.strToNum(args[i]));
+		}
+		return n.toString();
+	}
+	/**
+	 * Gets the product of a list of numbers.
+	 * @param guild The guild the command was sent from.
+	 * @param author The user who sent the command.
+	 * @param channel The ID of the channel that the command was sent from.
+	 * @param args The list of arguments for this command.
+	 * @return The string representation of the arithmetic mean of the arguments.
+	 */
+	public String parseProduct(Guild guild,User user,long channel,String...args)
+	{
+		BigDecimal n=BigDecimal.ONE;
+		for(int i=0;i<args.length;i++)
+		{
+			n=n.multiply(ScannerV0_2_0.strToNum(args[i]));
+		}
+		return n.toString();
+	}
+	/**
 	 * Gets the average of a list of numbers, more precisely the arithmetic mean.
 	 * @param guild The guild the command was sent from.
 	 * @param author The user who sent the command.
@@ -356,6 +483,74 @@ public class ScannerV0_2_0
 			n=n.multiply(ScannerV0_2_0.strToNum(args[i]));
 		}
 		return args.length==0?"0":MathAlgs.yroot(n,args.length).toString();
+	}
+	public String parseAddRole(Guild guild,User user,long channel,String...args)
+	{
+		String ans="Usage: addrole <role> <member>";
+		if(args.length>=2)
+		{
+			ans="You do not have permission to use this command!";
+			Role role=guild.getRoleById(args[0].substring(3,args[0].length()-1));
+			Member target=guild.getMemberById(args[1].substring(3,args[1].length()-1));
+			Member author=user==null?null:guild.getMember(user);
+			if(author==null||author.hasPermission(Permission.MANAGE_ROLES))
+			{
+				guild.addRoleToMember(target,role).queue();
+				ans="Added that role to the member.";
+			}
+		}
+		return ans;
+	}
+	public String parseRemoveRole(Guild guild,User user,long channel,String...args)
+	{
+		String ans="Usage: <role> <member>";
+		if(args.length>=2)
+		{
+			ans="You do not have permission to use this command!";
+			Role role=guild.getRoleById(args[0].substring(3,args[0].length()-1));
+			Member target=guild.getMemberById(args[1].substring(3,args[1].length()-1));
+			Member author=user==null?null:guild.getMember(user);
+			if(author==null||author.hasPermission(Permission.MANAGE_ROLES))
+			{
+				guild.removeRoleFromMember(target,role).queue();
+				ans="Removed that role to the member.";
+			}
+		}
+		return ans;
+	}
+	/**
+	 * Parses work command on discord, currently only gives 100 dollars.
+	 * @param guild The guild the command was sent from.
+	 * @param author The user who sent the command.
+	 * @param channel The ID of the channel that the command was sent from.
+	 * @param args The list of arguments for this command.
+	 * @return The string representation of the geometric mean of the arguments.
+	 */
+	@SuppressWarnings("rawtypes")
+	public String parseWork(Guild guild,User user,long channel,String...args)
+	{
+		if(!this.economy.containsKey(guild.getIdLong()))
+		{
+			File file=new File(guild.getId());
+			File ff=null;
+			if(!file.exists())
+			{
+				file.mkdirs();
+				try
+				{
+					ff=new File(file.getAbsolutePath()+"\\roleinfo.dat");
+					ff.createNewFile();
+					ff=new File(file.getAbsolutePath()+"\\ecogame.dat");
+					ff.createNewFile();
+				}
+				catch(IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
+			this.economy.put(guild.getIdLong(),new LinkedHashMap<Long,LinkedHashMap>());
+		}
+		return"You worked for $100.";
 	}
 	/**
 	 * Run method for the thread for parsing console commands.
@@ -406,6 +601,11 @@ public class ScannerV0_2_0
 					if(args[0].equals("<@!"+Long.toString(ScannerV0_2_0.ID)+">"))
 					{
 						msg.getChannel().sendMessage(this.discordCommandParser.parse(msg.getGuild(),msg.getAuthor(),msg.getChannel().getIdLong(),Arrays.copyOfRange(args,1,args.length))).queue();
+					}
+					else if(args[0].length()>=2&&this.prefix.equals(args[0].substring(0,2)))
+					{
+						args[0]=args[0].substring(2);
+						msg.getChannel().sendMessage(this.discordCommandParser.parse(msg.getGuild(),msg.getAuthor(),msg.getChannel().getIdLong(),args)).queue();
 					}
 					printed=true;
 				}

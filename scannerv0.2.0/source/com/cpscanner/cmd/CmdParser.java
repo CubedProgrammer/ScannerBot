@@ -75,7 +75,17 @@ public class CmdParser
 					}
 					args=new String[argsal.size()];
 					for(int j=0;j<args.length;args[j]=argsal.get(j++));
-					result=this.cmds.get(name).parse(guild,author,channel,args);
+					try
+					{
+						result=this.cmds.get(name).parse(guild,author,channel,args);
+					}
+					catch(Exception e)
+					{
+						++start;
+						result="Command `"+name+"` failed, which was the "+Integer.toString(start)+((start%100>13||start%100<11)&&start%10<=3&&start%10!=0?start%10==3?"rd":start%10==2?"nd":"st":"th")+" token, and error message is \r\n"+e.toString();
+						e.printStackTrace();
+						--start;
+					}
 					name="";
 					for(int j=0;j<Integer.numberOfLeadingZeros(end-start+1)>>2;j++)
 					{
