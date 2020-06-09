@@ -4,6 +4,8 @@ import java.io.*;
 import java.math.*;
 import java.util.*;
 import javax.security.auth.login.LoginException;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
@@ -173,6 +175,7 @@ public class ScannerV0_2_0
 		Guild g=null;
 		File f=null;
 		File ff=null;
+		FileWriter writer=null;
 		while(it.hasNext())
 		{
 			g=it.next();
@@ -183,10 +186,21 @@ public class ScannerV0_2_0
 				f.mkdir();
 				try
 				{
-					ff=new File(f.getAbsolutePath()+"\\roleinfo.dat");
+					ff=new File(f.getAbsolutePath()+"/roleinfo.dat");
 					ff.createNewFile();
-					ff=new File(f.getAbsolutePath()+"\\ecogame.dat");
+					writer=new FileWriter(ff);
+					writer.append("{}");
+					writer.close();
+					ff=new File(f.getAbsolutePath()+"/ecogame.dat");
 					ff.createNewFile();
+					writer=new FileWriter(ff);
+					writer.append("{}");
+					writer.close();
+					ff=new File(f.getAbsolutePath()+"/names.dat");
+					ff.createNewFile();
+					writer=new FileWriter(ff);
+					writer.append("{}");
+					writer.close();
 				}
 				catch(IOException e)
 				{
@@ -198,8 +212,8 @@ public class ScannerV0_2_0
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="current list change message info sum product average gmean work addrole rmrole".split(" ");
-		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole};
+		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole".split(" ");
+		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole};
 		this.consoleCommandParser=new CmdParser(parsers,names);
 		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
 		this.prefix="--";
@@ -213,7 +227,7 @@ public class ScannerV0_2_0
 			while(it.hasNext())
 			{
 				g=it.next();
-				reader=new BufferedReader(new InputStreamReader(new FileInputStream(g.getId()+"\\ecogame.dat")));
+				reader=new BufferedReader(new InputStreamReader(new FileInputStream(g.getId()+"/ecogame.dat")));
 				parser.parse(reader);
 				if(o!=null)
 				{
@@ -518,6 +532,38 @@ public class ScannerV0_2_0
 		}
 		return ans;
 	}
+	@SuppressWarnings("unchecked")
+	public String parseVerifyName(Guild guild,User user,long channel,String...args)
+	{
+		if(args.length == 2)
+		{
+			String fname = args[0];
+			String lname = args[1];
+			try
+			{
+				FileReader reader=new FileReader(guild.getId()+"/names.dat");
+				JSONParser parser=new JSONParser();
+				var obj = (JSONObject)parser.parse(reader);
+				var name = new JSONObject();
+				name.put("First Name",fname);
+				name.put("Last Name",lname);
+				obj.put(user.getIdLong(),name);
+				reader.close();
+				FileWriter writer = new FileWriter(guild.getId()+"/names.dat");
+				writer.append(obj.toJSONString());
+				writer.close();
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+			return"Verified your name.";
+		}
+		else
+		{
+			return"Type in your first name and last name.";
+		}
+	}
 	/**
 	 * Parses work command on discord, currently only gives 100 dollars.
 	 * @param guild The guild the command was sent from.
@@ -538,9 +584,9 @@ public class ScannerV0_2_0
 				file.mkdirs();
 				try
 				{
-					ff=new File(file.getAbsolutePath()+"\\roleinfo.dat");
+					ff=new File(file.getAbsolutePath()+"/roleinfo.dat");
 					ff.createNewFile();
-					ff=new File(file.getAbsolutePath()+"\\ecogame.dat");
+					ff=new File(file.getAbsolutePath()+"/ecogame.dat");
 					ff.createNewFile();
 				}
 				catch(IOException e)
@@ -551,6 +597,143 @@ public class ScannerV0_2_0
 			this.economy.put(guild.getIdLong(),new LinkedHashMap<Long,LinkedHashMap>());
 		}
 		return"You worked for $100.";
+	}
+	@SuppressWarnings("unchecked")
+	public String parseAutorole(Guild guild,User user,long channel,String...args)
+	{
+		String ans="First argument must be add or erase.";
+		if(args.length==2)
+		{
+			if("add".equals(args[0]))
+			{
+				if(args[1].length()>4)
+				{
+					Role role=guild.getRoleById(args[1].substring(3,args[1].length()-1));
+					if(role==null)
+					{
+						ans="Invalid role";
+					}
+					else
+					{
+						try
+						{
+							FileReader reader=new FileReader(guild.getId()+"/roleinfo.dat");
+							JSONObject object=(JSONObject)new JSONParser().parse(reader);
+							reader.close();
+							JSONArray autoroles=null;
+							if(object.containsKey("autoroles"))
+							{
+								autoroles = (JSONArray)object.get("autoroles");
+							}
+							else
+							{
+								autoroles = new JSONArray();
+								object.put("autoroles",autoroles);
+							}
+							if(autoroles.contains(role.getIdLong()))
+							{
+								ans="It's already an autorole, use erase as first parameter to erase it.";
+							}
+							else
+							{
+								autoroles.add(role.getIdLong());
+								FileWriter writer=new FileWriter(guild.getId()+"/roleinfo.dat");
+								writer.append(object.toJSONString());
+								writer.close();
+								ans="Successfully added autorole.";
+							}
+						}
+						catch(Exception e)
+						{
+							e.printStackTrace();
+						}
+					}
+				}
+				else
+				{
+					ans = "Invalid role.";
+				}
+			}
+			else if("erase".equals(args[0]))
+			{
+				if(args[1].length()>4)
+				{
+					Role role=guild.getRoleById(args[1].substring(3,args[1].length()-1));
+					if(role==null)
+					{
+						ans="Invalid role";
+					}
+					else
+					{
+						try
+						{
+							FileReader reader=new FileReader(guild.getId()+"/roleinfo.dat");
+							JSONObject object=(JSONObject)new JSONParser().parse(reader);
+							reader.close();
+							JSONArray autoroles=null;
+							if(object.containsKey("autoroles"))
+							{
+								autoroles = (JSONArray)object.get("autoroles");
+							}
+							else
+							{
+								autoroles = new JSONArray();
+								object.put("autoroles",autoroles);
+							}
+							if(autoroles.contains(role.getIdLong()))
+							{
+								autoroles.remove(Long.valueOf(role.getIdLong()));
+								FileWriter writer=new FileWriter(guild.getId()+"/roleinfo.dat");
+								writer.append(object.toJSONString());
+								writer.close();
+								ans="Successfully erased autorole.";
+							}
+							else
+							{
+								ans="It's not an autorole, use add as first parameter to add it.";
+							}
+						}
+						catch(Exception e)
+						{
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		}
+		else if(args.length==1&&"list".equals(args[0]))
+		{
+			try
+			{
+				FileReader reader=new FileReader(guild.getId()+"/roleinfo.dat");
+				JSONObject object=(JSONObject)new JSONParser().parse(reader);
+				reader.close();
+				JSONArray autoroles=null;
+				if(object.containsKey("autoroles"))
+				{
+					autoroles = (JSONArray)object.get("autoroles");
+				}
+				else
+				{
+					autoroles = new JSONArray();
+					object.put("autoroles",autoroles);
+				}
+				ans="These are the current autoroles.";
+				for(Object arole:autoroles)
+				{
+					ans+="\r\n"+guild.getRoleById((Long)arole).getName();
+				}
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+		}
+		else
+		{
+			ans="Usage: autorole <add/erase> <@role>";
+		}
+		return ans;
 	}
 	/**
 	 * Run method for the thread for parsing console commands.

@@ -1,5 +1,11 @@
 package com.cpscanner.main;
+import java.io.*;
+import org.json.simple.*;
+import org.json.simple.parser.JSONParser;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.*;
 /**
@@ -30,6 +36,31 @@ public class MessageListener extends ListenerAdapter
 		{
 			this.last=evt.getMessage();
 			this.newm=true;
+		}
+	}
+	/**
+	 * {@inheritDoc}
+	 */
+	public void onGuildMemberJoin(GuildMemberJoinEvent evt)
+	{
+		Guild guild = evt.getGuild();
+		try
+		{
+			FileReader reader = new FileReader(guild.getId()+"/roleinfo.dat");
+			JSONObject object = (JSONObject)new JSONParser().parse(reader);
+			reader.close();
+			if(object.containsKey("autoroles"))
+			{
+				JSONArray autoroles = (JSONArray)object.get("autoroles");
+				for(Object r:autoroles)
+				{
+					guild.addRoleToMember(evt.getMember(),(Role)r).queue();
+				}
+			}
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
 		}
 	}
 	/**
