@@ -212,8 +212,8 @@ public class ScannerV0_2_0
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole".split(" ");
-		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole};
+		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole".split(" ");
+		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole};
 		this.consoleCommandParser=new CmdParser(parsers,names);
 		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
 		this.prefix="--";
@@ -768,6 +768,104 @@ public class ScannerV0_2_0
 					PrintStream ps = new PrintStream(new FileOutputStream(guild.getId()+"/roleinfo.dat"));
 					ps.print(obj.toJSONString());
 					ps.close();
+				}
+				catch(Exception e)
+				{
+					e.printStackTrace();
+					ans = e.toString();
+				}
+			}
+			else
+			{
+				ans = "Role is not valid";
+			}
+		}
+		return ans;
+	}
+	@SuppressWarnings("unchecked")
+	public String parseToggleSelfroles(Guild guild,User author,long channel,String...args)
+	{
+		String ans = "Mention a role.";
+		if(args.length>=1)
+		{
+			String srole = "";
+			Role role = null;
+			try
+			{
+				FileReader reader = new FileReader(guild.getId()+"/roleinfo.dat");
+				JSONObject obj = (JSONObject)new JSONParser().parse(reader);
+				reader.close();
+				if(!obj.containsKey("selfroles"))
+				{
+					obj.put("selfroles",new JSONArray());
+				}
+				JSONArray arr = (JSONArray)obj.get("selfroles");
+				for(int i=0;i<args.length;i++)
+				{
+					srole = args[i].replaceAll("[^0-9]","");
+					role = guild.getRoleById(srole);
+					if(role!=null)
+					{
+						if(arr.contains(role.getIdLong()))
+						{
+							arr.remove(role.getIdLong());
+						}
+						else
+						{
+							arr.add(role.getIdLong());
+						}
+					}
+				}
+				PrintStream ps = new PrintStream(new FileOutputStream(guild.getId()+"/roleinfo.dat"));
+				ps.print(obj.toJSONString());
+				ps.close();
+				ans = "Toggled all selfroles successfully.";
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+				ans = e.toString();
+			}
+		}
+		return ans;
+	}
+	@SuppressWarnings("unchecked")
+	public String parseSelfrole(Guild guild,User author,long channel,String...args)
+	{
+		var ans = "Mention a selfrole";
+		if(args.length>=1)
+		{
+			var srole = args[0].replaceAll("[^0-9]","");
+			var role = guild.getRoleById(srole);
+			if(role!=null)
+			{
+				try
+				{
+					FileReader reader = new FileReader(guild.getId()+"/roleinfo.dat");
+					JSONObject obj = (JSONObject)new JSONParser().parse(reader);
+					reader.close();
+					if(!obj.containsKey("selfroles"))
+					{
+						obj.put("selfroles",new JSONArray());
+					}
+					JSONArray arr = (JSONArray)obj.get("selfroles");
+					if(arr.contains(role.getIdLong()))
+					{
+						if(guild.getMember(author).getRoles().contains(role))
+						{
+							guild.removeRoleFromMember(author.getIdLong(),role).queue();
+							ans = "Taken the role "+role.getAsMention()+" from you.";
+						}
+						else
+						{
+							guild.addRoleToMember(author.getIdLong(),role).queue();
+							ans = "Given you the role "+role.getAsMention()+".";
+						}
+					}
+					else
+					{
+						ans = "That role is not a selfrole.";
+					}
 				}
 				catch(Exception e)
 				{
