@@ -6,6 +6,44 @@ import java.math.*;
  */
 public class MathAlgs
 {
+	static
+	{
+		System.loadLibrary("lib_triangle_solver");
+		System.loadLibrary("natives/MathAlgs");
+	}
+	/**
+	 * Finds a power of a BigDecimal.
+	 * @param x The base
+	 * @param n The exponent
+	 * @return The BigDecimal that is base raised to the power of exp.
+	 */
+	public static final BigDecimal pow(BigDecimal base,BigDecimal exp)
+	{
+		BigDecimal ans=BigDecimal.ONE;
+		if(exp.compareTo(new BigDecimal(Integer.MAX_VALUE))>0)
+		{
+			if(BigDecimal.ZERO.equals(base))
+			{
+				ans = BigDecimal.ZERO.equals(exp)?new BigDecimal(Double.NaN):BigDecimal.ZERO;
+			}
+			else if(base.equals(BigDecimal.ONE))
+			{
+				ans = BigDecimal.ONE;
+			}
+		}
+		else
+		{
+			BigDecimal denom=BigDecimal.ONE;
+			BigDecimal pow=base;
+			for(int i=1;i<100000;i++)
+			{
+				denom=denom.multiply(new BigDecimal(i));
+				ans=ans.add(pow.divide(denom,MathContext.DECIMAL128));
+				pow=pow.multiply(base);
+			}
+		}
+		return ans;
+	}
 	/**
 	 * Finds an integer root of a BigDecimal.
 	 * @param x The BigDecimal to find the root of.
@@ -23,4 +61,9 @@ public class MathAlgs
 		}
 		return y;
 	}
+	/**
+	 * Solves a triangle.
+	 * @param r The array containing the angles, in degrees, and the lengths of the sides.
+	 */
+	public static native void solveTriangle(double[]arr);
 }

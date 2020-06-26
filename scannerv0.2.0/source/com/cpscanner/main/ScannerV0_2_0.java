@@ -212,8 +212,8 @@ public class ScannerV0_2_0
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole".split(" ");
-		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole};
+		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet".split(" ");
+		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle};
 		this.consoleCommandParser=new CmdParser(parsers,names);
 		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
 		this.prefix="--";
@@ -871,6 +871,57 @@ public class ScannerV0_2_0
 				{
 					e.printStackTrace();
 					ans = e.toString();
+				}
+			}
+		}
+		return ans;
+	}
+	@SuppressWarnings("unchecked")
+	public String parseListSelfroles(Guild guild,User author,long channel,String...args)
+	{
+		var ans = "This is the lis of selfroles.";
+		try
+		{
+			FileReader reader = new FileReader(guild.getId()+"/roleinfo.dat");
+			JSONObject obj = (JSONObject)new JSONParser().parse(reader);
+			reader.close();
+			if(!obj.containsKey("selfroles"))
+			{
+				obj.put("selfroles",new JSONArray());
+			}
+			JSONArray arr = (JSONArray)obj.get("selfroles");
+			long RID = 0;
+			for(Object ORID:arr)
+			{
+				RID = ((Long)ORID).longValue();
+				ans += "\r\n" + guild.getRoleById(RID);
+			}
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			ans = e.toString();
+		}
+		return ans;
+	}
+	public String parseSolveTriangle(Guild guild,User author,long channel,String...args)
+	{
+		var ans = "6 arguments are required.";
+		if(args.length==6)
+		{
+			double[]arr=new double[6];
+			for(int i=0;i<arr.length;i++)
+			{
+				arr[i]=Double.parseDouble(args[i]);
+			}
+			MathAlgs.solveTriangle(arr);
+			ans = "";
+			for(int i=0;i<arr.length;i++)
+			{
+				ans+=arr[i];
+				if(i+1<arr.length)
+				{
+					ans += ", ";
 				}
 			}
 		}
