@@ -973,14 +973,17 @@ public class ScannerV0_2_0
 						out.printf("%x (%s AKA %s): %s"+System.getProperty("line.separator"),msg.getAuthor().getIdLong(),msg.getAuthor().getName(),msg.getGuild().getMember(msg.getAuthor()).getEffectiveName(),msg.getContentRaw());
 					}
 					args=ScannerV0_2_0.getCmdArgs(msg.getContentRaw());
-					if(args[0].equals("<@!"+Long.toString(ScannerV0_2_0.ID)+">"))
+					if(args.length>0)
 					{
-						msg.getChannel().sendMessage(this.discordCommandParser.parse(msg.getGuild(),msg.getAuthor(),msg.getChannel().getIdLong(),Arrays.copyOfRange(args,1,args.length))).queue();
-					}
-					else if(args[0].length()>=2&&this.prefix.equals(args[0].substring(0,2)))
-					{
-						args[0]=args[0].substring(2);
-						msg.getChannel().sendMessage(this.discordCommandParser.parse(msg.getGuild(),msg.getAuthor(),msg.getChannel().getIdLong(),args)).queue();
+						if(args[0].equals("<@!"+Long.toString(ScannerV0_2_0.ID)+">"))
+						{
+							msg.getChannel().sendMessage(this.discordCommandParser.parse(msg.getGuild(),msg.getAuthor(),msg.getChannel().getIdLong(),Arrays.copyOfRange(args,1,args.length))).queue();
+						}
+						else if(args[0].length()>=2&&this.prefix.equals(args[0].substring(0,2)))
+						{
+							args[0]=args[0].substring(2);
+							msg.getChannel().sendMessage(this.discordCommandParser.parse(msg.getGuild(),msg.getAuthor(),msg.getChannel().getIdLong(),args)).queue();
+						}
 					}
 					printed=true;
 				}

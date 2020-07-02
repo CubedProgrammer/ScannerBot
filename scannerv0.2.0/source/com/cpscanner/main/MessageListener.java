@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.*;
 /**
@@ -54,7 +55,7 @@ public class MessageListener extends ListenerAdapter
 				JSONArray autoroles = (JSONArray)object.get("autoroles");
 				for(Object r:autoroles)
 				{
-					guild.addRoleToMember(evt.getMember(),(Role)r).queue();
+					guild.addRoleToMember(evt.getMember(),guild.getRoleById((Long)r)).queue();
 				}
 			}
 		}
@@ -62,6 +63,13 @@ public class MessageListener extends ListenerAdapter
 		{
 			e.printStackTrace();
 		}
+	}
+	/**
+	 * {@inheritDoc}
+	 */
+	public void onGuildMemberLeave(GuildMemberLeaveEvent evt)
+	{
+		evt.getGuild().getDefaultChannel().sendMessage(evt.getMember().getAsMention()+", AKA "+evt.getMember().getId()+" has left the server.").queue();
 	}
 	/**
 	 * Gets the last message sent to a channel this bot is able to read.
