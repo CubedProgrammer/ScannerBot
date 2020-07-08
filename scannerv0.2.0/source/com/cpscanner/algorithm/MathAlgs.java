@@ -8,8 +8,12 @@ public class MathAlgs
 {
 	static
 	{
-		System.loadLibrary("lib_triangle_solver");
-		System.loadLibrary("natives/MathAlgs");
+		System.out.println("variable java.library.path is "+System.getProperty("java.library.path"));
+		if(System.getProperty("os.name").length()>=7&&System.getProperty("os.name").substring(0,7).equalsIgnoreCase("windows"))
+			System.loadLibrary("lib_triangle_solver");
+		else
+			System.loadLibrary("_triangle_solver");
+		System.loadLibrary("MathAlgs");
 	}
 	/**
 	 * Finds a power of a BigDecimal.
