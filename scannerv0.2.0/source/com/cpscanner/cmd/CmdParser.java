@@ -44,66 +44,73 @@ public class CmdParser
 		Stack<Integer>stack=new Stack<Integer>();
 		String name="";
 		String result="You are gay.";
-		if(tokens.length>0&&"help".equals(tokens[0]))
+		if(tokens.length>0)
 		{
-			result="The list of commands are";
-			for(var it=this.cmds.keySet().iterator();it.hasNext();)
+			if("help".equals(tokens[0]))
 			{
-				result+="\r\n"+it.next();
-			}
-		}
-		else
-		{
-			int start=0;
-			int end=0;
-			for(int i=0;i<tokens.length;i++)
-			{
-				if(this.cmds.containsKey(tokens[i]))
+				result="The list of commands are";
+				for(var it=this.cmds.keySet().iterator();it.hasNext();)
 				{
-					stackCMD.push(tokens[i]);
-					stack.push(i);
+					result+="\r\n"+it.next();
 				}
-				if(stackCMD.size()>0&&(i+1==tokens.length||"end".equals(tokens[i])))
+			}
+			else if("version".equals(tokens[0]))
+			{
+				result="0.2.1";
+			}
+			else
+			{
+				int start=0;
+				int end=0;
+				for(int i=0;i<tokens.length;i++)
 				{
-					do
+					if(this.cmds.containsKey(tokens[i]))
 					{
-						name=stackCMD.pop();
-						start=stack.pop();
-						argsal.clear();
-						end=i+1==tokens.length?tokens.length:i;
-						for(int j=start+1;j<end;j++)
-						{
-							if(tokens[j].length()>CmdParser.SKIP_TOKEN_SIGNIFIER.length()&&CmdParser.SKIP_TOKEN_SIGNIFIER.equals(tokens[j].substring(0,CmdParser.SKIP_TOKEN_SIGNIFIER.length())))
-							{
-								argsal.add(tokens[j].substring(CmdParser.SKIP_TOKEN_SIGNIFIER.length()+8));
-								j+=Integer.parseInt(tokens[j].substring(CmdParser.SKIP_TOKEN_SIGNIFIER.length(),CmdParser.SKIP_TOKEN_SIGNIFIER.length()+8))-1;
-							}
-							else
-							{
-								argsal.add(tokens[j]);
-							}
-						}
-						args=new String[argsal.size()];
-						for(int j=0;j<args.length;args[j]=argsal.get(j++));
-						try
-						{
-							result=this.cmds.get(name).parse(guild,author,channel,args);
-						}
-						catch(Exception e)
-						{
-							++start;
-							result="Command `"+name+"` failed, which was the "+Integer.toString(start)+((start%100>13||start%100<11)&&start%10<=3&&start%10!=0?start%10==3?"rd":start%10==2?"nd":"st":"th")+" token, and error message is \r\n"+e.toString();
-							e.printStackTrace();
-							--start;
-						}
-						name="";
-						for(int j=0;j<Integer.numberOfLeadingZeros(end-start+1)>>2;j++)
-						{
-							name+="0";
-						}
-						tokens[start]=CmdParser.SKIP_TOKEN_SIGNIFIER+name+Integer.toString(end-start+1,16)+result;
+						stackCMD.push(tokens[i]);
+						stack.push(i);
 					}
-					while(i+1==tokens.length&&!stack.empty());
+					if(stackCMD.size()>0&&(i+1==tokens.length||"end".equals(tokens[i])))
+					{
+						do
+						{
+							name=stackCMD.pop();
+							start=stack.pop();
+							argsal.clear();
+							end=i+1==tokens.length?tokens.length:i;
+							for(int j=start+1;j<end;j++)
+							{
+								if(tokens[j].length()>CmdParser.SKIP_TOKEN_SIGNIFIER.length()&&CmdParser.SKIP_TOKEN_SIGNIFIER.equals(tokens[j].substring(0,CmdParser.SKIP_TOKEN_SIGNIFIER.length())))
+								{
+									argsal.add(tokens[j].substring(CmdParser.SKIP_TOKEN_SIGNIFIER.length()+8));
+									j+=Integer.parseInt(tokens[j].substring(CmdParser.SKIP_TOKEN_SIGNIFIER.length(),CmdParser.SKIP_TOKEN_SIGNIFIER.length()+8))-1;
+								}
+								else
+								{
+									argsal.add(tokens[j]);
+								}
+							}
+							args=new String[argsal.size()];
+							for(int j=0;j<args.length;args[j]=argsal.get(j++));
+							try
+							{
+								result=this.cmds.get(name).parse(guild,author,channel,args);
+							}
+							catch(Exception e)
+							{
+								++start;
+								result="Command `"+name+"` failed, which was the "+Integer.toString(start)+((start%100>13||start%100<11)&&start%10<=3&&start%10!=0?start%10==3?"rd":start%10==2?"nd":"st":"th")+" token, and error message is \r\n"+e.toString();
+								e.printStackTrace();
+								--start;
+							}
+							name="";
+							for(int j=0;j<Integer.numberOfLeadingZeros(end-start+1)>>2;j++)
+							{
+								name+="0";
+							}
+							tokens[start]=CmdParser.SKIP_TOKEN_SIGNIFIER+name+Integer.toString(end-start+1,16)+result;
+						}
+						while(i+1==tokens.length&&!stack.empty());
+					}
 				}
 			}
 		}

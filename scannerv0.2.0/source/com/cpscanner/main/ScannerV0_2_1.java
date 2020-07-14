@@ -4,6 +4,7 @@ import java.io.*;
 import java.math.*;
 import java.util.*;
 import javax.security.auth.login.LoginException;
+import org.apache.commons.math3.special.Erf;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -15,7 +16,7 @@ import com.cpscanner.algorithm.*;
  * Main class that contains the main method.
  * @author CubedProgrammer
  */
-public class ScannerV0_2_0
+public class ScannerV0_2_1
 {
 	/**
 	 * Token for bot authentication.
@@ -51,11 +52,11 @@ public class ScannerV0_2_0
 		ArrayList<String>argsal=new ArrayList<String>();
 		for(int i=0;i<cs.length;i++)
 		{
-			if(cs[i]==ScannerV0_2_0.BRACKET&&!escaped)
+			if(cs[i]==ScannerV0_2_1.BRACKET&&!escaped)
 			{
 				open=!open;
 			}
-			else if(cs[i]==ScannerV0_2_0.DELIMITER&&!open)
+			else if(cs[i]==ScannerV0_2_1.DELIMITER&&!open)
 			{
 				argsal.add(builder.toString());
 				builder.delete(0,builder.length());
@@ -64,7 +65,7 @@ public class ScannerV0_2_0
 			{
 				builder.append(cs[i]);
 			}
-			escaped=!escaped&&cs[i]==ScannerV0_2_0.ESCAPE;
+			escaped=!escaped&&cs[i]==ScannerV0_2_1.ESCAPE;
 		}
 		if(builder.length()>0)
 		{
@@ -155,9 +156,9 @@ public class ScannerV0_2_0
 	 * @throws LoginException
 	 */
 	@SuppressWarnings("rawtypes")
-	public ScannerV0_2_0()throws LoginException
+	public ScannerV0_2_1()throws LoginException
 	{
-		this.jda=new JDABuilder(AccountType.BOT).setToken(ScannerV0_2_0.TOKEN).build();
+		this.jda=new JDABuilder(AccountType.BOT).setToken(ScannerV0_2_1.TOKEN).build();
 		try
 		{
 			this.jda.awaitReady();
@@ -212,8 +213,8 @@ public class ScannerV0_2_0
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet".split(" ");
-		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle};
+		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet zprob probz nickname".split(" ");
+		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle,this::parseZProb,this::parseProbZ,this::parseChangeNickname};
 		this.consoleCommandParser=new CmdParser(parsers,names);
 		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
 		this.prefix="--";
@@ -269,7 +270,7 @@ public class ScannerV0_2_0
 			Guild targetg=null;
 			String sguild=args[0];
 			String schannel=args[1];
-			if(!ScannerV0_2_0.isValidNumber(sguild))
+			if(!ScannerV0_2_1.isValidNumber(sguild))
 			{
 				Iterator<Guild>_it_=this.guilds.values().iterator();
 				boolean found=false;
@@ -443,7 +444,7 @@ public class ScannerV0_2_0
 		BigDecimal n=BigDecimal.ZERO;
 		for(int i=0;i<args.length;i++)
 		{
-			n=n.add(ScannerV0_2_0.strToNum(args[i]));
+			n=n.add(ScannerV0_2_1.strToNum(args[i]));
 		}
 		return n.toString();
 	}
@@ -460,7 +461,7 @@ public class ScannerV0_2_0
 		BigDecimal n=BigDecimal.ONE;
 		for(int i=0;i<args.length;i++)
 		{
-			n=n.multiply(ScannerV0_2_0.strToNum(args[i]));
+			n=n.multiply(ScannerV0_2_1.strToNum(args[i]));
 		}
 		return n.toString();
 	}
@@ -477,7 +478,7 @@ public class ScannerV0_2_0
 		BigDecimal n=BigDecimal.ZERO;
 		for(int i=0;i<args.length;i++)
 		{
-			n=n.add(ScannerV0_2_0.strToNum(args[i]));
+			n=n.add(ScannerV0_2_1.strToNum(args[i]));
 		}
 		return args.length==0?"0":n.divide(new BigDecimal(args.length),MathContext.DECIMAL128).toString();
 	}
@@ -494,7 +495,7 @@ public class ScannerV0_2_0
 		BigDecimal n=BigDecimal.ONE;
 		for(int i=0;i<args.length;i++)
 		{
-			n=n.multiply(ScannerV0_2_0.strToNum(args[i]));
+			n=n.multiply(ScannerV0_2_1.strToNum(args[i]));
 		}
 		return args.length==0?"0":MathAlgs.yroot(n,args.length).toString();
 	}
@@ -927,6 +928,46 @@ public class ScannerV0_2_0
 		}
 		return ans;
 	}
+	public String parseZProb(Guild guild,User author,long channel,String...args)
+	{
+		var ans="You need at least one argument";
+		if(args.length>0)
+		{
+			double z=Double.parseDouble(args[0]);
+			ans=Double.toString(Erf.erf(z / Math.sqrt(2))/2 + 0.5);
+		}
+		return ans;
+	}
+	public String parseProbZ(Guild guild,User author,long channel,String...args)
+	{
+		var ans="You need at least one argument";
+		if(args.length>0)
+		{
+			double p=Double.parseDouble(args[0]);
+			double z = 1, t = Erf.erf(z / Math.sqrt(2)) / 2 + 0.5 - p;
+			double g=0;
+			
+			while(Math.abs(t) > 0.0000000000001)
+			{
+			    g = Math.exp(-z * z / 2) / Math.sqrt(8);
+			    z -= t / g;
+			    t = Erf.erf(z / Math.sqrt(2)) / 2 + 0.5 - p;
+			}
+			ans=Double.toString(z);
+		}
+		return ans;
+	}
+	public String parseChangeNickname(Guild guild,User author,long channel,String...args)
+	{
+		var ans="You need to pick a nickname and a member.";
+		if(args.length>1)
+		{
+			var member=guild.getMemberById(args[0].replaceAll("[^0-9]",""));
+			member.modifyNickname(args[1]).queue();
+			ans="Successfully changed the nickname.";
+		}
+		return ans;
+	}
 	/**
 	 * Run method for the thread for parsing console commands.
 	 */
@@ -938,7 +979,7 @@ public class ScannerV0_2_0
 			String s=reader.readLine();
 			while(s!=null)
 			{
-				out.println(this.consoleCommandParser.parse(null,null,0,ScannerV0_2_0.getCmdArgs(s)));
+				out.println(this.consoleCommandParser.parse(null,null,0,ScannerV0_2_1.getCmdArgs(s)));
 				s="exit".equals(s)?null:reader.readLine();
 			}
 		}
@@ -972,10 +1013,10 @@ public class ScannerV0_2_0
 						out.printf("Server: %x (%s), Channel: %x (%s)"+System.getProperty("line.separator"),msg.getGuild().getIdLong(),msg.getGuild().getName(),msg.getChannel().getIdLong(),msg.getChannel().getName());
 						out.printf("%x (%s AKA %s): %s"+System.getProperty("line.separator"),msg.getAuthor().getIdLong(),msg.getAuthor().getName(),msg.getGuild().getMember(msg.getAuthor()).getEffectiveName(),msg.getContentRaw());
 					}
-					args=ScannerV0_2_0.getCmdArgs(msg.getContentRaw());
+					args=ScannerV0_2_1.getCmdArgs(msg.getContentRaw());
 					if(args.length>0)
 					{
-						if(args[0].equals("<@!"+Long.toString(ScannerV0_2_0.ID)+">"))
+						if(args[0].equals("<@!"+Long.toString(ScannerV0_2_1.ID)+">"))
 						{
 							msg.getChannel().sendMessage(this.discordCommandParser.parse(msg.getGuild(),msg.getAuthor(),msg.getChannel().getIdLong(),Arrays.copyOfRange(args,1,args.length))).queue();
 						}
@@ -1015,7 +1056,7 @@ public class ScannerV0_2_0
 	{
 		try
 		{
-			new ScannerV0_2_0().start();
+			new ScannerV0_2_1().start();
 		}
 		catch(LoginException e)
 		{
