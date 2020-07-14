@@ -49,6 +49,21 @@ public class MathAlgs
 		return ans;
 	}
 	/**
+	 * Finds the solution of a linear equation with two unknowns.
+	 * @param a
+	 * @param b
+	 * @param c
+	 * @param d
+	 * @param e
+	 * @param f
+	 * @return The array containing two numbers which are the solution to the equation.
+	 */
+	public static final BigDecimal[]solveLinearEquation(BigDecimal a,BigDecimal b,BigDecimal c,BigDecimal d,BigDecimal e,BigDecimal f)
+	{
+		BigDecimal det=a.multiply(d).subtract(b.multiply(c));
+		return new BigDecimal[]{d.multiply(e).subtract(b.multiply(f)).divide(det,MathContext.DECIMAL128),a.multiply(f).subtract(c.multiply(e)).divide(det,MathContext.DECIMAL128)};
+	}
+	/**
 	 * Finds an integer root of a BigDecimal.
 	 * @param x The BigDecimal to find the root of.
 	 * @param n The number on the top left of the radicand. In other words, this method finds the nth root of x.

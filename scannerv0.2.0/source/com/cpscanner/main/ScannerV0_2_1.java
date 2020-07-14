@@ -3,6 +3,7 @@ import static java.lang.System.out;
 import java.io.*;
 import java.math.*;
 import java.util.*;
+import java.util.regex.Pattern;
 import javax.security.auth.login.LoginException;
 import org.apache.commons.math3.special.Erf;
 import org.json.simple.JSONArray;
@@ -10,6 +11,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.exceptions.HierarchyException;
 import com.cpscanner.cmd.*;
 import com.cpscanner.algorithm.*;
 /**
@@ -61,11 +63,15 @@ public class ScannerV0_2_1
 				argsal.add(builder.toString());
 				builder.delete(0,builder.length());
 			}
+			else if(!escaped&&cs[i]==ScannerV0_2_1.ESCAPE)
+			{
+				escaped=true;
+			}
 			else
 			{
+				escaped=false;
 				builder.append(cs[i]);
 			}
-			escaped=!escaped&&cs[i]==ScannerV0_2_1.ESCAPE;
 		}
 		if(builder.length()>0)
 		{
@@ -143,9 +149,13 @@ public class ScannerV0_2_1
 	 */
 	private CmdParser discordCommandParser;
 	/**
-	 * Prefix for commands on discord
+	 * Prefix for commands on discord.
 	 */
 	private String prefix;
+	/**
+	 * Words that get people banned.
+	 */
+	private String[]banwords;
 	/**
 	 * Data for economy.
 	 */
@@ -177,6 +187,9 @@ public class ScannerV0_2_1
 		File f=null;
 		File ff=null;
 		FileWriter writer=null;
+		BufferedReader reader=null;
+		String regex="";
+		ArrayList<String>regexes=new ArrayList<String>();
 		while(it.hasNext())
 		{
 			g=it.next();
@@ -202,19 +215,37 @@ public class ScannerV0_2_1
 					writer=new FileWriter(ff);
 					writer.append("{}");
 					writer.close();
+					ff=new File(f.getAbsolutePath()+"/banwords.txt");
+					ff.createNewFile();
 				}
 				catch(IOException e)
 				{
 					e.printStackTrace();
 				}
 			}
+			try
+			{
+				reader=new BufferedReader(new FileReader(g.getId()+"/banwords.txt"));
+				regex=reader.readLine();
+				while(regex!=null)
+				{
+					regexes.add(regex);
+					regex=reader.readLine();
+				}
+				this.banwords=regexes.toArray(new String[regexes.size()]);
+				reader.close();
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
 		}
 		out.println(this.guilds);
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet zprob probz nickname".split(" ");
-		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle,this::parseZProb,this::parseProbZ,this::parseChangeNickname};
+		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet zprob probz nickname solve_linear_equation ban_by_msg get_ban_words".split(" ");
+		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle,this::parseZProb,this::parseProbZ,this::parseChangeNickname,this::parseSolveEquation,this::parseSetBanWords,this::parseGetBanWords};
 		this.consoleCommandParser=new CmdParser(parsers,names);
 		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
 		this.prefix="--";
@@ -223,7 +254,6 @@ public class ScannerV0_2_1
 		Object o=null;
 		try
 		{
-			BufferedReader reader=null;
 			it=this.guilds.values().iterator();
 			while(it.hasNext())
 			{
@@ -968,6 +998,58 @@ public class ScannerV0_2_1
 		}
 		return ans;
 	}
+	public String parseSolveEquation(Guild guild,User author,long channel,String...args)
+	{
+		var ans="If the equations is ax + by = e and cx + dy = f, then give the parameters in order, a, b, c, d, e, f.";
+		if(args.length==6)
+		{
+			BigDecimal a = new BigDecimal(args[0]), b = new BigDecimal(args[1]), c = new BigDecimal(args[2]), d = new BigDecimal(args[3]);
+			BigDecimal e = new BigDecimal(args[4]), f = new BigDecimal(args[5]);
+			BigDecimal[]answer=MathAlgs.solveLinearEquation(a, b, c, d, e, f);
+			ans="x is "+answer[0]+", and y is "+answer[1];
+		}
+		return ans;
+	}
+	public String parseSetBanWords(Guild guild,User author,long channel,String...args)
+	{
+		var ans="Provide regexes.";
+		if(args.length>0)
+		{
+			try
+			{
+				this.banwords=args;
+				PrintStream out=new PrintStream(new FileOutputStream(guild.getId()+"/banwords.txt"));
+				for(int i=0;i<args.length;i++)
+				{
+					out.println(args[i]);
+				}
+				out.close();
+				ans="Successfully changed ban regexes.";
+			}
+			catch(FileNotFoundException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		return ans;
+	}
+	public String parseGetBanWords(Guild guild,User author,long channel,String...args)
+	{
+		var ans="";
+		try
+		{
+			for(var regex:this.banwords)
+			{
+				ans+=regex+" ";
+			}
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			ans=e.toString();
+		}
+		return ans;
+	}
 	/**
 	 * Run method for the thread for parsing console commands.
 	 */
@@ -1024,6 +1106,21 @@ public class ScannerV0_2_1
 						{
 							args[0]=args[0].substring(2);
 							msg.getChannel().sendMessage(this.discordCommandParser.parse(msg.getGuild(),msg.getAuthor(),msg.getChannel().getIdLong(),args)).queue();
+						}
+						for(int i=0;i<this.banwords.length;i++)
+						{
+							if(Pattern.matches(this.banwords[i],msg.getContentRaw()))
+							{
+								try
+								{
+									msg.getGuild().ban(msg.getGuild().getMember(msg.getAuthor()), 0, "Using a forbidden word in the chat.").queue();
+								}
+								catch(HierarchyException e)
+								{
+									e.printStackTrace();
+									msg.getChannel().sendMessage("User "+msg.getAuthor().getAsMention()+" said something that was not supposed to be said.").queue();
+								}
+							}
 						}
 					}
 					printed=true;
