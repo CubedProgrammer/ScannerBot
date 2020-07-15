@@ -114,6 +114,10 @@ public class CmdParser
 				}
 			}
 		}
+		if(result.length()==0)
+		{
+			result="empty";
+		}
 		return result;
 	}
 }
