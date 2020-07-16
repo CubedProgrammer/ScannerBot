@@ -993,8 +993,16 @@ public class ScannerV0_2_1
 		if(args.length>1)
 		{
 			var member=guild.getMemberById(args[0].replaceAll("[^0-9]",""));
-			member.modifyNickname(args[1]).queue();
-			ans="Successfully changed the nickname.";
+			var user=guild.getMember(author);
+			if(user.getRoles().get(0).compareTo(member.getRoles().get(0))>0)
+			{
+				member.modifyNickname(args[1]).queue();
+				ans="Successfully changed the nickname.";
+			}
+			else
+			{
+				ans="Your highest role isn't high enough.";
+			}
 		}
 		return ans;
 	}

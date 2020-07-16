@@ -46,7 +46,7 @@ public class CmdParser
 		String result="You are gay.";
 		if(tokens.length>0)
 		{
-			if("help".equals(tokens[0]))
+			if("help".equalsIgnoreCase(tokens[0]))
 			{
 				result="The list of commands are";
 				for(var it=this.cmds.keySet().iterator();it.hasNext();)
@@ -54,7 +54,7 @@ public class CmdParser
 					result+="\r\n"+it.next();
 				}
 			}
-			else if("version".equals(tokens[0]))
+			else if("version".equalsIgnoreCase(tokens[0]))
 			{
 				result="0.2.1";
 			}
@@ -64,9 +64,9 @@ public class CmdParser
 				int end=0;
 				for(int i=0;i<tokens.length;i++)
 				{
-					if(this.cmds.containsKey(tokens[i]))
+					if(this.cmds.containsKey(tokens[i].toLowerCase()))
 					{
-						stackCMD.push(tokens[i]);
+						stackCMD.push(tokens[i].toLowerCase());
 						stack.push(i);
 					}
 					if(stackCMD.size()>0&&(i+1==tokens.length||"end".equals(tokens[i])))
