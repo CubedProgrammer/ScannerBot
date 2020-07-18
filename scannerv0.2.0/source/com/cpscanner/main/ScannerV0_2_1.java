@@ -157,6 +157,10 @@ public class ScannerV0_2_1
 	 */
 	private String[]banwords;
 	/**
+	 * Kill messages.
+	 */
+	private String[]kills;
+	/**
 	 * Data for economy.
 	 */
 	@SuppressWarnings("rawtypes")
@@ -217,6 +221,8 @@ public class ScannerV0_2_1
 					writer.close();
 					ff=new File(f.getAbsolutePath()+"/banwords.txt");
 					ff.createNewFile();
+					ff=new File(f.getAbsolutePath()+"/killwords.txt");
+					ff.createNewFile();
 				}
 				catch(IOException e)
 				{
@@ -234,6 +240,14 @@ public class ScannerV0_2_1
 				}
 				this.banwords=regexes.toArray(new String[regexes.size()]);
 				reader.close();
+				reader=new BufferedReader(new FileReader(g.getId()+"/killwords.txt"));
+				while(regex!=null)
+				{
+					regexes.add(regex);
+					regex=reader.readLine();
+				}
+				this.kills=regexes.toArray(new String[regexes.size()]);
+				reader.close();
 			}
 			catch(Exception e)
 			{
@@ -244,8 +258,8 @@ public class ScannerV0_2_1
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet zprob probz nickname solve_linear_equation ban_by_msg get_ban_words changelog".split(" ");
-		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle,this::parseZProb,this::parseProbZ,this::parseChangeNickname,this::parseSolveEquation,this::parseSetBanWords,this::parseGetBanWords,this::parseGetChangelog};
+		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet zprob probz nickname solve_linear_equation ban_by_msg get_ban_words changelog kill add_kill_msg erase_kill_msg list_kill_msg".split(" ");
+		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle,this::parseZProb,this::parseProbZ,this::parseChangeNickname,this::parseSolveEquation,this::parseSetBanWords,this::parseGetBanWords,this::parseGetChangelog,this::parseKillMember};
 		this.consoleCommandParser=new CmdParser(parsers,names);
 		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
 		this.prefix="--";
@@ -1073,6 +1087,66 @@ public class ScannerV0_2_1
 		{
 			e.printStackTrace();
 			ans+=e;
+		}
+		return ans;
+	}
+	public String parseKillMember(Guild guild,User author,long channel,String...args)
+	{
+		var ans="Mention a member";
+		if(args.length==1)
+		{
+			if(this.kills.length==0)
+			{
+				ans="There are no kill messages.";
+			}
+			else
+			{
+				var mem = guild.getMemberById(args[0].replaceAll("[^0-9]",""));
+				int r = new Random(System.nanoTime()).nextInt(this.kills.length);
+				ans = this.kills[r].replace("{target}",mem.getAsMention());
+			}
+		}
+		return ans;
+	}
+	public String parseAddKillMessage(Guild guild,User author,long channel,String...args)
+	{
+		var ans=args.length==0?"Write a message.":"Successfully added kill message.";
+		try
+		{
+			StringBuilder builder=new StringBuilder();
+			for(int i=0;i<args.length;i++)
+			{
+				builder.append(args[i]);
+				if(i+1<args.length)
+				{
+					builder.append(' ');
+				}
+			}
+			PrintStream out=new PrintStream(new FileOutputStream(guild.getId()+"/killwords.txt",true));
+			out.println(builder);
+			out.close();
+			this.kills=Arrays.copyOf(this.kills,this.kills.length+1);
+			this.kills[this.kills.length-1]=builder.toString();
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			ans=e.toString();
+		}
+		return ans;
+	}
+	public String parseRemoveKillMessage(Guild guild,User author,long channel,String...args)
+	{
+		var ans="Specify the message to remove, one is the first message.";
+		if(args.length==1)
+		{
+			int ind=Integer.parseInt(args[0]);
+			for(int i=ind+1;i<this.kills.length;i++)
+			{
+				this.kills[i-1]=this.kills[i];
+			}
+			this.kills=Arrays.copyOfRange(this.kills,0,this.kills.length-1);
+			ans="Successfully removed kill message.";
 		}
 		return ans;
 	}
