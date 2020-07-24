@@ -223,6 +223,11 @@ public class ScannerV0_2_1
 					ff.createNewFile();
 					ff=new File(f.getAbsolutePath()+"/killwords.txt");
 					ff.createNewFile();
+					ff=new File(f.getAbsolutePath()+"/sexuality.dat");
+					writer=new FileWriter(ff);
+					writer.append("{}");
+					writer.close();
+					ff.createNewFile();
 				}
 				catch(IOException e)
 				{
@@ -259,8 +264,8 @@ public class ScannerV0_2_1
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet zprob probz nickname solve_linear_equation ban_by_msg get_ban_words changelog kill add_kill_msg erase_kill_msg list_kill_msg".split(" ");
-		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle,this::parseZProb,this::parseProbZ,this::parseChangeNickname,this::parseSolveEquation,this::parseSetBanWords,this::parseGetBanWords,this::parseGetChangelog,this::parseKillMember,this::parseAddKillMessage,this::parseRemoveKillMessage,this::parseListKillMessages};
+		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet zprob probz nickname solve_linear_equation ban_by_msg get_ban_words changelog kill add_kill_msg erase_kill_msg list_kill_msg sexuality".split(" ");
+		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle,this::parseZProb,this::parseProbZ,this::parseChangeNickname,this::parseSolveEquation,this::parseSetBanWords,this::parseGetBanWords,this::parseGetChangelog,this::parseKillMember,this::parseAddKillMessage,this::parseRemoveKillMessage,this::parseListKillMessages,this::parseGetSexuality};
 		this.consoleCommandParser=new CmdParser(parsers,names);
 		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
 		this.prefix="--";
@@ -1175,6 +1180,35 @@ public class ScannerV0_2_1
 			in.read(bs);
 			ans=new String(bs);
 			in.close();
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			ans=e.toString();
+		}
+		return ans;
+	}
+	@SuppressWarnings("unchecked")
+	public String parseGetSexuality(Guild guild,User author,long channel,String...args)
+	{
+		var ans="Shit happens.";
+		try
+		{
+			FileReader reader=new FileReader(guild.getId()+"/sexuality.dat");
+			JSONObject s=(JSONObject)new JSONParser().parse(reader);
+			if(args.length==1)
+			{
+				author=guild.getMemberById(args[0].replaceAll("[^0-9]","")).getUser();
+			}
+			reader.close();
+			if(!s.containsKey(author.getIdLong()))
+			{
+				s.put(author.getIdLong(),Math.random()<0.5);
+				FileWriter writer=new FileWriter(guild.getId()+"/sexuality.dat");
+				writer.append(s.toJSONString());
+				writer.close();
+			}
+			ans=author.getAsMention()+" is "+((Boolean)s.get(author.getIdLong())?"gay":"straight");
 		}
 		catch(Exception e)
 		{
