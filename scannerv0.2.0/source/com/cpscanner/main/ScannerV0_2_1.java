@@ -241,6 +241,7 @@ public class ScannerV0_2_1
 				this.banwords=regexes.toArray(new String[regexes.size()]);
 				reader.close();
 				reader=new BufferedReader(new FileReader(g.getId()+"/killwords.txt"));
+				regex=reader.readLine();
 				while(regex!=null)
 				{
 					regexes.add(regex);
@@ -1171,6 +1172,7 @@ public class ScannerV0_2_1
 		{
 			FileInputStream in=new FileInputStream(guild.getId()+"/killwords.txt");
 			byte[]bs=new byte[in.available()];
+			in.read(bs);
 			ans=new String(bs);
 			in.close();
 		}
