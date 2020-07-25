@@ -18,7 +18,7 @@ import com.cpscanner.algorithm.*;
  * Main class that contains the main method.
  * @author CubedProgrammer
  */
-public class ScannerV0_2_1
+public class ScannerV0_2_2
 {
 	/**
 	 * Token for bot authentication.
@@ -54,16 +54,16 @@ public class ScannerV0_2_1
 		ArrayList<String>argsal=new ArrayList<String>();
 		for(int i=0;i<cs.length;i++)
 		{
-			if(cs[i]==ScannerV0_2_1.BRACKET&&!escaped)
+			if(cs[i]==ScannerV0_2_2.BRACKET&&!escaped)
 			{
 				open=!open;
 			}
-			else if(cs[i]==ScannerV0_2_1.DELIMITER&&!open)
+			else if(cs[i]==ScannerV0_2_2.DELIMITER&&!open)
 			{
 				argsal.add(builder.toString());
 				builder.delete(0,builder.length());
 			}
-			else if(!escaped&&cs[i]==ScannerV0_2_1.ESCAPE)
+			else if(!escaped&&cs[i]==ScannerV0_2_2.ESCAPE)
 			{
 				escaped=true;
 			}
@@ -170,9 +170,9 @@ public class ScannerV0_2_1
 	 * @throws LoginException
 	 */
 	@SuppressWarnings("rawtypes")
-	public ScannerV0_2_1()throws LoginException
+	public ScannerV0_2_2()throws LoginException
 	{
-		this.jda=new JDABuilder(AccountType.BOT).setToken(ScannerV0_2_1.TOKEN).build();
+		this.jda=new JDABuilder(AccountType.BOT).setToken(ScannerV0_2_2.TOKEN).build();
 		try
 		{
 			this.jda.awaitReady();
@@ -264,8 +264,8 @@ public class ScannerV0_2_1
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet zprob probz nickname solve_linear_equation ban_by_msg get_ban_words changelog kill add_kill_msg erase_kill_msg list_kill_msg sexuality".split(" ");
-		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle,this::parseZProb,this::parseProbZ,this::parseChangeNickname,this::parseSolveEquation,this::parseSetBanWords,this::parseGetBanWords,this::parseGetChangelog,this::parseKillMember,this::parseAddKillMessage,this::parseRemoveKillMessage,this::parseListKillMessages,this::parseGetSexuality};
+		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet zprob probz nickname solve_linear_equation ban_by_msg get_ban_words changelog kill add_kill_msg erase_kill_msg list_kill_msg sexuality virginity".split(" ");
+		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle,this::parseZProb,this::parseProbZ,this::parseChangeNickname,this::parseSolveEquation,this::parseSetBanWords,this::parseGetBanWords,this::parseGetChangelog,this::parseKillMember,this::parseAddKillMessage,this::parseRemoveKillMessage,this::parseListKillMessages,this::parseGetSexuality,this::parseGetVirginity};
 		this.consoleCommandParser=new CmdParser(parsers,names);
 		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
 		this.prefix="--";
@@ -320,7 +320,7 @@ public class ScannerV0_2_1
 			Guild targetg=null;
 			String sguild=args[0];
 			String schannel=args[1];
-			if(!ScannerV0_2_1.isValidNumber(sguild))
+			if(!ScannerV0_2_2.isValidNumber(sguild))
 			{
 				Iterator<Guild>_it_=this.guilds.values().iterator();
 				boolean found=false;
@@ -494,7 +494,7 @@ public class ScannerV0_2_1
 		BigDecimal n=BigDecimal.ZERO;
 		for(int i=0;i<args.length;i++)
 		{
-			n=n.add(ScannerV0_2_1.strToNum(args[i]));
+			n=n.add(ScannerV0_2_2.strToNum(args[i]));
 		}
 		return n.toString();
 	}
@@ -511,7 +511,7 @@ public class ScannerV0_2_1
 		BigDecimal n=BigDecimal.ONE;
 		for(int i=0;i<args.length;i++)
 		{
-			n=n.multiply(ScannerV0_2_1.strToNum(args[i]));
+			n=n.multiply(ScannerV0_2_2.strToNum(args[i]));
 		}
 		return n.toString();
 	}
@@ -528,7 +528,7 @@ public class ScannerV0_2_1
 		BigDecimal n=BigDecimal.ZERO;
 		for(int i=0;i<args.length;i++)
 		{
-			n=n.add(ScannerV0_2_1.strToNum(args[i]));
+			n=n.add(ScannerV0_2_2.strToNum(args[i]));
 		}
 		return args.length==0?"0":n.divide(new BigDecimal(args.length),MathContext.DECIMAL128).toString();
 	}
@@ -545,7 +545,7 @@ public class ScannerV0_2_1
 		BigDecimal n=BigDecimal.ONE;
 		for(int i=0;i<args.length;i++)
 		{
-			n=n.multiply(ScannerV0_2_1.strToNum(args[i]));
+			n=n.multiply(ScannerV0_2_2.strToNum(args[i]));
 		}
 		return args.length==0?"0":MathAlgs.yroot(n,args.length).toString();
 	}
@@ -1201,14 +1201,54 @@ public class ScannerV0_2_1
 				author=guild.getMemberById(args[0].replaceAll("[^0-9]","")).getUser();
 			}
 			reader.close();
-			if(!s.containsKey(author.getIdLong()))
+			if(!s.containsKey(author.getId()))
 			{
-				s.put(author.getIdLong(),Math.random()<0.5);
+				JSONObject o=new JSONObject();
+				o.put("sexuality",Math.random()<0.5);
+				o.put("virginity",Math.random()<0.5);
+				s.put(author.getId(),o);
 				FileWriter writer=new FileWriter(guild.getId()+"/sexuality.dat");
 				writer.append(s.toJSONString());
 				writer.close();
 			}
-			ans=author.getAsMention()+" is "+((Boolean)s.get(author.getIdLong())?"gay":"straight");
+			ans=author.getAsMention()+" is "+((Boolean)((JSONObject)s.get(author.getId())).get("sexuality")?"gay":"straight");
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			ans=e.toString();
+		}
+		return ans;
+	}
+	@SuppressWarnings("unchecked")
+	public String parseGetVirginity(Guild guild,User author,long channel,String...args)
+	{
+		var ans="Ur mum gay.";
+		if(args.length==1)
+		{
+			author=guild.getMemberById(args[0].replaceAll("[^0-9]","")).getUser();
+		}
+		try
+		{
+			FileReader reader=new FileReader(guild.getId()+"/sexuality.dat");
+			JSONObject s=(JSONObject)new JSONParser().parse(reader);
+			reader.close();
+			if(!s.containsKey(author.getId()))
+			{
+				JSONObject o=new JSONObject();
+				o.put("sexuality",Math.random()<0.5);
+				o.put("virginity",Math.random()<0.5);
+				s.put(author.getId(),o);
+				FileWriter writer=new FileWriter(guild.getId()+"/sexuality.dat");
+				writer.append(s.toJSONString());
+				writer.close();
+			}
+			ans=author.getAsMention()+" is ";
+			if(!(Boolean)((JSONObject)s.get(author.getId())).get("virginity"))
+			{
+				ans+="not ";
+			}
+			ans+="a virgin.";
 		}
 		catch(Exception e)
 		{
@@ -1228,7 +1268,7 @@ public class ScannerV0_2_1
 			String s=reader.readLine();
 			while(s!=null)
 			{
-				out.println(this.consoleCommandParser.parse(null,null,0,ScannerV0_2_1.getCmdArgs(s)));
+				out.println(this.consoleCommandParser.parse(null,null,0,ScannerV0_2_2.getCmdArgs(s)));
 				s="exit".equals(s)?null:reader.readLine();
 			}
 		}
@@ -1262,10 +1302,10 @@ public class ScannerV0_2_1
 						out.printf("Server: %x (%s), Channel: %x (%s)"+System.getProperty("line.separator"),msg.getGuild().getIdLong(),msg.getGuild().getName(),msg.getChannel().getIdLong(),msg.getChannel().getName());
 						out.printf("%x (%s AKA %s): %s"+System.getProperty("line.separator"),msg.getAuthor().getIdLong(),msg.getAuthor().getName(),msg.getGuild().getMember(msg.getAuthor()).getEffectiveName(),msg.getContentRaw());
 					}
-					args=ScannerV0_2_1.getCmdArgs(msg.getContentRaw());
+					args=ScannerV0_2_2.getCmdArgs(msg.getContentRaw());
 					if(args.length>0)
 					{
-						if(args[0].equals("<@!"+Long.toString(ScannerV0_2_1.ID)+">"))
+						if(args[0].equals("<@!"+Long.toString(ScannerV0_2_2.ID)+">"))
 						{
 							msg.getChannel().sendMessage(this.discordCommandParser.parse(msg.getGuild(),msg.getAuthor(),msg.getChannel().getIdLong(),Arrays.copyOfRange(args,1,args.length))).queue();
 						}
@@ -1320,7 +1360,7 @@ public class ScannerV0_2_1
 	{
 		try
 		{
-			new ScannerV0_2_1().start();
+			new ScannerV0_2_2().start();
 		}
 		catch(LoginException e)
 		{
