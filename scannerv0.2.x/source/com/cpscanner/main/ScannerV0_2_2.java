@@ -1189,6 +1189,16 @@ public class ScannerV0_2_2
 		return ans;
 	}
 	@SuppressWarnings("unchecked")
+	public void initWeirdStuff(String aid,String gid,JSONObject obj)throws IOException
+	{
+		JSONObject o=new JSONObject();
+		o.put("sexuality",Math.random()<0.5);
+		o.put("virginity",Math.random()<0.5);
+		obj.put(aid,o);
+		FileWriter writer=new FileWriter(gid+"/sexuality.dat");
+		writer.append(obj.toJSONString());
+		writer.close();
+	}
 	public String parseGetSexuality(Guild guild,User author,long channel,String...args)
 	{
 		var ans="Shit happens.";
@@ -1203,13 +1213,7 @@ public class ScannerV0_2_2
 			reader.close();
 			if(!s.containsKey(author.getId()))
 			{
-				JSONObject o=new JSONObject();
-				o.put("sexuality",Math.random()<0.5);
-				o.put("virginity",Math.random()<0.5);
-				s.put(author.getId(),o);
-				FileWriter writer=new FileWriter(guild.getId()+"/sexuality.dat");
-				writer.append(s.toJSONString());
-				writer.close();
+				this.initWeirdStuff(author.getId(),guild.getId(),s);
 			}
 			ans=author.getAsMention()+" is "+((Boolean)((JSONObject)s.get(author.getId())).get("sexuality")?"gay":"straight");
 		}
@@ -1220,7 +1224,6 @@ public class ScannerV0_2_2
 		}
 		return ans;
 	}
-	@SuppressWarnings("unchecked")
 	public String parseGetVirginity(Guild guild,User author,long channel,String...args)
 	{
 		var ans="Ur mum gay.";
@@ -1230,18 +1233,12 @@ public class ScannerV0_2_2
 		}
 		try
 		{
-			FileReader reader=new FileReader(guild.getId()+"/sexuality.dat");
+			FileReader reader=new FileReader(guild.getId()+"/weird.dat");
 			JSONObject s=(JSONObject)new JSONParser().parse(reader);
 			reader.close();
 			if(!s.containsKey(author.getId()))
 			{
-				JSONObject o=new JSONObject();
-				o.put("sexuality",Math.random()<0.5);
-				o.put("virginity",Math.random()<0.5);
-				s.put(author.getId(),o);
-				FileWriter writer=new FileWriter(guild.getId()+"/sexuality.dat");
-				writer.append(s.toJSONString());
-				writer.close();
+				this.initWeirdStuff(author.getId(),guild.getId(),s);
 			}
 			ans=author.getAsMention()+" is ";
 			if(!(Boolean)((JSONObject)s.get(author.getId())).get("virginity"))
