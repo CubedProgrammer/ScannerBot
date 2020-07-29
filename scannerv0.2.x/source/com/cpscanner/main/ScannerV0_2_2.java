@@ -223,7 +223,7 @@ public class ScannerV0_2_2
 					ff.createNewFile();
 					ff=new File(f.getAbsolutePath()+"/killwords.txt");
 					ff.createNewFile();
-					ff=new File(f.getAbsolutePath()+"/sexuality.dat");
+					ff=new File(f.getAbsolutePath()+"/weird.dat");
 					writer=new FileWriter(ff);
 					writer.append("{}");
 					writer.close();
@@ -264,8 +264,8 @@ public class ScannerV0_2_2
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet zprob probz nickname solve_linear_equation ban_by_msg get_ban_words changelog kill add_kill_msg erase_kill_msg list_kill_msg sexuality virginity".split(" ");
-		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle,this::parseZProb,this::parseProbZ,this::parseChangeNickname,this::parseSolveEquation,this::parseSetBanWords,this::parseGetBanWords,this::parseGetChangelog,this::parseKillMember,this::parseAddKillMessage,this::parseRemoveKillMessage,this::parseListKillMessages,this::parseGetSexuality,this::parseGetVirginity};
+		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet zprob probz nickname solve_linear_equation ban_by_msg get_ban_words changelog kill add_kill_msg erase_kill_msg list_kill_msg sexuality virginity gender race size".split(" ");
+		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle,this::parseZProb,this::parseProbZ,this::parseChangeNickname,this::parseSolveEquation,this::parseSetBanWords,this::parseGetBanWords,this::parseGetChangelog,this::parseKillMember,this::parseAddKillMessage,this::parseRemoveKillMessage,this::parseListKillMessages,this::parseGetSexuality,this::parseGetVirginity,this::parseGetGender,this::parseGetRace,this::parseGetSize};
 		this.consoleCommandParser=new CmdParser(parsers,names);
 		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
 		this.prefix="--";
@@ -1192,10 +1192,23 @@ public class ScannerV0_2_2
 	public void initWeirdStuff(String aid,String gid,JSONObject obj)throws IOException
 	{
 		JSONObject o=new JSONObject();
-		o.put("sexuality",Math.random()<0.5);
+		o.put("gay",Math.random()<0.5);
 		o.put("virginity",Math.random()<0.5);
+		o.put("female",Math.random()<0.5);
+		ArrayList<String>races=new ArrayList<String>();
+		BufferedReader reader=new BufferedReader(new InputStreamReader(this.getClass().getResourceAsStream("/races.txt")));
+		var race=reader.readLine();
+		while(race!=null)
+		{
+			races.add(race);
+			race=reader.readLine();
+		}
+		Random r=new Random(System.nanoTime());
+		o.put("race",races.get(r.nextInt(races.size())));
+		long size=((Boolean)o.get("female")).booleanValue()?(r.nextLong()%75000000+75000000)%75000000+25000000:(r.nextLong()%950000000+950000000)%95000000+50000000;
+		o.put("size",size);
 		obj.put(aid,o);
-		FileWriter writer=new FileWriter(gid+"/sexuality.dat");
+		FileWriter writer=new FileWriter(gid+"/weird.dat");
 		writer.append(obj.toJSONString());
 		writer.close();
 	}
@@ -1204,7 +1217,7 @@ public class ScannerV0_2_2
 		var ans="Shit happens.";
 		try
 		{
-			FileReader reader=new FileReader(guild.getId()+"/sexuality.dat");
+			FileReader reader=new FileReader(guild.getId()+"/weird.dat");
 			JSONObject s=(JSONObject)new JSONParser().parse(reader);
 			if(args.length==1)
 			{
@@ -1215,7 +1228,7 @@ public class ScannerV0_2_2
 			{
 				this.initWeirdStuff(author.getId(),guild.getId(),s);
 			}
-			ans=author.getAsMention()+" is "+((Boolean)((JSONObject)s.get(author.getId())).get("sexuality")?"gay":"straight");
+			ans=author.getAsMention()+" is "+((Boolean)((JSONObject)s.get(author.getId())).get("gay")?"gay":"straight");
 		}
 		catch(Exception e)
 		{
@@ -1246,6 +1259,86 @@ public class ScannerV0_2_2
 				ans+="not ";
 			}
 			ans+="a virgin.";
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			ans=e.toString();
+		}
+		return ans;
+	}
+	public String parseGetGender(Guild guild,User author,long channel,String...args)
+	{
+		var ans="Ur mum gay.";
+		if(args.length==1)
+		{
+			author=guild.getMemberById(args[0].replaceAll("[^0-9]","")).getUser();
+		}
+		try
+		{
+			FileReader reader=new FileReader(guild.getId()+"/weird.dat");
+			JSONObject s=(JSONObject)new JSONParser().parse(reader);
+			reader.close();
+			if(!s.containsKey(author.getId()))
+			{
+				this.initWeirdStuff(author.getId(),guild.getId(),s);
+			}
+			ans=author.getAsMention()+" is a ";
+			ans+=((Boolean)((JSONObject)s.get(author.getId())).get("female")).booleanValue()?"girl.":"boy.";
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			ans=e.toString();
+		}
+		return ans;
+	}
+	public String parseGetRace(Guild guild,User author,long channel,String...args)
+	{
+		var ans="Ur mum gay.";
+		if(args.length==1)
+		{
+			author=guild.getMemberById(args[0].replaceAll("[^0-9]","")).getUser();
+		}
+		try
+		{
+			FileReader reader=new FileReader(guild.getId()+"/weird.dat");
+			JSONObject s=(JSONObject)new JSONParser().parse(reader);
+			reader.close();
+			if(!s.containsKey(author.getId()))
+			{
+				this.initWeirdStuff(author.getId(),guild.getId(),s);
+			}
+			ans=author.getAsMention()+" is a ";
+			ans+=((JSONObject)s.get(author.getId())).get("race");
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			ans=e.toString();
+		}
+		return ans;
+	}
+	public String parseGetSize(Guild guild,User author,long channel,String...args)
+	{
+		var ans="Ur mum gay.";
+		if(args.length==1)
+		{
+			author=guild.getMemberById(args[0].replaceAll("[^0-9]","")).getUser();
+		}
+		try
+		{
+			FileReader reader=new FileReader(guild.getId()+"/weird.dat");
+			JSONObject s=(JSONObject)new JSONParser().parse(reader);
+			reader.close();
+			if(!s.containsKey(author.getId()))
+			{
+				this.initWeirdStuff(author.getId(),guild.getId(),s);
+			}
+			JSONObject o=(JSONObject)s.get(author.getId());
+			boolean female=(Boolean)o.get("female");
+			ans=author.getAsMention()+(female?"'s breasts' radius is ":" has a ");
+			ans+=o.get("size")+" nanometer"+(female?"s.":" penis.");
 		}
 		catch(Exception e)
 		{
