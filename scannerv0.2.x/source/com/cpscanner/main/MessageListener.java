@@ -33,7 +33,7 @@ public class MessageListener extends ListenerAdapter
 	 */
 	public void onMessageReceived(MessageReceivedEvent evt)
 	{
-		if(evt.getAuthor().getIdLong()!=ScannerV0_2_2.ID)
+		if(evt.getAuthor().getIdLong()!=ScannerV0_2_3.ID)
 		{
 			this.last=evt.getMessage();
 			this.newm=true;

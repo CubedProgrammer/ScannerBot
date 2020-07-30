@@ -18,7 +18,7 @@ import com.cpscanner.algorithm.*;
  * Main class that contains the main method.
  * @author CubedProgrammer
  */
-public class ScannerV0_2_2
+public class ScannerV0_2_3
 {
 	/**
 	 * Token for bot authentication.
@@ -54,16 +54,16 @@ public class ScannerV0_2_2
 		ArrayList<String>argsal=new ArrayList<String>();
 		for(int i=0;i<cs.length;i++)
 		{
-			if(cs[i]==ScannerV0_2_2.BRACKET&&!escaped)
+			if(cs[i]==ScannerV0_2_3.BRACKET&&!escaped)
 			{
 				open=!open;
 			}
-			else if(cs[i]==ScannerV0_2_2.DELIMITER&&!open)
+			else if(cs[i]==ScannerV0_2_3.DELIMITER&&!open)
 			{
 				argsal.add(builder.toString());
 				builder.delete(0,builder.length());
 			}
-			else if(!escaped&&cs[i]==ScannerV0_2_2.ESCAPE)
+			else if(!escaped&&cs[i]==ScannerV0_2_3.ESCAPE)
 			{
 				escaped=true;
 			}
@@ -170,9 +170,9 @@ public class ScannerV0_2_2
 	 * @throws LoginException
 	 */
 	@SuppressWarnings("rawtypes")
-	public ScannerV0_2_2()throws LoginException
+	public ScannerV0_2_3()throws LoginException
 	{
-		this.jda=new JDABuilder(AccountType.BOT).setToken(ScannerV0_2_2.TOKEN).build();
+		this.jda=new JDABuilder(AccountType.BOT).setToken(ScannerV0_2_3.TOKEN).build();
 		try
 		{
 			this.jda.awaitReady();
@@ -320,7 +320,7 @@ public class ScannerV0_2_2
 			Guild targetg=null;
 			String sguild=args[0];
 			String schannel=args[1];
-			if(!ScannerV0_2_2.isValidNumber(sguild))
+			if(!ScannerV0_2_3.isValidNumber(sguild))
 			{
 				Iterator<Guild>_it_=this.guilds.values().iterator();
 				boolean found=false;
@@ -494,7 +494,7 @@ public class ScannerV0_2_2
 		BigDecimal n=BigDecimal.ZERO;
 		for(int i=0;i<args.length;i++)
 		{
-			n=n.add(ScannerV0_2_2.strToNum(args[i]));
+			n=n.add(ScannerV0_2_3.strToNum(args[i]));
 		}
 		return n.toString();
 	}
@@ -511,7 +511,7 @@ public class ScannerV0_2_2
 		BigDecimal n=BigDecimal.ONE;
 		for(int i=0;i<args.length;i++)
 		{
-			n=n.multiply(ScannerV0_2_2.strToNum(args[i]));
+			n=n.multiply(ScannerV0_2_3.strToNum(args[i]));
 		}
 		return n.toString();
 	}
@@ -528,7 +528,7 @@ public class ScannerV0_2_2
 		BigDecimal n=BigDecimal.ZERO;
 		for(int i=0;i<args.length;i++)
 		{
-			n=n.add(ScannerV0_2_2.strToNum(args[i]));
+			n=n.add(ScannerV0_2_3.strToNum(args[i]));
 		}
 		return args.length==0?"0":n.divide(new BigDecimal(args.length),MathContext.DECIMAL128).toString();
 	}
@@ -545,7 +545,7 @@ public class ScannerV0_2_2
 		BigDecimal n=BigDecimal.ONE;
 		for(int i=0;i<args.length;i++)
 		{
-			n=n.multiply(ScannerV0_2_2.strToNum(args[i]));
+			n=n.multiply(ScannerV0_2_3.strToNum(args[i]));
 		}
 		return args.length==0?"0":MathAlgs.yroot(n,args.length).toString();
 	}
@@ -1358,7 +1358,7 @@ public class ScannerV0_2_2
 			String s=reader.readLine();
 			while(s!=null)
 			{
-				out.println(this.consoleCommandParser.parse(null,null,0,ScannerV0_2_2.getCmdArgs(s)));
+				out.println(this.consoleCommandParser.parse(null,null,0,ScannerV0_2_3.getCmdArgs(s)));
 				s="exit".equals(s)?null:reader.readLine();
 			}
 		}
@@ -1392,10 +1392,10 @@ public class ScannerV0_2_2
 						out.printf("Server: %x (%s), Channel: %x (%s)"+System.getProperty("line.separator"),msg.getGuild().getIdLong(),msg.getGuild().getName(),msg.getChannel().getIdLong(),msg.getChannel().getName());
 						out.printf("%x (%s AKA %s): %s"+System.getProperty("line.separator"),msg.getAuthor().getIdLong(),msg.getAuthor().getName(),msg.getGuild().getMember(msg.getAuthor()).getEffectiveName(),msg.getContentRaw());
 					}
-					args=ScannerV0_2_2.getCmdArgs(msg.getContentRaw());
+					args=ScannerV0_2_3.getCmdArgs(msg.getContentRaw());
 					if(args.length>0)
 					{
-						if(args[0].equals("<@!"+Long.toString(ScannerV0_2_2.ID)+">"))
+						if(args[0].equals("<@!"+Long.toString(ScannerV0_2_3.ID)+">"))
 						{
 							msg.getChannel().sendMessage(this.discordCommandParser.parse(msg.getGuild(),msg.getAuthor(),msg.getChannel().getIdLong(),Arrays.copyOfRange(args,1,args.length))).queue();
 						}
@@ -1450,7 +1450,7 @@ public class ScannerV0_2_2
 	{
 		try
 		{
-			new ScannerV0_2_2().start();
+			new ScannerV0_2_3().start();
 		}
 		catch(LoginException e)
 		{
