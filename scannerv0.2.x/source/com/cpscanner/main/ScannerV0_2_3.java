@@ -264,8 +264,8 @@ public class ScannerV0_2_3
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet zprob probz nickname solve_linear_equation ban_by_msg get_ban_words changelog kill add_kill_msg erase_kill_msg list_kill_msg sexuality virginity gender race size".split(" ");
-		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle,this::parseZProb,this::parseProbZ,this::parseChangeNickname,this::parseSolveEquation,this::parseSetBanWords,this::parseGetBanWords,this::parseGetChangelog,this::parseKillMember,this::parseAddKillMessage,this::parseRemoveKillMessage,this::parseListKillMessages,this::parseGetSexuality,this::parseGetVirginity,this::parseGetGender,this::parseGetRace,this::parseGetSize};
+		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet zprob probz nickname solve_linear_equation ban_by_msg get_ban_words changelog kill add_kill_msg erase_kill_msg list_kill_msg sexuality virginity gender race size attrib kick".split(" ");
+		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle,this::parseZProb,this::parseProbZ,this::parseChangeNickname,this::parseSolveEquation,this::parseSetBanWords,this::parseGetBanWords,this::parseGetChangelog,this::parseKillMember,this::parseAddKillMessage,this::parseRemoveKillMessage,this::parseListKillMessages,this::parseGetSexuality,this::parseGetVirginity,this::parseGetGender,this::parseGetRace,this::parseGetSize,this::parseGetAttributes,this::parseKickMember};
 		this.consoleCommandParser=new CmdParser(parsers,names);
 		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
 		this.prefix="--";
@@ -1344,6 +1344,51 @@ public class ScannerV0_2_3
 		{
 			e.printStackTrace();
 			ans=e.toString();
+		}
+		return ans;
+	}
+	public String parseGetAttributes(Guild guild,User author,long channel,String...args)
+	{
+		var ans="Ur mum gay.";
+		if(args.length==1)
+		{
+			author=guild.getMemberById(args[0].replaceAll("[^0-9]","")).getUser();
+		}
+		try
+		{
+			FileReader reader=new FileReader(guild.getId()+"/weird.dat");
+			JSONObject s=(JSONObject)new JSONParser().parse(reader);
+			reader.close();
+			if(!s.containsKey(author.getId()))
+			{
+				this.initWeirdStuff(author.getId(),guild.getId(),s);
+			}
+			ans="The attributes are ";
+			JSONObject o=(JSONObject)s.get(author.getId());
+			ans+=o;
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			ans=e.toString();
+		}
+		return ans;
+	}
+	public String parseKickMember(Guild guild,User author,long channel,String...args)
+	{
+		var ans="Mention the member to kick.";
+		if(args.length==1)
+		{
+			Member kicker=guild.getMember(author);
+			if(kicker.hasPermission(Permission.KICK_MEMBERS))
+			{
+				guild.kick(guild.getMemberById(args[0].replaceAll("[^0-9]","")),"kicked by "+kicker.getAsMention()).queue();
+				ans="Successfully kicked member";
+			}
+			else
+			{
+				ans="You do not have permission to use this command.";
+			}
 		}
 		return ans;
 	}
