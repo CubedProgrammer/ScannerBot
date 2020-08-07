@@ -264,8 +264,8 @@ public class ScannerV0_2_3
 		it=this.guilds.values().iterator();
 		this.channel=(this.guild=it.next()).getDefaultChannel();
 		out.println(this.channel.getName());
-		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet zprob probz nickname solve_linear_equation ban_by_msg get_ban_words changelog kill add_kill_msg erase_kill_msg list_kill_msg sexuality virginity gender race size attrib kick".split(" ");
-		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle,this::parseZProb,this::parseProbZ,this::parseChangeNickname,this::parseSolveEquation,this::parseSetBanWords,this::parseGetBanWords,this::parseGetChangelog,this::parseKillMember,this::parseAddKillMessage,this::parseRemoveKillMessage,this::parseListKillMessages,this::parseGetSexuality,this::parseGetVirginity,this::parseGetGender,this::parseGetRace,this::parseGetSize,this::parseGetAttributes,this::parseKickMember};
+		String[]names="current list change message info sum product average gmean work addrole rmrole vname autorole toggleselfrole toggleselfroles selfrole listselfroles solvet zprob probz nickname solve_linear_equation ban_by_msg get_ban_words changelog kill add_kill_msg erase_kill_msg list_kill_msg sexuality virginity gender race size attrib kick ban".split(" ");
+		ScCmd[]parsers={this::parseCurrentChannel,this::parseListGuildsAndChannels,this::parseChangeChannel,this::parseSendMsg,this::parseEntityInfo,this::parseSum,this::parseProduct,this::parseListAverage,this::parseGeometricMean,this::parseWork,this::parseAddRole,this::parseRemoveRole,this::parseVerifyName,this::parseAutorole,this::parseToggleSelfrole,this::parseToggleSelfroles,this::parseSelfrole,this::parseListSelfroles,this::parseSolveTriangle,this::parseZProb,this::parseProbZ,this::parseChangeNickname,this::parseSolveEquation,this::parseSetBanWords,this::parseGetBanWords,this::parseGetChangelog,this::parseKillMember,this::parseAddKillMessage,this::parseRemoveKillMessage,this::parseListKillMessages,this::parseGetSexuality,this::parseGetVirginity,this::parseGetGender,this::parseGetRace,this::parseGetSize,this::parseGetAttributes,this::parseKickMember,this::parseBanMember};
 		this.consoleCommandParser=new CmdParser(parsers,names);
 		this.discordCommandParser=new CmdParser(Arrays.copyOfRange(parsers,4,parsers.length),Arrays.copyOfRange(names,4,names.length));
 		this.prefix="--";
@@ -1383,6 +1383,24 @@ public class ScannerV0_2_3
 			if(kicker.hasPermission(Permission.KICK_MEMBERS))
 			{
 				guild.kick(guild.getMemberById(args[0].replaceAll("[^0-9]","")),"kicked by "+kicker.getAsMention()).queue();
+				ans="Successfully kicked member";
+			}
+			else
+			{
+				ans="You do not have permission to use this command.";
+			}
+		}
+		return ans;
+	}
+	public String parseBanMember(Guild guild,User author,long channel,String...args)
+	{
+		var ans="Mention the member to ban.";
+		if(args.length==1)
+		{
+			Member kicker=guild.getMember(author);
+			if(kicker.hasPermission(Permission.BAN_MEMBERS))
+			{
+				guild.ban(guild.getMemberById(args[0].replaceAll("[^0-9]","")),0,"banned by "+kicker.getAsMention()).queue();
 				ans="Successfully kicked member";
 			}
 			else
