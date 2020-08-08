@@ -56,7 +56,7 @@ public class CmdParser
 			}
 			else if("version".equalsIgnoreCase(tokens[0]))
 			{
-				result="0.2.3";
+				result="0.2.4";
 			}
 			else
 			{
