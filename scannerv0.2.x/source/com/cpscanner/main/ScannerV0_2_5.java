@@ -18,7 +18,7 @@ import com.cpscanner.algorithm.*;
  * Main class that contains the main method.
  * @author CubedProgrammer
  */
-public class ScannerV0_2_4
+public class ScannerV0_2_5
 {
 	/**
 	 * Token for bot authentication.
@@ -54,16 +54,16 @@ public class ScannerV0_2_4
 		ArrayList<String>argsal=new ArrayList<String>();
 		for(int i=0;i<cs.length;i++)
 		{
-			if(cs[i]==ScannerV0_2_4.BRACKET&&!escaped)
+			if(cs[i]==ScannerV0_2_5.BRACKET&&!escaped)
 			{
 				open=!open;
 			}
-			else if(cs[i]==ScannerV0_2_4.DELIMITER&&!open)
+			else if(cs[i]==ScannerV0_2_5.DELIMITER&&!open)
 			{
 				argsal.add(builder.toString());
 				builder.delete(0,builder.length());
 			}
-			else if(!escaped&&cs[i]==ScannerV0_2_4.ESCAPE)
+			else if(!escaped&&cs[i]==ScannerV0_2_5.ESCAPE)
 			{
 				escaped=true;
 			}
@@ -170,9 +170,9 @@ public class ScannerV0_2_4
 	 * @throws LoginException
 	 */
 	@SuppressWarnings("rawtypes")
-	public ScannerV0_2_4()throws LoginException
+	public ScannerV0_2_5()throws LoginException
 	{
-		this.jda=new JDABuilder(AccountType.BOT).setToken(ScannerV0_2_4.TOKEN).build();
+		this.jda=new JDABuilder(AccountType.BOT).setToken(ScannerV0_2_5.TOKEN).build();
 		try
 		{
 			this.jda.awaitReady();
@@ -320,7 +320,7 @@ public class ScannerV0_2_4
 			Guild targetg=null;
 			String sguild=args[0];
 			String schannel=args[1];
-			if(!ScannerV0_2_4.isValidNumber(sguild))
+			if(!ScannerV0_2_5.isValidNumber(sguild))
 			{
 				Iterator<Guild>_it_=this.guilds.values().iterator();
 				boolean found=false;
@@ -494,7 +494,7 @@ public class ScannerV0_2_4
 		BigDecimal n=BigDecimal.ZERO;
 		for(int i=0;i<args.length;i++)
 		{
-			n=n.add(ScannerV0_2_4.strToNum(args[i]));
+			n=n.add(ScannerV0_2_5.strToNum(args[i]));
 		}
 		return n.toString();
 	}
@@ -511,7 +511,7 @@ public class ScannerV0_2_4
 		BigDecimal n=BigDecimal.ONE;
 		for(int i=0;i<args.length;i++)
 		{
-			n=n.multiply(ScannerV0_2_4.strToNum(args[i]));
+			n=n.multiply(ScannerV0_2_5.strToNum(args[i]));
 		}
 		return n.toString();
 	}
@@ -528,7 +528,7 @@ public class ScannerV0_2_4
 		BigDecimal n=BigDecimal.ZERO;
 		for(int i=0;i<args.length;i++)
 		{
-			n=n.add(ScannerV0_2_4.strToNum(args[i]));
+			n=n.add(ScannerV0_2_5.strToNum(args[i]));
 		}
 		return args.length==0?"0":n.divide(new BigDecimal(args.length),MathContext.DECIMAL128).toString();
 	}
@@ -545,7 +545,7 @@ public class ScannerV0_2_4
 		BigDecimal n=BigDecimal.ONE;
 		for(int i=0;i<args.length;i++)
 		{
-			n=n.multiply(ScannerV0_2_4.strToNum(args[i]));
+			n=n.multiply(ScannerV0_2_5.strToNum(args[i]));
 		}
 		return args.length==0?"0":MathAlgs.yroot(n,args.length).toString();
 	}
@@ -1212,6 +1212,7 @@ public class ScannerV0_2_4
 		writer.append(obj.toJSONString());
 		writer.close();
 	}
+	@SuppressWarnings("unchecked")
 	public String parseGetSexuality(Guild guild,User author,long channel,String...args)
 	{
 		var ans="Shit happens.";
@@ -1219,7 +1220,7 @@ public class ScannerV0_2_4
 		{
 			FileReader reader=new FileReader(guild.getId()+"/weird.dat");
 			JSONObject s=(JSONObject)new JSONParser().parse(reader);
-			if(args.length==1)
+			if(args.length>0)
 			{
 				author=guild.getMemberById(args[0].replaceAll("[^0-9]","")).getUser();
 			}
@@ -1228,7 +1229,19 @@ public class ScannerV0_2_4
 			{
 				this.initWeirdStuff(author.getId(),guild.getId(),s);
 			}
-			ans=author.getAsMention()+" is "+((Boolean)((JSONObject)s.get(author.getId())).get("gay")?"gay":"straight");
+			if(args.length==2)
+			{
+				JSONObject o=(JSONObject)s.get(author.getId());
+				o.put("gay",Boolean.parseBoolean(args[1]));
+				ans="Set the attribute of gay to "+o.get("gay");
+				FileWriter writer=new FileWriter(guild.getId()+"/weird.dat");
+				writer.write(s.toJSONString());
+				writer.close();
+			}
+			else
+			{
+				ans=author.getAsMention()+" is "+((Boolean)((JSONObject)s.get(author.getId())).get("gay")?"gay":"straight");
+			}
 		}
 		catch(Exception e)
 		{
@@ -1237,10 +1250,11 @@ public class ScannerV0_2_4
 		}
 		return ans;
 	}
+	@SuppressWarnings("unchecked")
 	public String parseGetVirginity(Guild guild,User author,long channel,String...args)
 	{
 		var ans="Ur mum gay.";
-		if(args.length==1)
+		if(args.length>0)
 		{
 			author=guild.getMemberById(args[0].replaceAll("[^0-9]","")).getUser();
 		}
@@ -1253,12 +1267,24 @@ public class ScannerV0_2_4
 			{
 				this.initWeirdStuff(author.getId(),guild.getId(),s);
 			}
-			ans=author.getAsMention()+" is ";
-			if(!(Boolean)((JSONObject)s.get(author.getId())).get("virginity"))
+			if(args.length==2)
 			{
-				ans+="not ";
+				JSONObject o=(JSONObject)s.get(author.getId());
+				o.put("virginity",Boolean.parseBoolean(args[1]));
+				ans="Set the attribute of virginity to "+o.get("virginity");
+				FileWriter writer=new FileWriter(guild.getId()+"/weird.dat");
+				writer.write(s.toJSONString());
+				writer.close();
 			}
-			ans+="a virgin.";
+			else
+			{
+				ans=author.getAsMention()+" is ";
+				if(!(Boolean)((JSONObject)s.get(author.getId())).get("virginity"))
+				{
+					ans+="not ";
+				}
+				ans+="a virgin.";
+			}
 		}
 		catch(Exception e)
 		{
@@ -1267,10 +1293,11 @@ public class ScannerV0_2_4
 		}
 		return ans;
 	}
+	@SuppressWarnings("unchecked")
 	public String parseGetGender(Guild guild,User author,long channel,String...args)
 	{
 		var ans="Ur mum gay.";
-		if(args.length==1)
+		if(args.length>0)
 		{
 			author=guild.getMemberById(args[0].replaceAll("[^0-9]","")).getUser();
 		}
@@ -1283,8 +1310,20 @@ public class ScannerV0_2_4
 			{
 				this.initWeirdStuff(author.getId(),guild.getId(),s);
 			}
-			ans=author.getAsMention()+" is a ";
-			ans+=((Boolean)((JSONObject)s.get(author.getId())).get("female")).booleanValue()?"girl.":"boy.";
+			if(args.length==2)
+			{
+				JSONObject o=(JSONObject)s.get(author.getId());
+				o.put("female",Boolean.parseBoolean(args[1]));
+				ans="Set the attribute of female to "+o.get("female");
+				FileWriter writer=new FileWriter(guild.getId()+"/weird.dat");
+				writer.write(s.toJSONString());
+				writer.close();
+			}
+			else
+			{
+				ans=author.getAsMention()+" is a ";
+				ans+=((Boolean)((JSONObject)s.get(author.getId())).get("female")).booleanValue()?"girl.":"boy.";
+			}
 		}
 		catch(Exception e)
 		{
@@ -1293,10 +1332,11 @@ public class ScannerV0_2_4
 		}
 		return ans;
 	}
+	@SuppressWarnings("unchecked")
 	public String parseGetRace(Guild guild,User author,long channel,String...args)
 	{
 		var ans="Ur mum gay.";
-		if(args.length==1)
+		if(args.length>0)
 		{
 			author=guild.getMemberById(args[0].replaceAll("[^0-9]","")).getUser();
 		}
@@ -1309,8 +1349,20 @@ public class ScannerV0_2_4
 			{
 				this.initWeirdStuff(author.getId(),guild.getId(),s);
 			}
-			ans=author.getAsMention()+" is a ";
-			ans+=((JSONObject)s.get(author.getId())).get("race");
+			if(args.length==2)
+			{
+				JSONObject o=(JSONObject)s.get(author.getId());
+				o.put("race",args[1]);
+				ans="Set the attribute of race to "+o.get("race");
+				FileWriter writer=new FileWriter(guild.getId()+"/weird.dat");
+				writer.write(s.toJSONString());
+				writer.close();
+			}
+			else
+			{
+				ans=author.getAsMention()+" is a ";
+				ans+=((JSONObject)s.get(author.getId())).get("race");
+			}
 		}
 		catch(Exception e)
 		{
@@ -1319,10 +1371,11 @@ public class ScannerV0_2_4
 		}
 		return ans;
 	}
+	@SuppressWarnings("unchecked")
 	public String parseGetSize(Guild guild,User author,long channel,String...args)
 	{
 		var ans="Ur mum gay.";
-		if(args.length==1)
+		if(args.length>0)
 		{
 			author=guild.getMemberById(args[0].replaceAll("[^0-9]","")).getUser();
 		}
@@ -1336,9 +1389,20 @@ public class ScannerV0_2_4
 				this.initWeirdStuff(author.getId(),guild.getId(),s);
 			}
 			JSONObject o=(JSONObject)s.get(author.getId());
-			boolean female=(Boolean)o.get("female");
-			ans=author.getAsMention()+(female?"'s breasts' radius is ":" has a ");
-			ans+=o.get("size")+" nanometer"+(female?"s.":" penis.");
+			if(args.length==2)
+			{
+				o.put("size",Long.parseLong(args[1]));
+				ans="Set the attribute of size to "+o.get("size");
+				FileWriter writer=new FileWriter(guild.getId()+"/weird.dat");
+				writer.write(s.toJSONString());
+				writer.close();
+			}
+			else
+			{
+				boolean female=(Boolean)o.get("female");
+				ans=author.getAsMention()+(female?"'s breasts' radius is ":" has a ");
+				ans+=o.get("size")+" nanometer"+(female?"s.":" penis.");
+			}
 		}
 		catch(Exception e)
 		{
@@ -1380,9 +1444,10 @@ public class ScannerV0_2_4
 		if(args.length==1)
 		{
 			Member kicker=guild.getMember(author);
-			if(kicker.hasPermission(Permission.KICK_MEMBERS))
+			Member victim=guild.getMemberById(args[0].replaceAll("[^0-9]",""));
+			if(kicker.getRoles().size()>0&&(victim.getRoles().size()==0||kicker.getRoles().get(0).compareTo(victim.getRoles().get(0))>0)&&kicker.hasPermission(Permission.KICK_MEMBERS))
 			{
-				guild.kick(guild.getMemberById(args[0].replaceAll("[^0-9]","")),"kicked by "+kicker.getAsMention()).queue();
+				guild.kick(victim,"kicked by "+kicker.getAsMention()).queue();
 				ans="Successfully kicked member";
 			}
 			else
@@ -1398,9 +1463,10 @@ public class ScannerV0_2_4
 		if(args.length==1)
 		{
 			Member kicker=guild.getMember(author);
-			if(kicker.hasPermission(Permission.BAN_MEMBERS))
+			Member victim=guild.getMemberById(args[0].replaceAll("[^0-9]",""));
+			if(kicker.getRoles().size()>0&&(victim.getRoles().size()==0||kicker.getRoles().get(0).compareTo(victim.getRoles().get(0))>0)&&kicker.hasPermission(Permission.BAN_MEMBERS))
 			{
-				guild.ban(guild.getMemberById(args[0].replaceAll("[^0-9]","")),0,"banned by "+kicker.getAsMention()).queue();
+				guild.ban(victim,0,"banned by "+kicker.getAsMention()).queue();
 				ans="Successfully kicked member";
 			}
 			else
@@ -1421,7 +1487,7 @@ public class ScannerV0_2_4
 			String s=reader.readLine();
 			while(s!=null)
 			{
-				out.println(this.consoleCommandParser.parse(null,null,0,ScannerV0_2_4.getCmdArgs(s)));
+				out.println(this.consoleCommandParser.parse(null,null,0,ScannerV0_2_5.getCmdArgs(s)));
 				s="exit".equals(s)?null:reader.readLine();
 			}
 		}
@@ -1452,13 +1518,24 @@ public class ScannerV0_2_4
 				{
 					if(msg.getChannel().equals(this.channel))
 					{
+						try
+						{
+							msg.getAuthor();
+							msg.getAuthor().getName();
+							msg.getGuild();
+							msg.getContentRaw();
+						}
+						catch(Exception e)
+						{
+							e.printStackTrace();
+						}
 						out.printf("Server: %x (%s), Channel: %x (%s)"+System.getProperty("line.separator"),msg.getGuild().getIdLong(),msg.getGuild().getName(),msg.getChannel().getIdLong(),msg.getChannel().getName());
 						out.printf("%x (%s AKA %s): %s"+System.getProperty("line.separator"),msg.getAuthor().getIdLong(),msg.getAuthor().getName(),msg.getGuild().getMember(msg.getAuthor()).getEffectiveName(),msg.getContentRaw());
 					}
-					args=ScannerV0_2_4.getCmdArgs(msg.getContentRaw());
+					args=ScannerV0_2_5.getCmdArgs(msg.getContentRaw());
 					if(args.length>0)
 					{
-						if(args[0].equals("<@!"+Long.toString(ScannerV0_2_4.ID)+">"))
+						if(args[0].equals("<@!"+Long.toString(ScannerV0_2_5.ID)+">"))
 						{
 							msg.getChannel().sendMessage(this.discordCommandParser.parse(msg.getGuild(),msg.getAuthor(),msg.getChannel().getIdLong(),Arrays.copyOfRange(args,1,args.length))).queue();
 						}
@@ -1513,7 +1590,7 @@ public class ScannerV0_2_4
 	{
 		try
 		{
-			new ScannerV0_2_4().start();
+			new ScannerV0_2_5().start();
 		}
 		catch(LoginException e)
 		{
