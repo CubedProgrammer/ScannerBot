@@ -8,7 +8,9 @@ import javax.security.auth.login.LoginException;
 import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -121,6 +123,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.prefix = "--";
 		this.mention = "<@!" + this.ID + ">";
 		this.parser = new CommandParser();
+		this.parser.put("sum", "Adds numbers together.", this::parseSum).put("product", "Multiplies numbers together.", this::parseProduct);
 	}
 	public void onMessageReceived(MessageReceivedEvent evt)
 	{
@@ -147,6 +150,21 @@ public class ScannerV_0_3 extends ListenerAdapter
 				System.out.println(response);
 			}
 		}
+	}
+	public String parseSum(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		System.out.println(Arrays.toString(args));
+		BigDecimal sum = BigDecimal.ZERO;
+		for(int i=0;i<args.length;i++)
+			sum = sum.add(ScannerV_0_3.strToNum(args[i]));
+		return sum.toString();
+	}
+	public String parseProduct(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		BigDecimal sum = BigDecimal.ONE;
+		for(int i=0;i<args.length;i++)
+			sum = sum.multiply(ScannerV_0_3.strToNum(args[i]));
+		return sum.toString();
 	}
 	public static void main(String[] args)
 	{
