@@ -35,7 +35,7 @@ public class CommandParser
 				ans += System.getProperty("line.separator") + name + " - " + bc.description;
 			}
 		}
-		else if(this.cmds.containsKey(cmd))
+		else if(this.cmds.containsKey(cmd.toLowerCase()))
 		{
 			int start = 0;
 			ArrayList<String>stack = new ArrayList<String>();
@@ -44,12 +44,12 @@ public class CommandParser
 			for(int i=0;i<args.length;i++)
 			{
 				cmd = args[i];
-				if(this.cmds.containsKey(cmd))
+				if(this.cmds.containsKey(cmd.toLowerCase()))
 				{
 					stack.add(cmd);
 					pos.add(i);
 				}
-				else if("__end__".equals(cmd) || i+1 == args.length)
+				if("__end__".equals(cmd) || i+1 == args.length)
 				{
 					do
 					{
@@ -69,7 +69,8 @@ public class CommandParser
 								argsl.add(args[j]);
 						}
 						args[start] = this.cmds.get(args[start]).action.parse(message, guild, channel, author, argsl.toArray(new String[argsl.size()]));
-						args[start + 1] = CommandParser.SKIP_SIGNAL_PREFIX + Integer.toHexString(Math.min(i+1, args.length));
+						if(start + 1 < args.length)
+							args[start + 1] = CommandParser.SKIP_SIGNAL_PREFIX + Integer.toHexString(Math.min(i+1, args.length));
 						if(i == args.length)
 							i--;
 					}
