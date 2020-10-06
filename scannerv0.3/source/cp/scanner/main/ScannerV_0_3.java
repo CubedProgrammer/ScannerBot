@@ -9,7 +9,6 @@ import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,7 +41,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	/**
 	 * Token for bot authentication.
 	 */
-	public static final String TOKEN="Njg2MjUxMjQ5NzkxNzk1MjE0.XmUfRw.E0tBvkSfSj1Xt0U9TpC0nsSzpVs";
+	public static final String TOKEN="MzY3NDI2MTc4MDE5MjI5Njk3.Wd0-Sw.-Rqj4I9TCfWGfy6IIHCSxiS7Wqs";
 	/**
 	 * Delimiter character.
 	 */
