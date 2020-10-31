@@ -26,7 +26,7 @@ public class CommandParser
 			ans = "0.3.0 (First beta release)";
 		else if("help".equalsIgnoreCase(cmd))
 		{
-			ans = "This is the list of commands.";
+			ans = "This is the list of commands, arguments must be **SPACE SEPARATED**, if an argument must have spaces in them, use quotes.";
 			BotCommand bc = null;
 			String name = null;
 			for(var it = this.cmds.keySet().iterator();it.hasNext();)
@@ -41,6 +41,7 @@ public class CommandParser
 			ArrayList<String>stack = new ArrayList<String>();
 			ArrayList<Integer>pos = new ArrayList<Integer>();
 			ArrayList<String>argsl = new ArrayList<String>();
+			System.out.println(cmd);
 			for(int i=0;i<args.length;i++)
 			{
 				cmd = args[i];
@@ -68,7 +69,15 @@ public class CommandParser
 							else
 								argsl.add(args[j]);
 						}
-						args[start] = this.cmds.get(args[start]).action.parse(message, guild, channel, author, argsl.toArray(new String[argsl.size()]));
+						try
+						{
+							args[start] = this.cmds.get(args[start]).action.parse(message, guild, channel, author, argsl.toArray(new String[argsl.size()]));
+						}
+						catch(Exception e)
+						{
+							ans = "Error occured for command "+args[start]+" which was token "+start+", it has produced the following message."+e.toString();
+							e.printStackTrace();
+						}
 						if(start + 1 < args.length)
 							args[start + 1] = CommandParser.SKIP_SIGNAL_PREFIX + Integer.toHexString(Math.min(i+1, args.length));
 						if(i == args.length)

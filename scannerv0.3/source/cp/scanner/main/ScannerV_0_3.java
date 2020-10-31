@@ -12,7 +12,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Scanner;
 import javax.security.auth.login.LoginException;
 import org.apache.commons.math3.special.Erf;
@@ -32,6 +34,7 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 /**
  * Main class that contains the main method.
  * @author CubedProgrammer
@@ -41,7 +44,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	/**
 	 * Token for bot authentication.
 	 */
-	public static final String TOKEN="MzY3NDI2MTc4MDE5MjI5Njk3.Wd0-Sw.-Rqj4I9TCfWGfy6IIHCSxiS7Wqs";
+	public static final String TOKEN="Njg2MjUxMjQ5NzkxNzk1MjE0.XmUfRw.7TRUj1vY2y7sfa89u0LI7l17unI";
 	/**
 	 * Delimiter character.
 	 */
@@ -61,7 +64,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	/**
 	 * Files to create for storing data of each server
 	 */
-	public static final String files = "roles.dat prefix.txt banwords.txt";
+	public static final String files = "macros.txt roles.dat prefix.txt banwords.txt";
 	/**
 	 * Open weather map application programming interface key
 	 */
@@ -70,6 +73,14 @@ public class ScannerV_0_3 extends ListenerAdapter
 	 * Path for open weather map
 	 */
 	public static final String owmrq = "data/2.5/weather?lat=42.20965&lon=-83.042463&appid=";
+	/**
+	 * Macro names
+	 */
+	public static final String[]MACROS = "E PI TAU SQRT2 SQRT3".split(" ");
+	/**
+	 * Macro definitions
+	 */
+	public static final String[]MDEFS = "2.7182818284590452353602874713527 3.1415926535897932384626433832795 6.283185307179586476925286766559 1.4142135623730950488016887242097 1.7320508075688772935274463415059".split(" ");
 	/**
 	 * Parse a string into space-separated arguments.
 	 * @param s The string to parse.
@@ -189,6 +200,15 @@ public class ScannerV_0_3 extends ListenerAdapter
 		}
 		return member;
 	}
+	/**
+	 * Checks if a char is alphanumeric.
+	 * @param c Just a character.
+	 * @return True if it is alphanumeric or an underscore.
+	 */
+	public static final boolean isAlphanumeric(char c)
+	{
+		return"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrztuvwxyz_".contains(Character.toString(c));
+	}
 	private JDA jda;
 	private User self;
 	private long ID;
@@ -197,10 +217,11 @@ public class ScannerV_0_3 extends ListenerAdapter
 	private HashMap<Long, Role>autoroles;
 	private HashMap<Long, String>prefixes;
 	private HashMap<Long, String>banwords;
+	private HashMap<Long, HashMap<String, String>>macros;
 	private boolean ready;
 	public ScannerV_0_3() throws LoginException, InterruptedException
 	{
-		this.jda = new JDABuilder(AccountType.BOT).setToken(ScannerV_0_3.TOKEN).build().awaitReady();
+		this.jda = JDABuilder.create(ScannerV_0_3.TOKEN,EnumSet.allOf(GatewayIntent.class)).build().awaitReady();
 		this.jda.addEventListener(this);
 		this.self = this.jda.getSelfUser();
 		this.ID = this.self.getIdLong();
@@ -209,6 +230,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.autoroles = new HashMap<Long, Role>();
 		this.prefixes = new HashMap<Long, String>();
 		this.banwords = new HashMap<Long, String>();
+		this.macros = new HashMap<Long, HashMap<String, String>>();
 		this.parser.put("sum", "Adds numbers together.", this::parseSum).put("product", "Multiplies numbers together.", this::parseProduct);
 		this.parser.put("average", "Computes arithmetic mean of a list.", this::parseArithmeticMean).put("gmean", "Computes geometric mean of a list.", this::parseGeometricMean);
 		this.parser.put("addrole", "Adds a role to a member.", this::parseAddRole).put("rmrole", "Removes a role from a member.", this::parseRemoveRole);
@@ -221,6 +243,9 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("zprob", "Calculates the probablility of a z-score being less than a given z-score.", this::parseZProb).put("probz", "Calculates what z-score has a certain probability of having z-scores less than them.", this::parseProbZ);
 		this.parser.put("get_ban_words", "Gets the words that could get you banned.", this::parseGetBanWords).put("set_ban_words", "Sets the words that could you banned.", this::parseSetBanWords);
 		this.parser.put("weather", "Gets the weather.", this::parseGetWeather);
+		this.parser.put("define", "Defines a macro.", this::parseDefineMacro);
+		this.parser.put("macros", "Gets all the macros.", this::parseGetMacros);
+		this.parser.put("undef", "Undefines macros, put a letter in front of every macro you are undefining.", this::parseRemoveMacros);
 		//this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower);
 		var guilds = this.jda.getGuilds();
 		File f = null;
@@ -252,6 +277,11 @@ public class ScannerV_0_3 extends ListenerAdapter
 		{
 			try
 			{
+				this.macros.put(this.jda.getGuilds().get(i).getIdLong(),new HashMap<String, String>());
+				for(int j=0;j<ScannerV_0_3.MACROS.length;j++)
+				{
+					this.macros.get(this.jda.getGuilds().get(i).getIdLong()).put(ScannerV_0_3.MACROS[j],ScannerV_0_3.MDEFS[j]);
+				}
 				sc = new Scanner(new FileInputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/prefix.txt"));
 				if(sc.hasNext())
 					this.prefixes.put(this.jda.getGuilds().get(i).getIdLong(), sc.next());
@@ -260,6 +290,9 @@ public class ScannerV_0_3 extends ListenerAdapter
 				if(sc.hasNextLine())
 					this.banwords.put(this.jda.getGuilds().get(i).getIdLong(), sc.nextLine());
 				sc.close();
+				sc = new Scanner(new FileInputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/macros.txt"));
+				while(sc.hasNextLine())
+					this.macros.get(this.jda.getGuilds().get(i).getIdLong()).put(sc.next(),sc.nextLine().strip());
 			}
 			catch(IOException e)
 			{
@@ -271,6 +304,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 	public void save()
 	{
 		PrintStream ps = null;
+		Iterator<String>it = null;
+		String macro = null;
 		for(int i=0;i<this.jda.getGuilds().size();i++)
 		{
 			try
@@ -280,6 +315,14 @@ public class ScannerV_0_3 extends ListenerAdapter
 				ps.close();
 				ps = new PrintStream(new FileOutputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/banwords.txt"));
 				ps.print(this.banwords.get(this.jda.getGuilds().get(i).getIdLong()));
+				ps.close();
+				ps = new PrintStream(new FileOutputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/macros.txt"));
+				it = this.macros.get(this.jda.getGuilds().get(i).getIdLong()).keySet().iterator();
+				while(it.hasNext())
+				{
+					macro = it.next();
+					ps.println(macro + " " + this.macros.get(this.jda.getGuilds().get(i).getIdLong()).get(macro));
+				}
 				ps.close();
 			}
 			catch(IOException e)
@@ -294,39 +337,57 @@ public class ScannerV_0_3 extends ListenerAdapter
 		{
 			Message message = evt.getMessage();
 			String raw = message.getContentRaw();
-			if(raw.startsWith(this.mention))
+			if(evt.getGuild()!=null)
 			{
-				raw = raw.substring(this.mention.length()).strip();
-			}
-			else if(raw.startsWith(this.prefixes.get(evt.getGuild().getIdLong())))
-			{
-				raw = raw.substring(this.prefixes.get(evt.getGuild().getIdLong()).length()).strip();
-			}
-			else if(evt.getGuild()!=null)
-			{
-				System.out.println(this.banwords);
-				if(this.banwords.containsKey(evt.getGuild().getIdLong()))
+				if(raw.startsWith(this.mention))
 				{
-					String[]banwords = ScannerV_0_3.getCmdArgs(this.banwords.get(evt.getGuild().getIdLong()));
-					System.out.println(java.util.Arrays.toString(banwords));
-					for(int i=0;i<banwords.length;i++)
+					raw = raw.substring(this.mention.length()).strip();
+				}
+				else if(raw.startsWith(this.prefixes.get(evt.getGuild().getIdLong())))
+				{
+					raw = raw.substring(this.prefixes.get(evt.getGuild().getIdLong()).length()).strip();
+				}
+				else
+				{
+					System.out.println(this.banwords);
+					if(this.banwords.containsKey(evt.getGuild().getIdLong()))
 					{
-						if(raw.contains(banwords[i]))
+						String[]banwords = ScannerV_0_3.getCmdArgs(this.banwords.get(evt.getGuild().getIdLong()));
+						System.out.println(java.util.Arrays.toString(banwords));
+						for(int i=0;i<banwords.length;i++)
 						{
-							evt.getGuild().ban(evt.getMember(), 0, "Used an inappropriate word.").queue();
-							i = banwords.length;
+							if(raw.contains(banwords[i]))
+							{
+								evt.getGuild().ban(evt.getMember(), 0, "Used an inappropriate word.").queue();
+								i = banwords.length;
+							}
 						}
 					}
+					return;
 				}
-				return;
-			}
-			String[]args = ScannerV_0_3.getCmdArgs(raw);
-			if(args.length > 0)
-			{
-				String response = this.parser.parse(message,evt.getGuild(),evt.getChannel(),evt.getAuthor(),args);
-				evt.getChannel().sendMessage(response).queue();
-				System.out.println("Sent message to channel " + evt.getChannel().getId() + " in guild " + (evt.getGuild()==null?"null":evt.getGuild().getId()));
-				System.out.println(response);
+				Iterator<String>it=this.macros.get(evt.getGuild().getIdLong()).keySet().iterator();
+				String macro = null;
+				int index=0;
+				while(it.hasNext())
+				{
+					macro = it.next();
+					index = raw.indexOf(macro);
+					while(index!=-1)
+					{
+						if((index==0||!ScannerV_0_3.isAlphanumeric(raw.charAt(index-1)))&&(index+macro.length()==raw.length()||!ScannerV_0_3.isAlphanumeric(raw.charAt(index+macro.length()))))
+							raw=raw.substring(0,index)+this.macros.get(evt.getGuild().getIdLong()).get(macro)+raw.substring(index+macro.length());
+						index = raw.indexOf(macro,index+macro.length());
+					}
+				}
+				System.out.println(raw);
+				String[]args = ScannerV_0_3.getCmdArgs(raw);
+				if(args.length > 0)
+				{
+					String response = this.parser.parse(message,evt.getGuild(),evt.getChannel(),evt.getAuthor(),args);
+					evt.getChannel().sendMessage(response).queue();
+					System.out.println("Sent message to channel " + evt.getChannel().getId() + " in guild " + (evt.getGuild()==null?"null":evt.getGuild().getId()));
+					System.out.println(response);
+				}
 			}
 		}
 	}
@@ -586,9 +647,10 @@ public class ScannerV_0_3 extends ListenerAdapter
 				ans += System.getProperty("line.separator") + guild.getRoleById(iterator.next()).getAsMention();
 			}
 		}
-		catch(IOException e)
+		catch(Exception e)
 		{
 			e.printStackTrace();
+			ans = e.toString();
 		}
 		return ans;
 	}
@@ -805,11 +867,44 @@ public class ScannerV_0_3 extends ListenerAdapter
 		}
 		return ans;
 	}
+	public String parseDefineMacro(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans = "You need to put two arguments, the macro name and macro definition.";
+		if(args.length==2)
+		{
+			if(args[1].contains(args[0]))
+				ans = "You may not define a recursive macro.";
+			else
+			{
+				this.macros.get(guild.getIdLong()).put(args[0],args[1]);
+				ans = "Successfully defined macro.";
+			}
+		}
+		return ans;
+	}
+	public String parseGetMacros(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		return this.macros.get(guild.getIdLong()).toString();
+	}
+	public String parseRemoveMacros(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="";
+		if(args.length==1)
+			ans="Specify the name of the macros to remove.";
+		else
+		{
+			for(int i=0;i<args.length;i++)
+				this.macros.get(guild.getIdLong()).remove(args[i].substring(1));
+			ans="Removed specified macros.";
+		}
+		return ans;
+	}
 	public static void main(String[] args)
 	{
 		try
 		{
 			ScannerV_0_3 bot = new ScannerV_0_3();
+			System.out.println("done");
 			Scanner scanner = new Scanner(System.in);
 			String s = scanner.next();
 			if("exit".equals(s))
