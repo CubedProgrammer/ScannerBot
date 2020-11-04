@@ -21,6 +21,7 @@ import org.apache.commons.math3.special.Erf;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import cp.scanner.algo.MathAlgs;
+import cp.scanner.cmd.CmdFunction;
 import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -299,6 +300,12 @@ public class ScannerV_0_3 extends ListenerAdapter
 				e.printStackTrace();
 			}
 		}
+		String[]ccn="".split("\\s+");
+		String[]ccd="".split("____");
+		CmdFunction[]funcs={};
+		RemoteController gay=new RemoteController(this.jda,ccn,ccd,funcs,this);
+		Thread thread = new Thread(gay::run);
+		thread.start();
 		this.ready = true;
 	}
 	public void save()
@@ -393,6 +400,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	}
 	public void onGuildMemberJoin(GuildMemberJoinEvent evt)
 	{
+		System.out.println(evt.getMember().getUser().getIdLong());
 		if(this.autoroles.containsKey(evt.getGuild().getIdLong()))
 		{
 			evt.getGuild().addRoleToMember(evt.getMember(),this.autoroles.get(evt.getGuild().getIdLong())).queue();
@@ -903,17 +911,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 	{
 		try
 		{
-			ScannerV_0_3 bot = new ScannerV_0_3();
+			new ScannerV_0_3();
 			System.out.println("done");
-			Scanner scanner = new Scanner(System.in);
-			String s = scanner.next();
-			if("exit".equals(s))
-			{
-				bot.save();
-				scanner.close();
-				System.exit(1);
-			}
-			scanner.close();
 		}
 		catch(Exception e)
 		{

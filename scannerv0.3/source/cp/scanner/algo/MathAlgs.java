@@ -192,18 +192,36 @@ public class MathAlgs
 		shape[5] = c;
 	}*/
 	/**
-	 * Finds the solution of a linear equation with two unknowns.
-	 * @param a
-	 * @param b
-	 * @param c
-	 * @param d
-	 * @param e
-	 * @param f
+	 * Finds the solution of a system of linear equations, given as an augmented matrix.
+	 * @param mat
 	 * @return The array containing two numbers which are the solution to the equation.
 	 */
-	public static final BigDecimal[]solveLinearEquation()
+	public static final BigDecimal[]solveLinearEquation(BigDecimal[][]mat)
 	{
 		return null;
+	}
+	/**
+	 * Does forward elimination on an augmented matrix.
+	 * @param mat Some random matrix.
+	 */
+	public static final void forwardElim(BigDecimal[][]mat)
+	{
+	}
+	/**
+	 * Swap rows in an augmented matrix.
+	 * @param mat Some random matrix.
+	 * @param u One row to swap.
+	 * @param v The other row to swap.
+	 */
+	public static final void swapRows(BigDecimal[][]mat,int u,int v)
+	{
+		BigDecimal temp=null;
+		for(int i=0;i<=mat.length;i++)
+		{
+			temp=mat[u][i];
+			mat[u][i]=mat[v][i];
+			mat[v][i]=temp;
+		}
 	}
 	/**
 	 * Finds an integer root of a BigDecimal.
