@@ -300,10 +300,10 @@ public class ScannerV_0_3 extends ListenerAdapter
 				e.printStackTrace();
 			}
 		}
-		String[]ccn="".split("\\s+");
-		String[]ccd="".split("____");
-		CmdFunction[]funcs={};
-		RemoteController gay=new RemoteController(this.jda,ccn,ccd,funcs,this);
+		String[]ccn="message".split("\\s+");
+		String[]ccd="Sends a message to the current channel.".split("____");
+		CmdFunction[]funcs={this::parseSendMessage};
+		ConsoleController gay=new ConsoleController(this.jda,ccn,ccd,funcs,this);
 		Thread thread = new Thread(gay::run);
 		thread.start();
 		this.ready = true;
@@ -906,6 +906,16 @@ public class ScannerV_0_3 extends ListenerAdapter
 			ans="Removed specified macros.";
 		}
 		return ans;
+	}
+	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		String s="";
+		for(int i=0;i<args.length;i++)
+		{
+			s+=args[i]+" ";
+		}
+		channel.sendMessage(s.substring(0,s.length()-1)).queue();
+		return"Successfully sent message to channel "+channel.getName()+" in guild "+guild.getName();
 	}
 	public static void main(String[] args)
 	{
