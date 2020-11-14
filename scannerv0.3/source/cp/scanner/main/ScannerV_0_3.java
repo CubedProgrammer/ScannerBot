@@ -1,5 +1,6 @@
 package cp.scanner.main;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -65,7 +66,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	/**
 	 * Files to create for storing data of each server
 	 */
-	public static final String files = "macros.txt roles.dat prefix.txt banwords.txt";
+	public static final String files = "automuteroles.dat macros.txt roles.dat prefix.txt banwords.txt";
 	/**
 	 * Open weather map application programming interface key
 	 */
@@ -216,6 +217,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	private String mention;
 	private CommandParser parser;
 	private HashMap<Long, Role>autoroles;
+	private HashMap<Long, Role>muteroles;
 	private HashMap<Long, String>prefixes;
 	private HashMap<Long, String>banwords;
 	private HashMap<Long, HashMap<String, String>>macros;
@@ -229,6 +231,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.mention = "<@!" + this.ID + ">";
 		this.parser = new CommandParser();
 		this.autoroles = new HashMap<Long, Role>();
+		this.muteroles = new HashMap<Long, Role>();
 		this.prefixes = new HashMap<Long, String>();
 		this.banwords = new HashMap<Long, String>();
 		this.macros = new HashMap<Long, HashMap<String, String>>();
@@ -242,11 +245,13 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("info", "Gets the information of an entity, or the server, by mentioning the entity.", this::parseGetInformation);
 		this.parser.put("prefix", "Sets the prefix of the bot.", this::parseSetPrefix);
 		this.parser.put("zprob", "Calculates the probablility of a z-score being less than a given z-score.", this::parseZProb).put("probz", "Calculates what z-score has a certain probability of having z-scores less than them.", this::parseProbZ);
-		this.parser.put("get_ban_words", "Gets the words that could get you banned.", this::parseGetBanWords).put("set_ban_words", "Sets the words that could you banned.", this::parseSetBanWords);
-		this.parser.put("weather", "Gets the weather.", this::parseGetWeather);
+		this.parser.put("get_mute_words", "Gets the words that could get you muted.", this::parseGetBanWords).put("set_mute_words", "Sets the words that could get you muted.", this::parseSetBanWords);
+		this.parser.put("add_mute_words", "Adds words that could get you muted.", this::parseAddBanWords).put("remove_mute_words", "Removes words that could get you muted.", this::parseRemoveBanWords);
+		this.parser.put("weather", "Gets the weather.", this::parseGetWeather).put("weatherraw", "Gets the raw weather data.", this::parseRawWeather);
 		this.parser.put("define", "Defines a macro.", this::parseDefineMacro);
 		this.parser.put("macros", "Gets all the macros.", this::parseGetMacros);
 		this.parser.put("undef", "Undefines macros, put a letter in front of every macro you are undefining.", this::parseRemoveMacros);
+		this.parser.put("set_mute_role", "Sets the server role for a muted member.", this::parseSetMuteRole);
 		//this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower);
 		var guilds = this.jda.getGuilds();
 		File f = null;
@@ -274,6 +279,9 @@ public class ScannerV_0_3 extends ListenerAdapter
 			}
 		}
 		Scanner sc = null;
+		FileInputStream fin=null;
+		long r=0;
+		byte[]rbs=null;
 		for(int i=0;i<this.jda.getGuilds().size();i++)
 		{
 			try
@@ -294,6 +302,21 @@ public class ScannerV_0_3 extends ListenerAdapter
 				sc = new Scanner(new FileInputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/macros.txt"));
 				while(sc.hasNextLine())
 					this.macros.get(this.jda.getGuilds().get(i).getIdLong()).put(sc.next(),sc.nextLine().strip());
+				fin=new FileInputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/automuteroles.dat");
+				if(fin.available()==16)
+				{
+					rbs=new byte[16];
+					fin.read(rbs);
+					for(int j=0;j<8;j++)
+						r+=(long)rbs[j]<<j*8;
+					if(r!=-1)
+						this.autoroles.put(this.jda.getGuilds().get(i).getIdLong(),this.jda.getGuilds().get(i).getRoleById(r));
+					for(int j=0;j<8;j++)
+						r+=(long)rbs[j+8]<<j*8;
+					if(r!=-1)
+						this.muteroles.put(this.jda.getGuilds().get(i).getIdLong(),this.jda.getGuilds().get(i).getRoleById(r));
+				}
+				fin.close();
 			}
 			catch(IOException e)
 			{
@@ -313,6 +336,9 @@ public class ScannerV_0_3 extends ListenerAdapter
 		PrintStream ps = null;
 		Iterator<String>it = null;
 		String macro = null;
+		byte[]rbs = null;
+		Role role = null;
+		long r = 0;
 		for(int i=0;i<this.jda.getGuilds().size();i++)
 		{
 			try
@@ -330,6 +356,18 @@ public class ScannerV_0_3 extends ListenerAdapter
 					macro = it.next();
 					ps.println(macro + " " + this.macros.get(this.jda.getGuilds().get(i).getIdLong()).get(macro));
 				}
+				ps.close();
+				ps = new PrintStream(new FileOutputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/automuteroles.dat"));
+				rbs=new byte[16];
+				role=this.autoroles.get(this.jda.getGuilds().get(i).getIdLong());
+				r=role==null?-1:role.getIdLong();
+				for(int j=0;j<8;j++)
+					rbs[j]=(byte)(r>>j*8);
+				role=this.muteroles.get(this.jda.getGuilds().get(i).getIdLong());
+				r=role==null?-1:role.getIdLong();
+				for(int j=0;j<8;j++)
+					rbs[8+j]=(byte)(r>>j*8);
+				ps.write(rbs);
 				ps.close();
 			}
 			catch(IOException e)
@@ -360,15 +398,14 @@ public class ScannerV_0_3 extends ListenerAdapter
 					}
 					else
 					{
-						System.out.println(this.banwords);
-						if(this.banwords.containsKey(evt.getGuild().getIdLong()))
+						if(this.muteroles.containsKey(evt.getGuild().getIdLong())&&this.banwords.containsKey(evt.getGuild().getIdLong()))
 						{
 							String[]banwords = ScannerV_0_3.getCmdArgs(this.banwords.get(evt.getGuild().getIdLong()));
 							for(int i=0;i<banwords.length;i++)
 							{
 								if(raw.contains(banwords[i]))
 								{
-									evt.getGuild().ban(evt.getMember(), 0, "Used an inappropriate word.").queue();
+									evt.getGuild().addRoleToMember(evt.getMember(), this.muteroles.get(evt.getGuild().getIdLong())).queue();
 									i = banwords.length;
 								}
 							}
@@ -469,14 +506,21 @@ public class ScannerV_0_3 extends ListenerAdapter
 	}
 	public String parseKickMember(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
-		var ans = "Name a member to kick.";
+		var ans = "Name a member to kick and a reason.";
 		if(args.length == 2)
 		{
 			Member kicker = guild.getMember(author);
 			if(kicker.hasPermission(Permission.KICK_MEMBERS))
 			{
-				guild.kick(guild.getMemberById(args[0].replaceAll("[^0-9]","")), args[1]).queue();
-				ans = "Successfully kicked that member.";
+				var victim=ScannerV_0_3.findMember(guild,args[0]);
+				boolean capable = kicker.getRoles().size() > 0 && (victim.getRoles().size() == 0 || kicker.getRoles().get(0).compareTo(victim.getRoles().get(0)) > 0);
+				if(capable)
+				{
+					guild.kick(victim, args[1]).queue();
+					ans = "Successfully kicked that member.";
+				}
+				else
+					ans = "You cannot kick a member higher than you.";
 			}
 			else
 			{
@@ -487,14 +531,21 @@ public class ScannerV_0_3 extends ListenerAdapter
 	}
 	public String parseBanMember(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
-		var ans = "Name a member to ban.";
+		var ans = "Name a member to ban and a reason.";
 		if(args.length == 2)
 		{
 			Member banner = guild.getMember(author);
 			if(banner.hasPermission(Permission.BAN_MEMBERS))
 			{
-				guild.ban(guild.getMemberById(args[0].replaceAll("[^0-9]","")), 0, args[1]).queue();
-				ans = "Successfully banned that member.";
+				var victim=ScannerV_0_3.findMember(guild,args[0]);
+				boolean capable = banner.getRoles().size() > 0 && (victim.getRoles().size() == 0 || banner.getRoles().get(0).compareTo(victim.getRoles().get(0)) > 0);
+				if(capable)
+				{
+					guild.ban(victim, 0, args[1]).queue();
+					ans = "Successfully banned that member.";
+				}
+				else
+					ans = "You cannot ban a member higher than you.";
 			}
 			else
 			{
@@ -543,7 +594,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 						id = 0;
 						for(int j=0;j<8;j++)
 						{
-							id += bs[i*8+j] << j*8;
+							id += ((long)bs[i*8+j] & 0xff) << j*8;
 						}
 						rids.add(id);
 					}
@@ -594,7 +645,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 					id = 0;
 					for(int j=0;j<8;j++)
 					{
-						id += bs[i*8+j] << j*8;
+						id += ((long)bs[i*8+j] & 0xff) << j*8;
 					}
 					rids.add(id);
 				}
@@ -657,7 +708,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 			in.close();
 			for(var iterator=rids.iterator();iterator.hasNext();)
 			{
-				ans += System.getProperty("line.separator") + guild.getRoleById(iterator.next()).getAsMention();
+				ans += System.getProperty("line.separator") + guild.getRoleById(iterator.next()).getName();
 			}
 		}
 		catch(Exception e)
@@ -806,7 +857,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	}
 	public String parseGetBanWords(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
-		return this.banwords.getOrDefault(guild.getIdLong(), "There are no ban words.");
+		return this.banwords.getOrDefault(guild.getIdLong(), "There are no mute words.");
 	}
 	public String parseSetBanWords(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
@@ -819,7 +870,43 @@ public class ScannerV_0_3 extends ListenerAdapter
 				s += "\"" + args[i] + "\" ";
 			}
 			this.banwords.put(guild.getIdLong(), s.stripTrailing());
-			ans = "Set the new ban words.";
+			if(args.length==0)
+				this.banwords.remove(guild.getIdLong());
+			ans = "Set the new mute words.";
+		}
+		return ans;
+	}
+	public String parseAddBanWords(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans = "You need the manage server permission to do this.";
+		if(guild.getMember(author).hasPermission(Permission.MANAGE_SERVER))
+		{
+			String s = "";
+			for(int i=0;i<args.length;i++)
+			{
+				s += "\"" + args[i] + "\" ";
+			}
+			this.banwords.put(guild.getIdLong(), s+this.banwords.getOrDefault(guild.getIdLong(), ""));
+			if(this.banwords.get(guild.getIdLong()).length()==0)
+				this.banwords.remove(guild.getIdLong());
+			ans = "Added new mute words.";
+		}
+		return ans;
+	}
+	public String parseRemoveBanWords(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans = "You need the manage server permission to do this.";
+		if(guild.getMember(author).hasPermission(Permission.MANAGE_SERVER))
+		{
+			String s = this.banwords.get(guild.getIdLong());
+			for(int i=0;i<args.length;i++)
+			{
+				s=s.replaceAll("\"" + args[i] + "\"","");
+			}
+			this.banwords.put(guild.getIdLong(), s.strip());
+			if(this.banwords.get(guild.getIdLong()).length()==0)
+				this.banwords.remove(guild.getIdLong());
+			ans = "Removed the mute words.";
 		}
 		return ans;
 	}
@@ -880,6 +967,24 @@ public class ScannerV_0_3 extends ListenerAdapter
 		}
 		return ans;
 	}
+	public String parseRawWeather(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans = "";
+		try
+		{
+			HttpURLConnection connection = (HttpURLConnection)new URL("http://api.openweathermap.org/" + ScannerV_0_3.owmrq + ScannerV_0_3.owmapik).openConnection();
+			var in = connection.getInputStream();
+			BufferedReader reader=new BufferedReader(new InputStreamReader(in));
+			ans=reader.readLine();
+			reader.close();
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			ans = e.toString();
+		}
+		return ans;
+	}
 	public String parseDefineMacro(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		var ans = "You need to put two arguments, the macro name and macro definition.";
@@ -909,6 +1014,16 @@ public class ScannerV_0_3 extends ListenerAdapter
 			for(int i=0;i<args.length;i++)
 				this.macros.get(guild.getIdLong()).remove(args[i].substring(1));
 			ans="Removed specified macros.";
+		}
+		return ans;
+	}
+	public String parseSetMuteRole(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Name a role, stupid.";
+		if(args.length==1)
+		{
+			this.muteroles.put(guild.getIdLong(),ScannerV_0_3.findRole(guild,args[0]));
+			ans="Set the new mute role.";
 		}
 		return ans;
 	}

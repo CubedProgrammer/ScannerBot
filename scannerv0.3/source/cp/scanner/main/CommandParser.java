@@ -1,17 +1,15 @@
 package cp.scanner.main;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
+import java.util.*;
 import cp.scanner.cmd.BotCommand;
 import cp.scanner.cmd.CmdFunction;
 import net.dv8tion.jda.api.entities.*;
 public class CommandParser
 {
 	public static final String SKIP_SIGNAL_PREFIX = "__skip__";
-	private LinkedHashMap<String,BotCommand>cmds;
+	private HashMap<String,BotCommand>cmds;
 	public CommandParser()
 	{
-		this.cmds = new LinkedHashMap<String,BotCommand>();
+		this.cmds = new HashMap<String,BotCommand>();
 	}
 	public CommandParser put(String name, String description, CmdFunction cmd)
 	{
@@ -23,7 +21,7 @@ public class CommandParser
 		String ans = "error";
 		String cmd = args[0];
 		if("version".equalsIgnoreCase(cmd))
-			ans = "0.3.0 (First beta release)";
+			ans = "0.3.1 (Second beta release)";
 		else if("help".equalsIgnoreCase(cmd))
 		{
 			ans = "This is the list of commands, arguments must be **SPACE SEPARATED**, if an argument must have spaces in them, use quotes.";
