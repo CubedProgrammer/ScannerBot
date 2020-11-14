@@ -46,7 +46,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	/**
 	 * Token for bot authentication.
 	 */
-	public static final String TOKEN="Njg2MjUxMjQ5NzkxNzk1MjE0.XmUfRw.7TRUj1vY2y7sfa89u0LI7l17unI";
+	public static final String TOKEN="MzY3NDI2MTc4MDE5MjI5Njk3.Wd0-Sw.F5OiDKEp1YiBMlf-GRO_J86d2ho";
 	/**
 	 * Delimiter character.
 	 */

@@ -6,10 +6,10 @@ import net.dv8tion.jda.api.entities.*;
 public class CommandParser
 {
 	public static final String SKIP_SIGNAL_PREFIX = "__skip__";
-	private HashMap<String,BotCommand>cmds;
+	private LinkedHashMap<String,BotCommand>cmds;
 	public CommandParser()
 	{
-		this.cmds = new HashMap<String,BotCommand>();
+		this.cmds = new LinkedHashMap<String,BotCommand>();
 	}
 	public CommandParser put(String name, String description, CmdFunction cmd)
 	{
