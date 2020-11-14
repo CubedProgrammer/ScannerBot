@@ -300,9 +300,9 @@ public class ScannerV_0_3 extends ListenerAdapter
 				e.printStackTrace();
 			}
 		}
-		String[]ccn="message".split("\\s+");
-		String[]ccd="Sends a message to the current channel.".split("____");
-		CmdFunction[]funcs={this::parseSendMessage};
+		String[]ccn="message kick ban member role".split("\\s+");
+		String[]ccd="Sends a message to the current channel.____Kicks a member.____Bans a member.____Gets the information of a member.____Add a role to a member if the member doesn't have it, removes it otherwise.".split("____");
+		CmdFunction[]funcs={this::parseSendMessage,this::parseConsoleKick,this::parseConsoleBan,this::parseMemberInfo,this::parseToggleRole};
 		ConsoleController gay=new ConsoleController(this.jda,ccn,ccd,funcs,this);
 		Thread thread = new Thread(gay::run);
 		thread.start();
@@ -340,60 +340,64 @@ public class ScannerV_0_3 extends ListenerAdapter
 	}
 	public void onMessageReceived(MessageReceivedEvent evt)
 	{
-		if(this.ready && evt.getAuthor().getIdLong()!=this.ID)
+		if(this.ready)
 		{
-			Message message = evt.getMessage();
-			String raw = message.getContentRaw();
-			if(evt.getGuild()!=null)
+			if(this.jda.getGuilds().size()!=this.prefixes.size())
+				System.out.println(this.jda.getGuilds().size()+" "+this.prefixes.size());
+			if(evt.getAuthor().getIdLong()!=this.ID)
 			{
-				if(raw.startsWith(this.mention))
+				Message message = evt.getMessage();
+				String raw = message.getContentRaw();
+				if(evt.getGuild()!=null)
 				{
-					raw = raw.substring(this.mention.length()).strip();
-				}
-				else if(raw.startsWith(this.prefixes.get(evt.getGuild().getIdLong())))
-				{
-					raw = raw.substring(this.prefixes.get(evt.getGuild().getIdLong()).length()).strip();
-				}
-				else
-				{
-					System.out.println(this.banwords);
-					if(this.banwords.containsKey(evt.getGuild().getIdLong()))
+					if(raw.startsWith(this.mention))
 					{
-						String[]banwords = ScannerV_0_3.getCmdArgs(this.banwords.get(evt.getGuild().getIdLong()));
-						System.out.println(java.util.Arrays.toString(banwords));
-						for(int i=0;i<banwords.length;i++)
+						raw = raw.substring(this.mention.length()).strip();
+					}
+					else if(raw.startsWith(this.prefixes.get(evt.getGuild().getIdLong())))
+					{
+						raw = raw.substring(this.prefixes.get(evt.getGuild().getIdLong()).length()).strip();
+					}
+					else
+					{
+						System.out.println(this.banwords);
+						if(this.banwords.containsKey(evt.getGuild().getIdLong()))
 						{
-							if(raw.contains(banwords[i]))
+							String[]banwords = ScannerV_0_3.getCmdArgs(this.banwords.get(evt.getGuild().getIdLong()));
+							for(int i=0;i<banwords.length;i++)
 							{
-								evt.getGuild().ban(evt.getMember(), 0, "Used an inappropriate word.").queue();
-								i = banwords.length;
+								if(raw.contains(banwords[i]))
+								{
+									evt.getGuild().ban(evt.getMember(), 0, "Used an inappropriate word.").queue();
+									i = banwords.length;
+								}
 							}
 						}
+						return;
 					}
-					return;
-				}
-				Iterator<String>it=this.macros.get(evt.getGuild().getIdLong()).keySet().iterator();
-				String macro = null;
-				int index=0;
-				while(it.hasNext())
-				{
-					macro = it.next();
-					index = raw.indexOf(macro);
-					while(index!=-1)
+					Iterator<String>it=this.macros.get(evt.getGuild().getIdLong()).keySet().iterator();
+					String macro = null;
+					int index=0;
+					while(it.hasNext())
 					{
-						if((index==0||!ScannerV_0_3.isAlphanumeric(raw.charAt(index-1)))&&(index+macro.length()==raw.length()||!ScannerV_0_3.isAlphanumeric(raw.charAt(index+macro.length()))))
-							raw=raw.substring(0,index)+this.macros.get(evt.getGuild().getIdLong()).get(macro)+raw.substring(index+macro.length());
-						index = raw.indexOf(macro,index+macro.length());
+						macro = it.next();
+						index = raw.indexOf(macro);
+						while(index!=-1)
+						{
+							if((index==0||!ScannerV_0_3.isAlphanumeric(raw.charAt(index-1)))&&(index+macro.length()==raw.length()||!ScannerV_0_3.isAlphanumeric(raw.charAt(index+macro.length()))))
+								raw=raw.substring(0,index)+this.macros.get(evt.getGuild().getIdLong()).get(macro)+raw.substring(index+macro.length());
+							index = raw.indexOf(macro,index+macro.length());
+						}
 					}
-				}
-				System.out.println(raw);
-				String[]args = ScannerV_0_3.getCmdArgs(raw);
-				if(args.length > 0)
-				{
-					String response = this.parser.parse(message,evt.getGuild(),evt.getChannel(),evt.getAuthor(),args);
-					evt.getChannel().sendMessage(response).queue();
-					System.out.println("Sent message to channel " + evt.getChannel().getId() + " in guild " + (evt.getGuild()==null?"null":evt.getGuild().getId()));
-					System.out.println(response);
+					System.out.println(raw);
+					String[]args = ScannerV_0_3.getCmdArgs(raw);
+					if(args.length > 0)
+					{
+						String response = this.parser.parse(message,evt.getGuild(),evt.getChannel(),evt.getAuthor(),args);
+						evt.getChannel().sendMessage(response).queue();
+						System.out.println("Sent message to channel " + evt.getChannel().getId() + " in guild " + (evt.getGuild()==null?"null":evt.getGuild().getId()));
+						System.out.println(response);
+					}
 				}
 			}
 		}
@@ -401,6 +405,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	public void onGuildMemberJoin(GuildMemberJoinEvent evt)
 	{
 		System.out.println(evt.getMember().getUser().getIdLong());
+		System.out.println(evt.getGuild());
 		if(this.autoroles.containsKey(evt.getGuild().getIdLong()))
 		{
 			evt.getGuild().addRoleToMember(evt.getMember(),this.autoroles.get(evt.getGuild().getIdLong())).queue();
@@ -916,6 +921,63 @@ public class ScannerV_0_3 extends ListenerAdapter
 		}
 		channel.sendMessage(s.substring(0,s.length()-1)).queue();
 		return"Successfully sent message to channel "+channel.getName()+" in guild "+guild.getName();
+	}
+	public String parseConsoleKick(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Name a member to be kicked.";
+		if(args.length==1)
+		{
+			guild.kick(ScannerV_0_3.findMember(guild,args[0]),"Kicked from console.").queue();
+			ans="Successfully kicked member from "+guild.getName();
+		}
+		return ans;
+	}
+	public String parseConsoleBan(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Name a member to be banned.";
+		if(args.length==1)
+		{
+			guild.ban(ScannerV_0_3.findMember(guild,args[0]),0,"Kicked from console.").queue();
+			ans="Successfully banned member from "+guild.getName();
+		}
+		return ans;
+	}
+	public String parseMemberInfo(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Name a member.";
+		if(args.length==1)
+		{
+			var mem=ScannerV_0_3.findMember(guild,args[0]);
+			ans=mem.getId()+System.getProperty("line.separator")+mem.getRoles()+mem.getEffectiveName()+System.getProperty("line.separator")+mem.getUser().getName()+System.getProperty("line.separator")+mem.getTimeJoined();
+		}
+		return ans;
+	}
+	public String parseToggleRole(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Name a member and a role please.";
+		if(args.length==2)
+		{
+			var mem=ScannerV_0_3.findMember(guild,args[0]);
+			var role=ScannerV_0_3.findRole(guild,args[1]);
+			if(mem==null||role==null)
+			{
+				ans="Please name something that exists.";
+			}
+			else
+			{
+				if(!mem.getRoles().contains(role))
+				{
+					guild.addRoleToMember(mem,role).queue();
+					ans="Successfully added that role to the member.";
+				}
+				else
+				{
+					guild.removeRoleFromMember(mem,role).queue();
+					ans="Successefully removed that role from the member.";
+				}
+			}
+		}
+		return ans;
 	}
 	public static void main(String[] args)
 	{
