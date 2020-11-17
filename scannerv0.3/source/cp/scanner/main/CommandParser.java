@@ -21,7 +21,7 @@ public class CommandParser
 		String ans = "error";
 		String cmd = args[0];
 		if("version".equalsIgnoreCase(cmd))
-			ans = "0.3.1 (Second beta release)";
+			ans = "0.3.2 (Third beta release)";
 		else if("help".equalsIgnoreCase(cmd))
 		{
 			ans = "This is the list of commands, arguments must be **SPACE SEPARATED**, if an argument must have spaces in them, use quotes.";
@@ -83,7 +83,6 @@ public class CommandParser
 					}
 					while(i+1 == args.length && stack.size() > 0);
 				}
-				System.out.println(Arrays.toString(args));
 			}
 			ans = args[0];
 		}

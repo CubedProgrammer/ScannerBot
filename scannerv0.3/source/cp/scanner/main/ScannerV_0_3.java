@@ -252,6 +252,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("macros", "Gets all the macros.", this::parseGetMacros);
 		this.parser.put("undef", "Undefines macros, put a letter in front of every macro you are undefining.", this::parseRemoveMacros);
 		this.parser.put("set_mute_role", "Sets the server role for a muted member.", this::parseSetMuteRole);
+		this.parser.put("solve_linear_equations", "The first argument is the number of unknowns, then comes the matrix entries.", this::parseSolveEquations);
+		this.parser.put("sqrt", "Square roots a number, duh.", this::parseSquareRoot);
 		//this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower);
 		var guilds = this.jda.getGuilds();
 		File f = null;
@@ -323,9 +325,9 @@ public class ScannerV_0_3 extends ListenerAdapter
 				e.printStackTrace();
 			}
 		}
-		String[]ccn="message kick ban member role".split("\\s+");
-		String[]ccd="Sends a message to the current channel.____Kicks a member.____Bans a member.____Gets the information of a member.____Add a role to a member if the member doesn't have it, removes it otherwise.".split("____");
-		CmdFunction[]funcs={this::parseSendMessage,this::parseConsoleKick,this::parseConsoleBan,this::parseMemberInfo,this::parseToggleRole};
+		String[]ccn="message kick ban member role nickname".split("\\s+");
+		String[]ccd="Sends a message to the current channel.____Kicks a member.____Bans a member.____Gets the information of a member.____Add a role to a member if the member doesn't have it, removes it otherwise.____Changes the nickname of a member.".split("____");
+		CmdFunction[]funcs={this::parseSendMessage,this::parseConsoleKick,this::parseConsoleBan,this::parseMemberInfo,this::parseToggleRole,this::parseConsoleNickname};
 		ConsoleController gay=new ConsoleController(this.jda,ccn,ccd,funcs,this);
 		Thread thread = new Thread(gay::run);
 		thread.start();
@@ -400,13 +402,18 @@ public class ScannerV_0_3 extends ListenerAdapter
 					{
 						if(this.muteroles.containsKey(evt.getGuild().getIdLong())&&this.banwords.containsKey(evt.getGuild().getIdLong()))
 						{
-							String[]banwords = ScannerV_0_3.getCmdArgs(this.banwords.get(evt.getGuild().getIdLong()));
+							String[]banwords = ScannerV_0_3.getCmdArgs(this.banwords.get(evt.getGuild().getIdLong()).toLowerCase());
+							String[]words=raw.toLowerCase().replaceAll("[^\\s\\w]","").split("\\s+");
 							for(int i=0;i<banwords.length;i++)
 							{
-								if(raw.contains(banwords[i]))
+								for(int j=0;j<words.length;j++)
 								{
-									evt.getGuild().addRoleToMember(evt.getMember(), this.muteroles.get(evt.getGuild().getIdLong())).queue();
-									i = banwords.length;
+									if(banwords[i].equals(words[i]))
+									{
+										evt.getGuild().addRoleToMember(evt.getMember(), this.muteroles.get(evt.getGuild().getIdLong())).queue();
+										i = banwords.length;
+										j = words.length;
+									}
 								}
 							}
 						}
@@ -1027,6 +1034,39 @@ public class ScannerV_0_3 extends ListenerAdapter
 		}
 		return ans;
 	}
+	public String parseSolveEquations(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="You must give the number of unknowns as the first argument, then all the entries of the augmented matrix.";
+		if(1<args.length)
+		{
+			int unknowns = Integer.parseInt(args[0]);
+			BigDecimal[][]mat = new BigDecimal[unknowns][unknowns+1];
+			for(int i=0;i<mat.length;i++)
+			{
+				for(int j=0;j<mat[i].length;j++)
+				{
+					mat[i][j]=new BigDecimal(args[1+i*mat.length+i+j]);
+				}
+			}
+			MathAlgs.solveLinearEquation(mat);
+			System.out.println(java.util.Arrays.deepToString(mat));
+			ans = "This list is your solution.";
+			for(int i=0;i<mat.length;i++)
+			{
+				ans+=System.getProperty("line.separator")+mat[i][mat.length];
+			}
+		}
+		return ans;
+	}
+	public String parseSquareRoot(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Give a non-negative number to square root.";
+		if(args.length==1)
+		{
+			ans=ScannerV_0_3.strToNum(args[0]).sqrt(MathContext.DECIMAL128).toString();
+		}
+		return ans;
+	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		String s="";
@@ -1052,7 +1092,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		var ans="Name a member to be banned.";
 		if(args.length==1)
 		{
-			guild.ban(ScannerV_0_3.findMember(guild,args[0]),0,"Kicked from console.").queue();
+			guild.ban(ScannerV_0_3.findMember(guild,args[0]),0,"Banned from console.").queue();
 			ans="Successfully banned member from "+guild.getName();
 		}
 		return ans;
@@ -1091,6 +1131,16 @@ public class ScannerV_0_3 extends ListenerAdapter
 					ans="Successefully removed that role from the member.";
 				}
 			}
+		}
+		return ans;
+	}
+	public String parseConsoleNickname(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Name a member and a nickname.";
+		if(args.length==2)
+		{
+			ScannerV_0_3.findMember(guild,args[0]).modifyNickname(args[1]).queue();
+			ans="Successfully changed nickname to "+args[1];
 		}
 		return ans;
 	}

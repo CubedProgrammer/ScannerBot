@@ -194,18 +194,31 @@ public class MathAlgs
 	/**
 	 * Finds the solution of a system of linear equations, given as an augmented matrix.
 	 * @param mat
-	 * @return The array containing two numbers which are the solution to the equation.
+	 * @author Yash Varyani
 	 */
-	public static final BigDecimal[]solveLinearEquation(BigDecimal[][]mat)
+	public static final void solveLinearEquation(BigDecimal[][]mat)
 	{
-		return null;
-	}
-	/**
-	 * Does forward elimination on an augmented matrix.
-	 * @param mat Some random matrix.
-	 */
-	public static final void forwardElim(BigDecimal[][]mat)
-	{
+		/* reduction into r.e.f. */
+		int singular_flag = forwardElim(mat); 
+
+		/* if matrix is singular */
+		if (singular_flag != -1) 
+		{
+			for(int i=0;i<mat.length;i++)
+			{
+				for(int j=0;j<mat[i].length;j++)
+				{
+					mat[i][j]=BigDecimal.ZERO.subtract(BigDecimal.ONE);
+				}
+			}
+		}
+		else
+		{
+			/* get solution to system and print it using 
+			backward substitution */
+			backSub(mat); 
+		}
+		
 	}
 	/**
 	 * Swap rows in an augmented matrix.
@@ -224,6 +237,96 @@ public class MathAlgs
 		}
 	}
 	/**
+	 * Does forward elimination on an augmented matrix.
+	 * @param mat Some random matrix.
+	 * @author Yash Varyani
+	 * @return The position of the zero in a singular matrix or -1.
+	 */
+	public static final int forwardElim(BigDecimal[][]mat) 
+	{
+		int i_max = 0;
+		BigDecimal v_max = null;
+		BigDecimal f = null;
+		int N = mat.length;
+		int singular = -1;
+		
+		for (int k=0; k<N; k++) 
+		{ 
+			// Initialize maximum value and index for pivot 
+			i_max = k;
+			v_max = mat[i_max][k]; 
+
+			/* find greater amplitude for pivot if any */
+			for (int i = k+1; i < N; i++) 
+				if (mat[i][k].abs().compareTo(v_max) > 0) 
+				{
+					v_max = mat[i][k].abs();
+					i_max = i; 
+				}
+
+			/* if a prinicipal diagonal element is zero, 
+			* it denotes that matrix is singular, and 
+			* will lead to a division-by-zero later. */
+			if (mat[k][i_max].equals(BigDecimal.ZERO)) 
+			{
+				singular = k;
+				k = N;
+				continue;
+			}
+
+			/* Swap the greatest value row with current row */
+			if (i_max != k) 
+				swapRows(mat, k, i_max); 
+
+
+			for (int i=k+1; i<N; i++) 
+			{ 
+				/* factor f to set current row kth element to 0, 
+				* and subsequently remaining kth column to 0 */
+				f = mat[i][k].divide(mat[k][k],MathContext.DECIMAL128);
+
+				/* subtract fth multiple of corresponding kth 
+				row element*/
+				for (int j=k+1; j<=N; j++) 
+					mat[i][j] = mat[i][j].subtract(mat[k][j].multiply(f),MathContext.DECIMAL128);
+
+				/* filling lower triangular matrix with zeros*/
+				mat[i][k] = BigDecimal.ZERO;
+			}
+
+		}
+		return singular; 
+	}
+	/**
+	 * Does back substitution.
+	 * @param mat Some random matrix.
+	 * @author Yash Varyani
+	 */
+	public static final void backSub(BigDecimal[][]mat)
+	{ 
+		int N = mat.length;
+
+		/* Start calculating from last equation up to the 
+		first */
+		for (int i = N-1; i >= 0; i--) 
+		{ 
+			/* Initialize j to i+1 since matrix is upper 
+			triangular*/
+			for (int j=i+1; j<N; j++) 
+			{ 
+				/* subtract all the lhs values 
+				* except the coefficient of the variable 
+				* whose value is being calculated */
+				mat[i][N] = mat[i][N].subtract(mat[i][j].multiply(mat[j][N]),MathContext.DECIMAL128);
+			}
+
+			/* divide the RHS by the coefficient of the 
+			unknown being calculated */
+			mat[i][N] = mat[i][N].divide(mat[i][i],MathContext.DECIMAL128);
+		}
+		
+	}
+	/**
 	 * Finds an integer root of a BigDecimal.
 	 * @param x The BigDecimal to find the root of.
 	 * @param n The number on the top left of the radicand. In other words, this method finds the nth root of x.
@@ -233,7 +336,7 @@ public class MathAlgs
 	{
 		BigDecimal y=x.divide(new BigDecimal(n),MathContext.DECIMAL128);
 		BigDecimal f=y.pow(n).subtract(x);
-		while(f.abs().compareTo(new BigDecimal(0.000000059604644775390625/1099511627776d))>=0)
+		while(f.abs().compareTo(new BigDecimal("0.00000000000000000000000000001"))>=0)
 		{
 			y=y.subtract(f.divide(y.pow(n-1).multiply(new BigDecimal(n)),MathContext.DECIMAL128));
 			f=y.pow(n).subtract(x);
