@@ -256,6 +256,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("sqrt", "Square roots a number, duh.", this::parseSquareRoot);
 		this.parser.put("sin", "Gets the sine of a number.", this::parseSineTheta).put("cos", "Gets the cosine of a number.", this::parseCosineTheta);
 		this.parser.put("asin", "Gets the inverse sine", this::parseInverseSine).put("acos", "Gets the inverse cosine", this::parseInverseCosine);
+		this.parser.put("solvet", "Solves for a triangle given known sides and angles, represent unknown sides and angles with -1, give the three angles first.", this::parseSolveTriangle);
+		this.parser.put("vector_polar_addition", "Adds 2D vectors in polar form.", this::parseAddVectors);
 		//this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower);
 		var guilds = this.jda.getGuilds();
 		File f = null;
@@ -1016,7 +1018,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	public String parseRemoveMacros(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		var ans="";
-		if(args.length==1)
+		if(args.length==0)
 			ans="Specify the name of the macros to remove.";
 		else
 		{
@@ -1105,6 +1107,42 @@ public class ScannerV_0_3 extends ListenerAdapter
 		}
 		return ans;
 	}
+	public String parseSolveTriangle(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Give six numbers, the three angles and their corresponding sides.";
+		if(args.length==6)
+		{
+			BigDecimal[]dat=new BigDecimal[args.length];
+			for(int i=0;i<dat.length;i++)
+			{
+				dat[i]=new BigDecimal(args[i]);
+			}
+			MathAlgs.solvet(dat);
+			ans="";
+			for(int i=0;i+1<dat.length;i++)
+				ans+=dat[i].toString()+", ";
+			ans+=dat[5];
+		}
+		return ans;
+	}
+	public String parseAddVectors(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Give an even number of numbers, in pairs of angle and magnitude.";
+		if(args.length%2==0)
+		{
+			BigDecimal[]angles=new BigDecimal[args.length/2];
+			BigDecimal[]mags=new BigDecimal[args.length/2];
+			for(int i=0;i<angles.length;i++)
+			{
+				angles[i]=new BigDecimal(args[2*i]).multiply(MathAlgs.PI_BY_180);
+				mags[i]=new BigDecimal(args[2*i+1]);
+			}
+			BigDecimal[]result=new BigDecimal[2];
+			MathAlgs.vectorPolarAddition(angles,mags,result);
+			ans=result[0].divide(MathAlgs.PI_BY_180,MathContext.DECIMAL128)+"°, "+result[1];
+		}
+		return ans;
+	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		String s="";
@@ -1186,6 +1224,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 	{
 		try
 		{
+			if(args.length==1)
+				System.setOut(new PrintStream(new FileOutputStream(args[0])));
 			new ScannerV_0_3();
 			System.out.println("done");
 		}

@@ -41,10 +41,28 @@ public class MathAlgs
 		return ans;
 	}
 	/**
+	 * Adds 2D vectors in polar form
+	 * @param angles The list of angles
+	 * @param magnitudes The list of magnitude
+	 * @param An array of size two, stores angle in first position and magnitude in second, of resultant vector
+	 */
+	public static final void vectorPolarAddition(BigDecimal[]angles,BigDecimal[]mags,BigDecimal[]result)
+	{
+		BigDecimal x=BigDecimal.ZERO;
+		BigDecimal y=BigDecimal.ZERO;
+	    for(int i=0;i<mags.length;i++)
+	    {
+	        x=x.add(mags[i].multiply(cos(angles[i])),MathContext.DECIMAL128);
+	        y=y.add(mags[i].multiply(sin(angles[i])),MathContext.DECIMAL128);
+	    }
+	    result[1]=x.multiply(x).add(y.multiply(y),MathContext.DECIMAL128).sqrt(MathContext.DECIMAL128);
+	    result[0]=x.compareTo(BigDecimal.ZERO)<0?MathAlgs.PI.subtract(MathAlgs.asin(y.divide(result[1],MathContext.DECIMAL128)),MathContext.DECIMAL128):MathAlgs.asin(y.divide(result[1],MathContext.DECIMAL128));
+	}
+	/**
 	 * Solves a triangle.
 	 * @param shape Angle and sides of the triangle.
 	 */
-	/*public static final void solvet(BigDecimal[] shape)
+	public static final void solvet(BigDecimal[] shape)
 	{
 		BigDecimal A = shape[0], B = shape[1], C = shape[2];
 		BigDecimal a = shape[3], b = shape[4], c = shape[5];
@@ -82,20 +100,20 @@ public class MathAlgs
 			}
 			if(su<=2)
 			{
-				if(a>=0)
+				if(a.compareTo(BigDecimal.ZERO)>=0)
 				{
-					b=a*sin(B)/sin(A);
-					c=a*sin(C)/sin(A);
+					b=a.multiply(MathAlgs.sin(B)).divide(MathAlgs.sin(A),MathContext.DECIMAL128);
+					c=a.multiply(MathAlgs.sin(C)).divide(MathAlgs.sin(A),MathContext.DECIMAL128);
 				}
-				else if(b>=0)
+				else if(b.compareTo(BigDecimal.ZERO)>=0)
 				{
-					a=b*sin(A)/sin(B);
-					c=b*sin(C)/sin(B);
+					a=b.multiply(MathAlgs.sin(A)).divide(MathAlgs.sin(B),MathContext.DECIMAL128);
+					c=b.multiply(MathAlgs.sin(C)).divide(MathAlgs.sin(B),MathContext.DECIMAL128);
 				}
 				else
 				{
-					b=c*sin(B)/sin(C);
-					a=c*sin(A)/sin(C);
+					b=c.multiply(MathAlgs.sin(B)).divide(MathAlgs.sin(C),MathContext.DECIMAL128);
+					a=c.multiply(MathAlgs.sin(A)).divide(MathAlgs.sin(C),MathContext.DECIMAL128);
 				}
 			}
 		}
@@ -103,96 +121,96 @@ public class MathAlgs
 		{
 			if(su<=1)
 			{
-				if(A>=0)
+				if(A.compareTo(BigDecimal.ZERO)>=0)
 				{
-					if(a>=0)
+					if(a.compareTo(BigDecimal.ZERO)>=0)
 					{
-						if(b>=0)
+						if(b.compareTo(BigDecimal.ZERO)>=0)
 						{
-							B=asin(b*sin(A)/a);
-							C=3.1415926535897932-A-B;
-							c=a*sin(C)/sin(A);
+							B=MathAlgs.asin(b.multiply(MathAlgs.sin(A)).divide(a,MathContext.DECIMAL128));
+							C=MathAlgs.PI.subtract(A).subtract(B);
+							c=a.multiply(MathAlgs.sin(C)).divide(MathAlgs.sin(A),MathContext.DECIMAL128);
 						}
-						else
+						else//,MathContext.DECIMAL128
 						{
-							C=asin(c*sin(A)/a);
-							B=3.1415926535897932-A-C;
-							b=a*sin(B)/sin(A);
+							C=MathAlgs.asin(c.multiply(MathAlgs.sin(A)).divide(a,MathContext.DECIMAL128));
+							B=MathAlgs.PI.subtract(A).subtract(C);
+							b=a.multiply(MathAlgs.sin(B)).divide(MathAlgs.sin(A),MathContext.DECIMAL128);
 						}
 					}
 					else
 					{
-						a=sqrt(b*b+c*c-2*b*c*cos(A));
-						B=asin(b*sin(A)/a);
-						C=asin(c*sin(A)/a);
+						a=b.multiply(b).add(c.multiply(c)).subtract(BigDecimal.valueOf(2).multiply(b).multiply(c).multiply(MathAlgs.cos(A))).sqrt(MathContext.DECIMAL128);
+						B=MathAlgs.asin(b.multiply(MathAlgs.sin(A)).divide(a,MathContext.DECIMAL128));
+						C=MathAlgs.asin(c.multiply(MathAlgs.sin(A)).divide(a,MathContext.DECIMAL128));
 					}
 				}
-				else if(B>=0)
+				else if(B.compareTo(BigDecimal.ZERO)>=0)
 				{
-					if(b>=0)
+					if(b.compareTo(BigDecimal.ZERO)>=0)
 					{
-						if(a>=0)
+						if(a.compareTo(BigDecimal.ZERO)>=0)
 						{
-							A=asin(a*sin(B)/b);
-							C=3.1415926535897932-A-B;
-							c=a*sin(C)/sin(A);
+							A=MathAlgs.asin(a.multiply(MathAlgs.sin(B)).divide(b,MathContext.DECIMAL128));
+							C=MathAlgs.PI.subtract(A).subtract(B);
+							c=a.multiply(MathAlgs.sin(C)).divide(MathAlgs.sin(A),MathContext.DECIMAL128);
 						}
 						else
 						{
-							C=asin(c*sin(B)/b);
-							A=3.1415926535897932-B-C;
-							a=b*sin(A)/sin(B);
+							C=MathAlgs.asin(c.multiply(MathAlgs.sin(B)).divide(b,MathContext.DECIMAL128));
+							A=MathAlgs.PI.subtract(B).subtract(C);
+							a=b.multiply(MathAlgs.sin(A)).divide(MathAlgs.sin(B),MathContext.DECIMAL128);
 						}
 					}
 					else
 					{
-						b=sqrt(a*a+c*c-2*a*c*cos(B));
-						A=asin(a*sin(B)/b);
-						C=asin(c*sin(B)/b);
+						b=a.multiply(a).add(c.multiply(c)).subtract(BigDecimal.valueOf(2).multiply(a).multiply(c).multiply(MathAlgs.cos(B))).sqrt(MathContext.DECIMAL128);
+						A=MathAlgs.asin(a.multiply(MathAlgs.sin(B)).divide(b,MathContext.DECIMAL128));
+						C=MathAlgs.asin(c.multiply(MathAlgs.sin(A)).divide(a,MathContext.DECIMAL128));
 					}
 				}
 				else
 				{
-					if(c>=0)
+					if(c.compareTo(BigDecimal.ZERO)>=0)
 					{
-						if(a>=0)
+						if(a.compareTo(BigDecimal.ZERO)>=0)
 						{
-							A=asin(a*sin(B)/b);
-							B=3.1415926535897932-A-C;
-							b=a*sin(B)/sin(A);
+							A=MathAlgs.asin(a.multiply(MathAlgs.sin(B)).divide(b,MathContext.DECIMAL128));
+							B=MathAlgs.PI.subtract(A).subtract(C);
+							b=a.multiply(MathAlgs.sin(B)).divide(MathAlgs.sin(A),MathContext.DECIMAL128);
 						}
 						else
 						{
-							B=asin(b*sin(C)/c);
-							A=3.1415926535897932-B-C;
-							a=b*sin(A)/sin(B);
+							B=MathAlgs.asin(b.multiply(MathAlgs.sin(C)).divide(c,MathContext.DECIMAL128));
+							A=MathAlgs.PI.subtract(B).subtract(C);
+							a=b.multiply(MathAlgs.sin(A)).divide(MathAlgs.sin(B),MathContext.DECIMAL128);
 						}
 					}
 					else
 					{
-						c=sqrt(a*a+b*b-2*a*b*cos(C));
-						A=asin(a*sin(C)/c);
-						B=asin(b*sin(C)/c);
+						c=a.multiply(a).add(b.multiply(b)).subtract(BigDecimal.valueOf(2).multiply(a).multiply(b).multiply(MathAlgs.cos(C))).sqrt(MathContext.DECIMAL128);
+						A=MathAlgs.asin(a.multiply(MathAlgs.sin(B)).divide(b,MathContext.DECIMAL128));
+						B=MathAlgs.asin(b.multiply(MathAlgs.sin(C)).divide(c,MathContext.DECIMAL128));
 					}
 				}
 			}
 		}
 		else if(su==0)
 		{
-			A=acos((b*b+c*c-a*a)/(2*b*c));
-			B=acos((a*a+c*c-b*b)/(2*a*c));
-			C=acos((a*a+b*b-c*c)/(2*a*b));
+			A=MathAlgs.acos(b.multiply(b).add(c.multiply(c)).subtract(a.multiply(a)).divide(BigDecimal.valueOf(2).multiply(b).multiply(c),MathContext.DECIMAL128));
+			B=MathAlgs.acos(a.multiply(a).add(c.multiply(c)).subtract(b.multiply(b)).divide(BigDecimal.valueOf(2).multiply(a).multiply(c),MathContext.DECIMAL128));
+			C=MathAlgs.acos(a.multiply(a).add(b.multiply(b)).subtract(c.multiply(c)).divide(BigDecimal.valueOf(2).multiply(a).multiply(b),MathContext.DECIMAL128));
 		}
-		A*=180/3.1415926535897932;
-		B*=180/3.1415926535897932;
-		C*=180/3.1415926535897932;
+		A=A.divide(MathAlgs.PI_BY_180,MathContext.DECIMAL128);
+		B=B.divide(MathAlgs.PI_BY_180,MathContext.DECIMAL128);
+		C=C.divide(MathAlgs.PI_BY_180,MathContext.DECIMAL128);
 		shape[0] = A;
 		shape[1] = B;
 		shape[2] = C;
 		shape[3] = a;
 		shape[4] = b;
 		shape[5] = c;
-	}*/
+	}
 	/**
 	 * Computes the sine of an angle
 	 * @param theta The angle, duh
