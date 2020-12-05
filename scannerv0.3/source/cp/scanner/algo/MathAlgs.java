@@ -5,6 +5,8 @@ public class MathAlgs
 {
 	public static final BigDecimal PI = new BigDecimal("3.1415926535897932384629433832795");
 	public static final BigDecimal PI_BY_180 = PI.divide(BigDecimal.valueOf(180), MathContext.DECIMAL128);
+	public static final int TRIG_TAYLOR_LIMIT=60;
+	public static final int ITRIG_TAYLOR_LIMIT=3628800;
 	/**
 	 * Finds a power of a BigDecimal.
 	 * @param x The base
@@ -192,6 +194,58 @@ public class MathAlgs
 		shape[5] = c;
 	}*/
 	/**
+	 * Computes the sine of an angle
+	 * @param theta The angle, duh
+	 * @return The sine of theta
+	 */
+	public static final BigDecimal sin(BigDecimal theta)
+	{
+		BigDecimal len=BigDecimal.ZERO;
+		BigDecimal num=theta;
+		BigDecimal denom=BigDecimal.ONE;
+		for(int i=0;i<MathAlgs.TRIG_TAYLOR_LIMIT;i++)
+		{
+			len=len.add(num.divide(denom,MathContext.DECIMAL128),MathContext.DECIMAL128);
+			num=num.multiply(theta).multiply(theta).multiply(BigDecimal.ONE.negate(),MathContext.DECIMAL128);
+			denom=denom.multiply(BigDecimal.valueOf(2*i+2)).multiply(BigDecimal.valueOf(2*i+3),MathContext.DECIMAL128);
+		}
+		return len;
+	}
+	/**
+	 * Computes the cosine of an angle
+	 * @param theta The angle, duh
+	 * @return The cosine of theta
+	 */
+	public static final BigDecimal cos(BigDecimal theta)
+	{
+		return MathAlgs.sin(new BigDecimal("1.5707963267948966192313216916398").subtract(theta,MathContext.DECIMAL128));
+	}
+	/**
+	 * Computes the inverse sine of a number
+	 * @param bd The number
+	 * @return Theta
+	 */
+	public static final BigDecimal asin(BigDecimal bd)
+	{
+		BigDecimal ans=bd;
+		BigDecimal s=MathAlgs.sin(ans).subtract(bd);
+		while(s.abs().compareTo(new BigDecimal("0.000000000000000000000000000000001"))>0)
+		{
+			ans=ans.subtract(s.divide(MathAlgs.cos(ans),MathContext.DECIMAL128));
+			s=MathAlgs.sin(ans).subtract(bd);
+		}
+		return ans;
+	}
+	/**
+	 * Computes the inverse cosine of a number
+	 * @param bd The number
+	 * @return Theta
+	 */
+	public static final BigDecimal acos(BigDecimal bd)
+	{
+		return new BigDecimal("1.5707963267948966192313216916398").subtract(MathAlgs.asin(bd),MathContext.DECIMAL128);
+	}
+	/**
 	 * Finds the solution of a system of linear equations, given as an augmented matrix.
 	 * @param mat
 	 * @author Yash Varyani
@@ -216,7 +270,7 @@ public class MathAlgs
 		{
 			/* get solution to system and print it using 
 			backward substitution */
-			backSub(mat); 
+			MathAlgs.backSub(mat); 
 		}
 		
 	}

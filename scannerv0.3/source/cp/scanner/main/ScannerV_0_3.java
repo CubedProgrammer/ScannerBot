@@ -147,7 +147,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		BigDecimal n=new BigDecimal(parts[0]);
 		for(int i=1;i<parts.length;i++)
 		{
-			n=n.divide(new BigDecimal(parts[i]),MathContext.DECIMAL128);
+			n=n.divide(new BigDecimal(parts[i],MathContext.DECIMAL128),MathContext.DECIMAL128);
 		}
 		return n;
 	}
@@ -254,6 +254,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("set_mute_role", "Sets the server role for a muted member.", this::parseSetMuteRole);
 		this.parser.put("solve_linear_equations", "The first argument is the number of unknowns, then comes the matrix entries.", this::parseSolveEquations);
 		this.parser.put("sqrt", "Square roots a number, duh.", this::parseSquareRoot);
+		this.parser.put("sin", "Gets the sine of a number.", this::parseSineTheta).put("cos", "Gets the cosine of a number.", this::parseCosineTheta);
+		this.parser.put("asin", "Gets the inverse sine", this::parseInverseSine).put("acos", "Gets the inverse cosine", this::parseInverseCosine);
 		//this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower);
 		var guilds = this.jda.getGuilds();
 		File f = null;
@@ -1064,6 +1066,42 @@ public class ScannerV_0_3 extends ListenerAdapter
 		if(args.length==1)
 		{
 			ans=ScannerV_0_3.strToNum(args[0]).sqrt(MathContext.DECIMAL128).toString();
+		}
+		return ans;
+	}
+	public String parseSineTheta(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Give an angle.";
+		if(args.length==1)
+		{
+			ans=MathAlgs.sin(ScannerV_0_3.strToNum(args[0]).multiply(MathAlgs.PI_BY_180,MathContext.DECIMAL128)).toString();
+		}
+		return ans;
+	}
+	public String parseCosineTheta(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Give an angle.";
+		if(args.length==1)
+		{
+			ans=MathAlgs.cos(ScannerV_0_3.strToNum(args[0]).multiply(MathAlgs.PI_BY_180,MathContext.DECIMAL128)).toString();
+		}
+		return ans;
+	}
+	public String parseInverseSine(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Give an number.";
+		if(args.length==1)
+		{
+			ans=MathAlgs.asin(ScannerV_0_3.strToNum(args[0])).divide(MathAlgs.PI_BY_180,MathContext.DECIMAL128).toString();
+		}
+		return ans;
+	}
+	public String parseInverseCosine(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Give an number.";
+		if(args.length==1)
+		{
+			ans=MathAlgs.acos(ScannerV_0_3.strToNum(args[0])).divide(MathAlgs.PI_BY_180,MathContext.DECIMAL128).toString();
 		}
 		return ans;
 	}
