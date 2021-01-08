@@ -1,11 +1,9 @@
 package cp.scanner.main;
-
 import java.util.Scanner;
 import cp.scanner.cmd.CmdFunction;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageChannel;
-
 public class ConsoleController
 {
 	private JDA jda;

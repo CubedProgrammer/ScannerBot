@@ -23,11 +23,11 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import cp.scanner.algo.MathAlgs;
 import cp.scanner.cmd.CmdFunction;
-import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
@@ -329,9 +329,9 @@ public class ScannerV_0_3 extends ListenerAdapter
 				e.printStackTrace();
 			}
 		}
-		String[]ccn="message kick ban member role nickname".split("\\s+");
-		String[]ccd="Sends a message to the current channel.____Kicks a member.____Bans a member.____Gets the information of a member.____Add a role to a member if the member doesn't have it, removes it otherwise.____Changes the nickname of a member.".split("____");
-		CmdFunction[]funcs={this::parseSendMessage,this::parseConsoleKick,this::parseConsoleBan,this::parseMemberInfo,this::parseToggleRole,this::parseConsoleNickname};
+		String[]ccn="message kick ban member role nickname ls".split("\\s+");
+		String[]ccd="Sends a message to the current channel.____Kicks a member.____Bans a member.____Gets the information of a member.____Add a role to a member if the member doesn't have it, removes it otherwise.____Changes the nickname of a member.____Lists information about servers.".split("____");
+		CmdFunction[]funcs={this::parseSendMessage,this::parseConsoleKick,this::parseConsoleBan,this::parseMemberInfo,this::parseToggleRole,this::parseConsoleNickname,this::parseConsoleList};
 		ConsoleController gay=new ConsoleController(this.jda,ccn,ccd,funcs,this);
 		Thread thread = new Thread(gay::run);
 		thread.start();
@@ -412,7 +412,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 							{
 								for(int j=0;j<words.length;j++)
 								{
-									if(banwords[i].equals(words[i]))
+									if(banwords[i].equals(words[j]))
 									{
 										evt.getGuild().addRoleToMember(evt.getMember(), this.muteroles.get(evt.getGuild().getIdLong())).queue();
 										i = banwords.length;
@@ -1217,6 +1217,86 @@ public class ScannerV_0_3 extends ListenerAdapter
 		{
 			ScannerV_0_3.findMember(guild,args[0]).modifyNickname(args[1]).queue();
 			ans="Successfully changed nickname to "+args[1];
+		}
+		return ans;
+	}
+	public String parseConsoleList(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Argument must be either server, channel, members, or roles.";
+		if(args.length==1)
+		{
+			if("server".equals(args[0]))
+			{
+				ans = "This is the list of servers";
+				var guilds = this.jda.getGuilds();
+				var it = guilds.iterator();
+				Guild g = null;
+				while(it.hasNext())
+				{
+					g = it.next();
+					ans += System.getProperty("line.separator") + String.format("%d is the ID, %s is the name, %s is the creator name, and %d is the creator ID.", g.getIdLong(), g.getName(), g.getOwner().getUser().getName(), g.getOwner().getIdLong());
+				}
+			}
+			else if("channel".equals(args[0]))
+			{
+				ans = "This is the list of roles";
+				var guilds = this.jda.getGuilds();
+				var it = guilds.iterator();
+				Guild g = null;
+				Iterator<GuildChannel>rit = null;
+				GuildChannel r = null;
+				while(it.hasNext())
+				{
+					g = it.next();
+					ans += System.getProperty("line.separator") + String.format("%s (%s)", g.getId(), g.getName());
+					rit = g.getChannels().iterator();
+					while(rit.hasNext())
+					{
+						r = rit.next();
+						ans += System.getProperty("line.separator") + String.format("    %s, %s", r.getId(), r.getName());
+					}
+				}
+			}
+			else if("members".equals(args[0]))
+			{
+				ans = "This is the list of members";
+				var guilds = this.jda.getGuilds();
+				var it = guilds.iterator();
+				Guild g = null;
+				Iterator<Member>rit = null;
+				Member r = null;
+				while(it.hasNext())
+				{
+					g = it.next();
+					ans += System.getProperty("line.separator") + String.format("%s (%s)", g.getId(), g.getName());
+					rit = g.getMembers().iterator();
+					while(rit.hasNext())
+					{
+						r = rit.next();
+						ans += System.getProperty("line.separator") + String.format("    %s, %s, %s#%s", r.getId(), r.getEffectiveName(), r.getUser().getName(), r.getUser().getDiscriminator());
+					}
+				}
+			}
+			else if("roles".equals(args[0]))
+			{
+				ans = "This is the list of roles";
+				var guilds = this.jda.getGuilds();
+				var it = guilds.iterator();
+				Guild g = null;
+				Iterator<Role>rit = null;
+				Role r = null;
+				while(it.hasNext())
+				{
+					g = it.next();
+					ans += System.getProperty("line.separator") + String.format("%s (%s)", g.getId(), g.getName());
+					rit = g.getRoles().iterator();
+					while(rit.hasNext())
+					{
+						r = rit.next();
+						ans += System.getProperty("line.separator") + String.format("    %s, %s, colour is 0x%x, permission is 0x%x", r.getId(), r.getName(), r.getColorRaw(), r.getPermissionsRaw());
+					}
+				}
+			}
 		}
 		return ans;
 	}

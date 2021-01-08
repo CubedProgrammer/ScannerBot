@@ -218,16 +218,21 @@ public class MathAlgs
 	 */
 	public static final BigDecimal sin(BigDecimal theta)
 	{
-		BigDecimal len=BigDecimal.ZERO;
-		BigDecimal num=theta;
-		BigDecimal denom=BigDecimal.ONE;
-		for(int i=0;i<MathAlgs.TRIG_TAYLOR_LIMIT;i++)
+		if(theta.compareTo(BigDecimal.ZERO)<0||theta.compareTo(BigDecimal.ONE)>0)
+			return null;
+		else
 		{
-			len=len.add(num.divide(denom,MathContext.DECIMAL128),MathContext.DECIMAL128);
-			num=num.multiply(theta).multiply(theta).multiply(BigDecimal.ONE.negate(),MathContext.DECIMAL128);
-			denom=denom.multiply(BigDecimal.valueOf(2*i+2)).multiply(BigDecimal.valueOf(2*i+3),MathContext.DECIMAL128);
+			BigDecimal len=BigDecimal.ZERO;
+			BigDecimal num=theta;
+			BigDecimal denom=BigDecimal.ONE;
+			for(int i=0;i<MathAlgs.TRIG_TAYLOR_LIMIT;i++)
+			{
+				len=len.add(num.divide(denom,MathContext.DECIMAL128),MathContext.DECIMAL128);
+				num=num.multiply(theta).multiply(theta).multiply(BigDecimal.ONE.negate(),MathContext.DECIMAL128);
+				denom=denom.multiply(BigDecimal.valueOf(2*i+2)).multiply(BigDecimal.valueOf(2*i+3),MathContext.DECIMAL128);
+			}
+			return len;
 		}
-		return len;
 	}
 	/**
 	 * Computes the cosine of an angle
