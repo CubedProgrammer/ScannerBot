@@ -21,7 +21,7 @@ public class CommandParser
 		String ans = "error";
 		String cmd = args[0];
 		if("version".equalsIgnoreCase(cmd))
-			ans = "0.3.4 (Fifth beta release)";
+			ans = "0.3.5 (Sixth beta release)";
 		else if("help".equalsIgnoreCase(cmd))
 		{
 			if(args.length == 1)

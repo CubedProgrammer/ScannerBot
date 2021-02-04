@@ -12,11 +12,13 @@ import java.math.MathContext;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Scanner;
+import java.util.TimeZone;
 import javax.security.auth.login.LoginException;
 import org.apache.commons.math3.special.Erf;
 import org.json.simple.JSONObject;
@@ -258,6 +260,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("asin", "Gets the inverse sine", this::parseInverseSine).put("acos", "Gets the inverse cosine", this::parseInverseCosine);
 		this.parser.put("solvet", "Solves for a triangle given known sides and angles, represent unknown sides and angles with -1, give the three angles first.", this::parseSolveTriangle);
 		this.parser.put("vector_polar_addition", "Adds 2D vectors in polar form.", this::parseAddVectors);
+		this.parser.put("timestamp", "Timestamp.", this::parseGetTime);
 		//this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower);
 		var guilds = this.jda.getGuilds();
 		File f = null;
@@ -969,7 +972,11 @@ public class ScannerV_0_3 extends ListenerAdapter
 				direction = "northeast";
 			long sunrise = ((Long)sys.get("sunrise")).longValue();
 			long sunset = ((Long)sys.get("sunset")).longValue();
-			ans = String.format("The temperature today will be around %.2f degrees, with a minimum of %.2f and maximum of %.2f, pressure is %.2f kPa, humidity is %.2f. Wind blows at speed of %.1f m/s, at angle %d, which is direction %s. Sunrise happens at %tl:%tM, sunset happens at %tl:%tM.", temp, temps, tempb, pressure, humidity, speed, angle, direction, new Date(sunrise * 1000), new Date(sunrise * 1000), new Date(sunset * 1000), new Date(sunset * 1000));
+			Calendar ca = Calendar.getInstance(TimeZone.getTimeZone("America/Toronto"));
+			Calendar cb = Calendar.getInstance(TimeZone.getTimeZone("America/Toronto"));
+			ca.setTimeInMillis(1000 * sunrise);
+			cb.setTimeInMillis(1000 * sunset);
+			ans = String.format("The temperature today will be around %.2f degrees, with a minimum of %.2f and maximum of %.2f, pressure is %.2f kPa, humidity is %.2f. Wind blows at speed of %.1f m/s, at angle %d, which is direction %s. Sunrise happens at %d:%d, sunset happens at %d:%d.", temp, temps, tempb, pressure, humidity, speed, angle, direction, ca.get(Calendar.HOUR), ca.get(Calendar.MINUTE), cb.get(Calendar.HOUR), cb.get(Calendar.MINUTE));
 		}
 		catch(Exception e)
 		{
@@ -1140,6 +1147,21 @@ public class ScannerV_0_3 extends ListenerAdapter
 			BigDecimal[]result=new BigDecimal[2];
 			MathAlgs.vectorPolarAddition(angles,mags,result);
 			ans=result[0].divide(MathAlgs.PI_BY_180,MathContext.DECIMAL128)+"°, "+result[1];
+		}
+		return ans;
+	}
+	public String parseGetTime(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		Calendar c = Calendar.getInstance(TimeZone.getTimeZone("America/Toronto"));
+		String ans = c.getTime().toString();
+		if(args.length>0)
+		{
+			ans = "";
+			for(int i=0;i<args.length;i++)
+			{
+				c.setTimeInMillis(Long.parseLong(args[i]));
+				ans += c.getTime() + System.getProperty("line.separator");
+			}
 		}
 		return ans;
 	}
