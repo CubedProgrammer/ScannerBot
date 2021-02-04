@@ -24,13 +24,22 @@ public class CommandParser
 			ans = "0.3.4 (Fifth beta release)";
 		else if("help".equalsIgnoreCase(cmd))
 		{
-			ans = "This is the list of commands, arguments must be **SPACE SEPARATED**, if an argument must have spaces in them, use quotes.";
-			BotCommand bc = null;
-			String name = null;
-			for(var it = this.cmds.keySet().iterator();it.hasNext();)
+			if(args.length == 1)
 			{
-				bc = this.cmds.get(name = it.next());
-				ans += System.getProperty("line.separator") + name + " - " + bc.description;
+				ans = "This is the list of commands, arguments must be **SPACE SEPARATED**, if an argument must have spaces in them, use quotes." + System.getProperty("line.separator");
+				String name = null;
+				for(var it = this.cmds.keySet().iterator();it.hasNext();)
+				{
+					name = it.next();
+					ans += name + " ";
+				}
+			}
+			else
+			{
+				if(this.cmds.containsKey(args[1]))
+					ans = this.cmds.get(args[1]).description;
+				else
+					ans = "Command " + args[1] + " could not be found.";
 			}
 		}
 		else if(this.cmds.containsKey(cmd.toLowerCase()))
