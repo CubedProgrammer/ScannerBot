@@ -68,7 +68,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	/**
 	 * Files to create for storing data of each server
 	 */
-	public static final String files = "automuteroles.dat macros.txt roles.dat prefix.txt banwords.txt";
+	public static final String files = "automuteroles.dat macros.txt roles.dat prefix.txt banwords.txt replies.txt";
 	/**
 	 * Open weather map application programming interface key
 	 */
@@ -223,6 +223,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	private HashMap<Long, String>prefixes;
 	private HashMap<Long, String>banwords;
 	private HashMap<Long, HashMap<String, String>>macros;
+	private HashMap<Long, HashMap<String, String>>replies;
 	private boolean ready;
 	public ScannerV_0_3() throws LoginException, InterruptedException
 	{
@@ -237,6 +238,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.prefixes = new HashMap<Long, String>();
 		this.banwords = new HashMap<Long, String>();
 		this.macros = new HashMap<Long, HashMap<String, String>>();
+		this.replies = new HashMap<Long, HashMap<String, String>>();
 		this.parser.put("sum", "Adds numbers together.", this::parseSum).put("product", "Multiplies numbers together.", this::parseProduct);
 		this.parser.put("average", "Computes arithmetic mean of a list.", this::parseArithmeticMean).put("gmean", "Computes geometric mean of a list.", this::parseGeometricMean);
 		this.parser.put("addrole", "Adds a role to a member.", this::parseAddRole).put("rmrole", "Removes a role from a member.", this::parseRemoveRole);
@@ -260,7 +262,9 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("asin", "Gets the inverse sine", this::parseInverseSine).put("acos", "Gets the inverse cosine", this::parseInverseCosine);
 		this.parser.put("solvet", "Solves for a triangle given known sides and angles, represent unknown sides and angles with -1, give the three angles first.", this::parseSolveTriangle);
 		this.parser.put("vector_polar_addition", "Adds 2D vectors in polar form.", this::parseAddVectors);
-		this.parser.put("timestamp", "Timestamp.", this::parseGetTime);
+		this.parser.put("timestamp", "Get readable date from time since epoch in milliseconds.", this::parseGetTime);
+		this.parser.put("add_reply_msg", "Adds messages the bot will reply to with a reply message.", this::parseAddReply);
+		this.parser.put("remove_reply_msg", "Removes messages the bot will reply to.", this::parseRemoveReplies);
 		//this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower);
 		var guilds = this.jda.getGuilds();
 		File f = null;
@@ -296,6 +300,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 			try
 			{
 				this.macros.put(this.jda.getGuilds().get(i).getIdLong(),new HashMap<String, String>());
+				this.replies.put(this.jda.getGuilds().get(i).getIdLong(),new HashMap<String, String>());
 				for(int j=0;j<ScannerV_0_3.MACROS.length;j++)
 				{
 					this.macros.get(this.jda.getGuilds().get(i).getIdLong()).put(ScannerV_0_3.MACROS[j],ScannerV_0_3.MDEFS[j]);
@@ -311,6 +316,9 @@ public class ScannerV_0_3 extends ListenerAdapter
 				sc = new Scanner(new FileInputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/macros.txt"));
 				while(sc.hasNextLine())
 					this.macros.get(this.jda.getGuilds().get(i).getIdLong()).put(sc.next(),sc.nextLine().strip());
+				sc = new Scanner(new FileInputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/replies.txt"));
+				while(sc.hasNextLine())
+					this.replies.get(this.jda.getGuilds().get(i).getIdLong()).put(sc.nextLine().strip(),sc.nextLine().strip());
 				fin=new FileInputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/automuteroles.dat");
 				if(fin.available()==16)
 				{
@@ -364,6 +372,14 @@ public class ScannerV_0_3 extends ListenerAdapter
 				{
 					macro = it.next();
 					ps.println(macro + " " + this.macros.get(this.jda.getGuilds().get(i).getIdLong()).get(macro));
+				}
+				ps.close();
+				ps = new PrintStream(new FileOutputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/replies.txt"));
+				it = this.replies.get(this.jda.getGuilds().get(i).getIdLong()).keySet().iterator();
+				while(it.hasNext())
+				{
+					macro = it.next();
+					ps.println(macro + System.getProperty("line.separator") + this.replies.get(this.jda.getGuilds().get(i).getIdLong()).get(macro));
 				}
 				ps.close();
 				ps = new PrintStream(new FileOutputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/automuteroles.dat"));
@@ -422,6 +438,18 @@ public class ScannerV_0_3 extends ListenerAdapter
 										j = words.length;
 									}
 								}
+							}
+						}
+						var it = this.replies.get(evt.getGuild().getIdLong()).keySet().iterator();
+						String msg = null;
+						boolean replied = false;
+						while(it.hasNext()&&!replied)
+						{
+							msg = it.next();
+							if(raw.toLowerCase().replaceAll("[^\\s\\w]","").contains(msg.toLowerCase()))
+							{
+								evt.getChannel().sendMessage(this.replies.get(evt.getGuild().getIdLong()).get(msg)).queue();
+								replied = true;
 							}
 						}
 						return;
@@ -1146,7 +1174,29 @@ public class ScannerV_0_3 extends ListenerAdapter
 			}
 			BigDecimal[]result=new BigDecimal[2];
 			MathAlgs.vectorPolarAddition(angles,mags,result);
-			ans=result[0].divide(MathAlgs.PI_BY_180,MathContext.DECIMAL128)+"°, "+result[1];
+			ans=result[0].divide(MathAlgs.PI_BY_180,MathContext.DECIMAL128)+"ï¿½, "+result[1];
+		}
+		return ans;
+	}
+	public String parseAddReply(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Give a list of messages, and then the reply.";
+		if(args.length>1)
+		{
+			for(int i=0;i<args.length-1;i++)
+				this.replies.get(guild.getIdLong()).put(args[i], args[args.length-1]);
+			ans = "Added new replies.";
+		}
+		return ans;
+	}
+	public String parseRemoveReplies(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Give a list of messages that would be replied to to remove.";
+		if(args.length>0)
+		{
+			for(int i=0;i<args.length;i++)
+				this.replies.get(guild.getIdLong()).remove(args[i]);
+			ans = "Removed replies.";
 		}
 		return ans;
 	}
