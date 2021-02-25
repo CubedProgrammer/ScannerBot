@@ -320,16 +320,18 @@ public class ScannerV_0_3 extends ListenerAdapter
 				while(sc.hasNextLine())
 					this.replies.get(this.jda.getGuilds().get(i).getIdLong()).put(sc.nextLine().strip(),sc.nextLine().strip());
 				fin=new FileInputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/automuteroles.dat");
-				if(fin.available()==16)
+				if(fin.available()>=16)
 				{
 					rbs=new byte[16];
 					fin.read(rbs);
+					r=0;
 					for(int j=0;j<8;j++)
-						r+=(long)rbs[j]<<j*8;
+						r+=((long)rbs[j+8]&0xff)<<j*8;
 					if(r!=-1)
 						this.autoroles.put(this.jda.getGuilds().get(i).getIdLong(),this.jda.getGuilds().get(i).getRoleById(r));
+					r=0;
 					for(int j=0;j<8;j++)
-						r+=(long)rbs[j+8]<<j*8;
+						r+=((long)rbs[j+8]&0xff)<<j*8;
 					if(r!=-1)
 						this.muteroles.put(this.jda.getGuilds().get(i).getIdLong(),this.jda.getGuilds().get(i).getRoleById(r));
 				}

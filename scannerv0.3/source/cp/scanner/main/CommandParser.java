@@ -82,7 +82,7 @@ public class CommandParser
 						}
 						catch(Exception e)
 						{
-							ans = "Error occured for command "+args[start]+" which was token "+start+", it has produced the following message."+e.toString();
+							args[0] = "Error occured for command "+args[start]+" which was token "+start+", it has produced the following message."+e.toString();
 							e.printStackTrace();
 						}
 						if(start + 1 < args.length)
