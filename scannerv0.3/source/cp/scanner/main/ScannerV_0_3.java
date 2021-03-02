@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -20,6 +21,8 @@ import java.util.Iterator;
 import java.util.Scanner;
 import java.util.TimeZone;
 import javax.security.auth.login.LoginException;
+
+import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import org.apache.commons.math3.special.Erf;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -48,7 +51,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	/**
 	 * Token for bot authentication.
 	 */
-	public static final String TOKEN="MzY3NDI2MTc4MDE5MjI5Njk3.Wd0-Sw.F5OiDKEp1YiBMlf-GRO_J86d2ho";
+	public static final String TOKEN="MzY3NDI 	2MTc4MDE5MjI5Njk3.Wd0-Sw.F5OiDKEp1YiBMlf-GRO_J86d2ho";
 	/**
 	 * Delimiter character.
 	 */
@@ -320,18 +323,16 @@ public class ScannerV_0_3 extends ListenerAdapter
 				while(sc.hasNextLine())
 					this.replies.get(this.jda.getGuilds().get(i).getIdLong()).put(sc.nextLine().strip(),sc.nextLine().strip());
 				fin=new FileInputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/automuteroles.dat");
-				if(fin.available()>=16)
+				if(fin.available()==16)
 				{
 					rbs=new byte[16];
 					fin.read(rbs);
-					r=0;
 					for(int j=0;j<8;j++)
-						r+=((long)rbs[j+8]&0xff)<<j*8;
+						r+=(long)rbs[j]<<j*8;
 					if(r!=-1)
 						this.autoroles.put(this.jda.getGuilds().get(i).getIdLong(),this.jda.getGuilds().get(i).getRoleById(r));
-					r=0;
 					for(int j=0;j<8;j++)
-						r+=((long)rbs[j+8]&0xff)<<j*8;
+						r+=(long)rbs[j+8]<<j*8;
 					if(r!=-1)
 						this.muteroles.put(this.jda.getGuilds().get(i).getIdLong(),this.jda.getGuilds().get(i).getRoleById(r));
 				}
@@ -403,6 +404,86 @@ public class ScannerV_0_3 extends ListenerAdapter
 			}
 		}
 	}
+	public void onMessageUpdate(MessageUpdateEvent evt)
+	{
+		if(this.ready)
+		{
+			if(this.jda.getGuilds().size()!=this.prefixes.size())
+				System.out.println(this.jda.getGuilds().size()+" "+this.prefixes.size());
+			if(evt.getAuthor().getIdLong()!=this.ID)
+			{
+				Message message = evt.getMessage();
+				String raw = message.getContentRaw();
+				if(evt.getGuild()!=null)
+				{
+					if(raw.startsWith(this.mention))
+					{
+						raw = raw.substring(this.mention.length()).strip();
+					}
+					else if(raw.startsWith(this.prefixes.get(evt.getGuild().getIdLong())))
+					{
+						raw = raw.substring(this.prefixes.get(evt.getGuild().getIdLong()).length()).strip();
+					}
+					else
+					{
+						if(this.muteroles.containsKey(evt.getGuild().getIdLong())&&this.banwords.containsKey(evt.getGuild().getIdLong()))
+						{
+							String[]banwords = ScannerV_0_3.getCmdArgs(this.banwords.get(evt.getGuild().getIdLong()).toLowerCase());
+							String[]words=raw.toLowerCase().replaceAll("[^\\s\\w]","").split("\\s+");
+							for(int i=0;i<banwords.length;i++)
+							{
+								for(int j=0;j<words.length;j++)
+								{
+									if(banwords[i].equals(words[j]))
+									{
+										evt.getGuild().addRoleToMember(evt.getMember(), this.muteroles.get(evt.getGuild().getIdLong())).queue();
+										i = banwords.length;
+										j = words.length;
+									}
+								}
+							}
+						}
+						var it = this.replies.get(evt.getGuild().getIdLong()).keySet().iterator();
+						String msg = null;
+						boolean replied = false;
+						while(it.hasNext()&&!replied)
+						{
+							msg = it.next();
+							if(Normalizer.normalize(raw, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase().replaceAll("[^\\s\\w]","").contains(msg.toLowerCase()))
+							{
+								evt.getChannel().sendMessage(this.replies.get(evt.getGuild().getIdLong()).get(msg)).queue();
+								replied = true;
+							}
+						}
+						return;
+					}
+					Iterator<String>it=this.macros.get(evt.getGuild().getIdLong()).keySet().iterator();
+					String macro = null;
+					int index=0;
+					while(it.hasNext())
+					{
+						macro = it.next();
+						index = raw.indexOf(macro);
+						while(index!=-1)
+						{
+							if((index==0||!ScannerV_0_3.isAlphanumeric(raw.charAt(index-1)))&&(index+macro.length()==raw.length()||!ScannerV_0_3.isAlphanumeric(raw.charAt(index+macro.length()))))
+								raw=raw.substring(0,index)+this.macros.get(evt.getGuild().getIdLong()).get(macro)+raw.substring(index+macro.length());
+							index = raw.indexOf(macro,index+macro.length());
+						}
+					}
+					System.out.println(raw);
+					String[]args = ScannerV_0_3.getCmdArgs(raw);
+					if(args.length > 0)
+					{
+						String response = this.parser.parse(message,evt.getGuild(),evt.getChannel(),evt.getAuthor(),args);
+						evt.getChannel().sendMessage(response).queue();
+						System.out.println("Sent message to channel " + evt.getChannel().getId() + " in guild " + (evt.getGuild()==null?"null":evt.getGuild().getId()));
+						System.out.println(response);
+					}
+				}
+			}
+		}
+	}
 	public void onMessageReceived(MessageReceivedEvent evt)
 	{
 		if(this.ready)
@@ -448,7 +529,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 						while(it.hasNext()&&!replied)
 						{
 							msg = it.next();
-							if(raw.toLowerCase().replaceAll("[^\\s\\w]","").contains(msg.toLowerCase()))
+							if(Normalizer.normalize(raw, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase().replaceAll("[^\\s\\w]","").contains(msg.toLowerCase()))
 							{
 								evt.getChannel().sendMessage(this.replies.get(evt.getGuild().getIdLong()).get(msg)).queue();
 								replied = true;
