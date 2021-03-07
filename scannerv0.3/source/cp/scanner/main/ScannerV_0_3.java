@@ -51,7 +51,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	/**
 	 * Token for bot authentication.
 	 */
-	public static final String TOKEN="MzY3NDI 	2MTc4MDE5MjI5Njk3.Wd0-Sw.F5OiDKEp1YiBMlf-GRO_J86d2ho";
+	public static final String TOKEN="MzY3NDI2MTc4MDE5MjI5Njk3.Wd0-Sw.F5OiDKEp1YiBMlf-GRO_J86d2ho";
 	/**
 	 * Delimiter character.
 	 */
@@ -227,6 +227,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	private HashMap<Long, String>banwords;
 	private HashMap<Long, HashMap<String, String>>macros;
 	private HashMap<Long, HashMap<String, String>>replies;
+	private HashMap<Long, HashMap<String, Long>>replyWhiteList;
 	private boolean ready;
 	public ScannerV_0_3() throws LoginException, InterruptedException
 	{
@@ -242,6 +243,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.banwords = new HashMap<Long, String>();
 		this.macros = new HashMap<Long, HashMap<String, String>>();
 		this.replies = new HashMap<Long, HashMap<String, String>>();
+		this.replyWhiteList = new HashMap<>();
 		this.parser.put("sum", "Adds numbers together.", this::parseSum).put("product", "Multiplies numbers together.", this::parseProduct);
 		this.parser.put("average", "Computes arithmetic mean of a list.", this::parseArithmeticMean).put("gmean", "Computes geometric mean of a list.", this::parseGeometricMean);
 		this.parser.put("addrole", "Adds a role to a member.", this::parseAddRole).put("rmrole", "Removes a role from a member.", this::parseRemoveRole);
@@ -404,82 +406,56 @@ public class ScannerV_0_3 extends ListenerAdapter
 			}
 		}
 	}
+	public void mutePeople(String raw,Guild guild,Member author)
+	{
+		if(this.muteroles.containsKey(guild.getIdLong())&&this.banwords.containsKey(guild.getIdLong()))
+		{
+			String[]banwords = ScannerV_0_3.getCmdArgs(this.banwords.get(guild.getIdLong()).toLowerCase());
+			String[]words=raw.toLowerCase().replaceAll("[^\\s\\w]","").split("\\s+");
+			for(int i=0;i<banwords.length;i++)
+			{
+				for(int j=0;j<words.length;j++)
+				{
+					if(banwords[i].equals(words[j]))
+					{
+						guild.addRoleToMember(author, this.muteroles.get(guild.getIdLong())).queue();
+						i = banwords.length;
+						j = words.length;
+					}
+				}
+			}
+		}
+	}
+	public void reply(String raw,Guild guild,MessageChannel channel,Member member)
+	{
+		var it = this.replies.get(guild.getIdLong()).keySet().iterator();
+		String msg = null;
+		boolean replied = false;
+		while(it.hasNext()&&!replied)
+		{
+			msg = it.next();
+			if(Normalizer.normalize(raw, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase().replaceAll("[^\\s\\w]","").contains(msg.toLowerCase()))
+			{
+				if(!this.replyWhiteList.get(guild.getIdLong()).get(msg).equals(member.getIdLong()))
+				{
+					channel.sendMessage(this.replies.get(guild.getIdLong()).get(msg)).queue();
+					replied = true;
+				}
+			}
+		}
+	}
 	public void onMessageUpdate(MessageUpdateEvent evt)
 	{
 		if(this.ready)
 		{
-			if(this.jda.getGuilds().size()!=this.prefixes.size())
-				System.out.println(this.jda.getGuilds().size()+" "+this.prefixes.size());
 			if(evt.getAuthor().getIdLong()!=this.ID)
 			{
 				Message message = evt.getMessage();
 				String raw = message.getContentRaw();
 				if(evt.getGuild()!=null)
 				{
-					if(raw.startsWith(this.mention))
-					{
-						raw = raw.substring(this.mention.length()).strip();
-					}
-					else if(raw.startsWith(this.prefixes.get(evt.getGuild().getIdLong())))
-					{
-						raw = raw.substring(this.prefixes.get(evt.getGuild().getIdLong()).length()).strip();
-					}
-					else
-					{
-						if(this.muteroles.containsKey(evt.getGuild().getIdLong())&&this.banwords.containsKey(evt.getGuild().getIdLong()))
-						{
-							String[]banwords = ScannerV_0_3.getCmdArgs(this.banwords.get(evt.getGuild().getIdLong()).toLowerCase());
-							String[]words=raw.toLowerCase().replaceAll("[^\\s\\w]","").split("\\s+");
-							for(int i=0;i<banwords.length;i++)
-							{
-								for(int j=0;j<words.length;j++)
-								{
-									if(banwords[i].equals(words[j]))
-									{
-										evt.getGuild().addRoleToMember(evt.getMember(), this.muteroles.get(evt.getGuild().getIdLong())).queue();
-										i = banwords.length;
-										j = words.length;
-									}
-								}
-							}
-						}
-						var it = this.replies.get(evt.getGuild().getIdLong()).keySet().iterator();
-						String msg = null;
-						boolean replied = false;
-						while(it.hasNext()&&!replied)
-						{
-							msg = it.next();
-							if(Normalizer.normalize(raw, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase().replaceAll("[^\\s\\w]","").contains(msg.toLowerCase()))
-							{
-								evt.getChannel().sendMessage(this.replies.get(evt.getGuild().getIdLong()).get(msg)).queue();
-								replied = true;
-							}
-						}
-						return;
-					}
-					Iterator<String>it=this.macros.get(evt.getGuild().getIdLong()).keySet().iterator();
-					String macro = null;
-					int index=0;
-					while(it.hasNext())
-					{
-						macro = it.next();
-						index = raw.indexOf(macro);
-						while(index!=-1)
-						{
-							if((index==0||!ScannerV_0_3.isAlphanumeric(raw.charAt(index-1)))&&(index+macro.length()==raw.length()||!ScannerV_0_3.isAlphanumeric(raw.charAt(index+macro.length()))))
-								raw=raw.substring(0,index)+this.macros.get(evt.getGuild().getIdLong()).get(macro)+raw.substring(index+macro.length());
-							index = raw.indexOf(macro,index+macro.length());
-						}
-					}
-					System.out.println(raw);
-					String[]args = ScannerV_0_3.getCmdArgs(raw);
-					if(args.length > 0)
-					{
-						String response = this.parser.parse(message,evt.getGuild(),evt.getChannel(),evt.getAuthor(),args);
-						evt.getChannel().sendMessage(response).queue();
-						System.out.println("Sent message to channel " + evt.getChannel().getId() + " in guild " + (evt.getGuild()==null?"null":evt.getGuild().getId()));
-						System.out.println(response);
-					}
+					this.mutePeople(raw,evt.getGuild(),evt.getMember());
+					this.reply(raw,evt.getGuild(),evt.getChannel(),evt.getMember());
 				}
 			}
 		}
@@ -506,35 +482,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 					}
 					else
 					{
-						if(this.muteroles.containsKey(evt.getGuild().getIdLong())&&this.banwords.containsKey(evt.getGuild().getIdLong()))
-						{
-							String[]banwords = ScannerV_0_3.getCmdArgs(this.banwords.get(evt.getGuild().getIdLong()).toLowerCase());
-							String[]words=raw.toLowerCase().replaceAll("[^\\s\\w]","").split("\\s+");
-							for(int i=0;i<banwords.length;i++)
-							{
-								for(int j=0;j<words.length;j++)
-								{
-									if(banwords[i].equals(words[j]))
-									{
-										evt.getGuild().addRoleToMember(evt.getMember(), this.muteroles.get(evt.getGuild().getIdLong())).queue();
-										i = banwords.length;
-										j = words.length;
-									}
-								}
-							}
-						}
-						var it = this.replies.get(evt.getGuild().getIdLong()).keySet().iterator();
-						String msg = null;
-						boolean replied = false;
-						while(it.hasNext()&&!replied)
-						{
-							msg = it.next();
-							if(Normalizer.normalize(raw, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase().replaceAll("[^\\s\\w]","").contains(msg.toLowerCase()))
-							{
-								evt.getChannel().sendMessage(this.replies.get(evt.getGuild().getIdLong()).get(msg)).queue();
-								replied = true;
-							}
-						}
+						this.mutePeople(raw,evt.getGuild(),evt.getMember());
+						this.reply(raw,evt.getGuild(),evt.getChannel(),evt.getMember());
 						return;
 					}
 					Iterator<String>it=this.macros.get(evt.getGuild().getIdLong()).keySet().iterator();
