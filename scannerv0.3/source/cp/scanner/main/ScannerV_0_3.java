@@ -51,7 +51,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	/**
 	 * Token for bot authentication.
 	 */
-	public static final String TOKEN="MzY3NDI2MTc4MDE5MjI5Njk3.Wd0-Sw.F5OiDKEp1YiBMlf-GRO_J86d2ho";
+	public static final String TOKEN="MzY3NDI2MTc4MDE5MjI5Njk3.Wd0-Sw.9378vFUiMlQPMcLzJ6aH_B-fylY";
 	/**
 	 * Delimiter character.
 	 */
@@ -71,7 +71,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	/**
 	 * Files to create for storing data of each server
 	 */
-	public static final String files = "automuteroles.dat macros.txt roles.dat prefix.txt banwords.txt replies.txt";
+	public static final String files = "automuteroles.dat macros.txt roles.dat prefix.txt banwords.txt replies.txt whitelist.txt";
 	/**
 	 * Open weather map application programming interface key
 	 */
@@ -227,7 +227,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	private HashMap<Long, String>banwords;
 	private HashMap<Long, HashMap<String, String>>macros;
 	private HashMap<Long, HashMap<String, String>>replies;
-	private HashMap<Long, HashMap<String, Long>>replyWhiteList;
+	private HashMap<Long, HashMap<String,ArrayList<Long>>>replyWhiteList;
 	private boolean ready;
 	public ScannerV_0_3() throws LoginException, InterruptedException
 	{
@@ -270,6 +270,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("timestamp", "Get readable date from time since epoch in milliseconds.", this::parseGetTime);
 		this.parser.put("add_reply_msg", "Adds messages the bot will reply to with a reply message.", this::parseAddReply);
 		this.parser.put("remove_reply_msg", "Removes messages the bot will reply to.", this::parseRemoveReplies);
+		this.parser.put("reply_white_list", "Whitelists members from a reply, this bot will no longer reply to whitelisted users who say a certain message.", this::parseWhiteList);
+		this.parser.put("remove_white_list", "Un-whitelists a member from a reply.", this::parseRemoveWhiteList);
 		//this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower);
 		var guilds = this.jda.getGuilds();
 		File f = null;
@@ -300,12 +302,14 @@ public class ScannerV_0_3 extends ListenerAdapter
 		FileInputStream fin=null;
 		long r=0;
 		byte[]rbs=null;
+		String[]tokens=null;
 		for(int i=0;i<this.jda.getGuilds().size();i++)
 		{
 			try
 			{
 				this.macros.put(this.jda.getGuilds().get(i).getIdLong(),new HashMap<String, String>());
 				this.replies.put(this.jda.getGuilds().get(i).getIdLong(),new HashMap<String, String>());
+				this.replyWhiteList.put(this.jda.getGuilds().get(i).getIdLong(),new HashMap<String, ArrayList<Long>>());
 				for(int j=0;j<ScannerV_0_3.MACROS.length;j++)
 				{
 					this.macros.get(this.jda.getGuilds().get(i).getIdLong()).put(ScannerV_0_3.MACROS[j],ScannerV_0_3.MDEFS[j]);
@@ -321,9 +325,21 @@ public class ScannerV_0_3 extends ListenerAdapter
 				sc = new Scanner(new FileInputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/macros.txt"));
 				while(sc.hasNextLine())
 					this.macros.get(this.jda.getGuilds().get(i).getIdLong()).put(sc.next(),sc.nextLine().strip());
+				sc.close();
 				sc = new Scanner(new FileInputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/replies.txt"));
 				while(sc.hasNextLine())
 					this.replies.get(this.jda.getGuilds().get(i).getIdLong()).put(sc.nextLine().strip(),sc.nextLine().strip());
+				sc.close();
+				sc = new Scanner(new FileInputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/whitelist.txt"));
+				while(sc.hasNextLine())
+				{
+					tokens = sc.nextLine().split("____next____");
+					this.replyWhiteList.get(this.jda.getGuilds().get(i).getIdLong()).put(tokens[0], new ArrayList<>());
+					for(int j=1;j<tokens.length;j++)
+						this.replyWhiteList.get(this.jda.getGuilds().get(i).getIdLong()).get(tokens[0]).add(Long.parseLong(tokens[j]));;
+				}
+				sc.close();
+				System.out.println(this.replyWhiteList);
 				fin=new FileInputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/automuteroles.dat");
 				if(fin.available()==16)
 				{
@@ -387,6 +403,15 @@ public class ScannerV_0_3 extends ListenerAdapter
 					ps.println(macro + System.getProperty("line.separator") + this.replies.get(this.jda.getGuilds().get(i).getIdLong()).get(macro));
 				}
 				ps.close();
+				ps = new PrintStream(new FileOutputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/whitelist.txt"));
+				for(String reply:this.replyWhiteList.get(this.jda.getGuilds().get(i).getIdLong()).keySet())
+				{
+					ps.print(reply);
+					for(int j=0;j<this.replyWhiteList.get(this.jda.getGuilds().get(i).getIdLong()).get(reply).size();j++)
+						ps.print("____next____" + this.replyWhiteList.get(this.jda.getGuilds().get(i).getIdLong()).get(reply).get(j));
+					ps.println();
+				}
+				ps.close();
 				ps = new PrintStream(new FileOutputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/automuteroles.dat"));
 				rbs=new byte[16];
 				role=this.autoroles.get(this.jda.getGuilds().get(i).getIdLong());
@@ -436,7 +461,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 			msg = it.next();
 			if(Normalizer.normalize(raw, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase().replaceAll("[^\\s\\w]","").contains(msg.toLowerCase()))
 			{
-				if(!this.replyWhiteList.get(guild.getIdLong()).get(msg).equals(member.getIdLong()))
+				if(!this.replyWhiteList.get(guild.getIdLong()).containsKey(msg)||!this.replyWhiteList.get(guild.getIdLong()).get(msg).contains(member.getIdLong()))
 				{
 					channel.sendMessage(this.replies.get(guild.getIdLong()).get(msg)).queue();
 					replied = true;
@@ -1246,6 +1271,56 @@ public class ScannerV_0_3 extends ListenerAdapter
 			}
 		}
 		return ans;
+	}
+	public String parseWhiteList(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length<2)
+		{
+			return"Name a reply and at least one member to whitelist.";
+		}
+		else
+		{
+			Member mem=null;
+			String reply=args[0];
+			var ans = "Successfully whitelisted all members.";
+			for(int i=1;i<args.length;i++)
+			{
+				mem=ScannerV_0_3.findMember(guild,args[i]);
+				if(mem == null)
+					ans = "One or more members could not be found.";
+				else
+				{
+					if(!this.replyWhiteList.get(guild.getIdLong()).containsKey(reply))
+						this.replyWhiteList.get(guild.getIdLong()).put(reply, new ArrayList<>());
+					this.replyWhiteList.get(guild.getIdLong()).get(reply).add(mem.getIdLong());
+				}
+			}
+			System.out.println(this.replyWhiteList);
+			return ans;
+		}
+	}
+	public String parseRemoveWhiteList(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length<2)
+		{
+			return"Name a reply and at least one member to remove from the whitelist.";
+		}
+		else
+		{
+			Member mem=null;
+			String reply=args[0];
+			var ans = "Successfully un-whitelisted all members.";
+			for(int i=1;i<args.length;i++)
+			{
+				mem=ScannerV_0_3.findMember(guild,args[i]);
+				if(mem == null)
+					ans = "One or more members could not be found.";
+				else if(this.replyWhiteList.get(guild.getIdLong()).containsKey(reply))
+					this.replyWhiteList.get(guild.getIdLong()).get(reply).remove(mem.getIdLong());
+			}
+			System.out.println(this.replyWhiteList);
+			return ans;
+		}
 	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
