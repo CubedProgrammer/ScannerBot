@@ -26,19 +26,48 @@ public class MathAlgs
 			{
 				ans = BigDecimal.ONE;
 			}
+			else
+			{
+				ans = null;
+			}
 		}
 		else
 		{
-			BigDecimal denom=BigDecimal.ONE;
-			BigDecimal pow=base;
-			for(int i=1;i<100000;i++)
-			{
-				denom=denom.multiply(new BigDecimal(i));
-				ans=ans.add(pow.divide(denom,MathContext.DECIMAL128));
-				pow=pow.multiply(base);
-			}
+			ans = exp(log(base).multiply(exp,MathContext.DECIMAL128));
 		}
 		return ans;
+	}
+	/**
+	 * @param exp The exponent
+	 * @return The answer to exp(exp)
+	 */
+	public static final BigDecimal exp(BigDecimal exp)
+	{
+		BigDecimal ans=BigDecimal.ONE;
+		BigDecimal denom=BigDecimal.ONE;
+		BigDecimal pow=exp;
+		for(int i=1;i<100;i++)
+		{
+			denom=denom.multiply(new BigDecimal(i));
+			ans=ans.add(pow.divide(denom,MathContext.DECIMAL128),MathContext.DECIMAL128);
+			pow=pow.multiply(exp);
+		}
+		return ans;
+	}
+	/**
+	 * @param x The number to take the logarithm of
+	 * @return The answer to log(x)
+	 */
+	public static final BigDecimal log(BigDecimal x)
+	{
+		BigDecimal guess=BigDecimal.TEN;
+		BigDecimal check=exp(guess).subtract(x,MathContext.DECIMAL128);
+		while(check.abs().compareTo(new BigDecimal("0.0000000000000000000000001"))>0)
+		{
+			guess=guess.subtract(check.divide(check.add(x,MathContext.DECIMAL128),MathContext.DECIMAL128),MathContext.DECIMAL128);
+			check=exp(guess).subtract(x,MathContext.DECIMAL128);
+		}
+		return guess;
 	}
 	/**
 	 * Adds 2D vectors in polar form

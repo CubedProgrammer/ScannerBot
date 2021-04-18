@@ -272,7 +272,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("remove_reply_msg", "Removes messages the bot will reply to.", this::parseRemoveReplies);
 		this.parser.put("reply_white_list", "Whitelists members from a reply, this bot will no longer reply to whitelisted users who say a certain message.", this::parseWhiteList);
 		this.parser.put("remove_white_list", "Un-whitelists a member from a reply.", this::parseRemoveWhiteList);
-		//this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower);
+		this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower);
 		var guilds = this.jda.getGuilds();
 		File f = null;
 		File ff = null;
@@ -361,9 +361,9 @@ public class ScannerV_0_3 extends ListenerAdapter
 				e.printStackTrace();
 			}
 		}
-		String[]ccn="message kick ban member role nickname ls".split("\\s+");
-		String[]ccd="Sends a message to the current channel.____Kicks a member.____Bans a member.____Gets the information of a member.____Add a role to a member if the member doesn't have it, removes it otherwise.____Changes the nickname of a member.____Lists information about servers.".split("____");
-		CmdFunction[]funcs={this::parseSendMessage,this::parseConsoleKick,this::parseConsoleBan,this::parseMemberInfo,this::parseToggleRole,this::parseConsoleNickname,this::parseConsoleList};
+		String[]ccn="message kick ban member role nickname ls save".split("\\s+");
+		String[]ccd="Sends a message to the current channel.____Kicks a member.____Bans a member.____Gets the information of a member.____Add a role to a member if the member doesn't have it, removes it otherwise.____Changes the nickname of a member.____Lists information about servers.____Saves information to hard drive.".split("____");
+		CmdFunction[]funcs={this::parseSendMessage,this::parseConsoleKick,this::parseConsoleBan,this::parseMemberInfo,this::parseToggleRole,this::parseConsoleNickname,this::parseConsoleList,this::parseConsoleSave};
 		ConsoleController gay=new ConsoleController(this.jda,ccn,ccd,funcs,this);
 		Thread thread = new Thread(gay::run);
 		thread.start();
@@ -1061,7 +1061,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 			Calendar cb = Calendar.getInstance(TimeZone.getTimeZone("America/Toronto"));
 			ca.setTimeInMillis(1000 * sunrise);
 			cb.setTimeInMillis(1000 * sunset);
-			ans = String.format("The temperature today will be around %.2f degrees, with a minimum of %.2f and maximum of %.2f, pressure is %.2f kPa, humidity is %.2f. Wind blows at speed of %.1f m/s, at angle %d, which is direction %s. Sunrise happens at %d:%d, sunset happens at %d:%d.", temp, temps, tempb, pressure, humidity, speed, angle, direction, ca.get(Calendar.HOUR), ca.get(Calendar.MINUTE), cb.get(Calendar.HOUR), cb.get(Calendar.MINUTE));
+			ans = String.format("The temperature today will be around %.2f degrees, with a minimum of %.2f and maximum of %.2f, pressure is %.2f kPa, humidity is %.2f. Wind blows at speed of %.1f m/s, at angle %d, which is direction %s. Sunrise happens at %d:%2d, sunset happens at %d:%2d.", temp, temps, tempb, pressure, humidity, speed, angle, direction, ca.get(Calendar.HOUR), ca.get(Calendar.MINUTE), cb.get(Calendar.HOUR), cb.get(Calendar.MINUTE));
 		}
 		catch(Exception e)
 		{
@@ -1478,6 +1478,11 @@ public class ScannerV_0_3 extends ListenerAdapter
 			}
 		}
 		return ans;
+	}
+	public String parseConsoleSave(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		this.save();
+		return"If no exception is thrown, the save was successful.";
 	}
 	public static void main(String[] args)
 	{
