@@ -273,6 +273,42 @@ public class MathAlgs
 		return MathAlgs.sin(new BigDecimal("1.5707963267948966192313216916398").subtract(theta,MathContext.DECIMAL128));
 	}
 	/**
+	 * Computes the tangent of an angle
+	 * @param theta The angle, duh
+	 * @return The tangent of theta
+	 */
+	public static final BigDecimal tan(BigDecimal theta)
+	{
+		return MathAlgs.sin(theta).divide(MathAlgs.cos(theta),MathContext.DECIMAL128);
+	}
+	/**
+	 * Computes the cotangent of an angle
+	 * @param theta The angle, duh
+	 * @return The cotangent of theta
+	 */
+	public static final BigDecimal cot(BigDecimal theta)
+	{
+		return MathAlgs.cos(theta).divide(MathAlgs.sin(theta),MathContext.DECIMAL128);
+	}
+	/**
+	 * Computes the secant of an angle
+	 * @param theta The angle, duh
+	 * @return The secant of theta
+	 */
+	public static final BigDecimal sec(BigDecimal theta)
+	{
+		return BigDecimal.ONE.divide(MathAlgs.cos(theta),MathContext.DECIMAL128);
+	}
+	/**
+	 * Computes the cosecant of an angle
+	 * @param theta The angle, duh
+	 * @return The cosecant of theta
+	 */
+	public static final BigDecimal csc(BigDecimal theta)
+	{
+		return BigDecimal.ONE.divide(MathAlgs.sin(theta),MathContext.DECIMAL128);
+	}
+	/**
 	 * Computes the inverse sine of a number
 	 * @param bd The number
 	 * @return Theta
