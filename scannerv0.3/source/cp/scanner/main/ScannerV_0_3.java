@@ -905,7 +905,10 @@ public class ScannerV_0_3 extends ListenerAdapter
 				Date date = new Date((snowflake >> 22) + ScannerV_0_3.EPOCH);
 				ans = "This entity was created on " + date.toString() + ".";
 				if(guild.getMemberById(snowflake)!=null)
-					ans += " This user joined the server on " + guild.getMemberById(snowflake).getTimeJoined().toString() + ".";
+				{
+					ans += " This user joined the server on " + guild.getMemberById(snowflake).getTimeJoined().toString() + ". ";
+					ans += guild.getMemberById(snowflake).getUser().getAvatarUrl();
+				}
 			}
 		}
 		return ans;
