@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.MathContext;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -264,6 +265,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("solve_linear_equations", "The first argument is the number of unknowns, then comes the matrix entries.", this::parseSolveEquations);
 		this.parser.put("sqrt", "Square roots a number, duh.", this::parseSquareRoot);
 		this.parser.put("sin", "Gets the sine of a number.", this::parseSineTheta).put("cos", "Gets the cosine of a number.", this::parseCosineTheta);
+		this.parser.put("tan", "Gets the tangent of a number.", this::parseTangentTheta).put("cot", "Gets the cotangent of a number.", this::parseCotangentTheta);
+		this.parser.put("sec", "Gets the secant of a number.", this::parseSecantTheta).put("csc", "Gets the cosecant of a number.", this::parseCosecantTheta);
 		this.parser.put("asin", "Gets the inverse sine", this::parseInverseSine).put("acos", "Gets the inverse cosine", this::parseInverseCosine);
 		this.parser.put("solvet", "Solves for a triangle given known sides and angles, represent unknown sides and angles with -1, give the three angles first.", this::parseSolveTriangle);
 		this.parser.put("vector_polar_addition", "Adds 2D vectors in polar form.", this::parseAddVectors);
@@ -273,6 +276,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("reply_white_list", "Whitelists members from a reply, this bot will no longer reply to whitelisted users who say a certain message.", this::parseWhiteList);
 		this.parser.put("remove_white_list", "Un-whitelists a member from a reply.", this::parseRemoveWhiteList);
 		this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower);
+		this.parser.put("factor", "Factors numbers.", this::parsePrimeFactor);
 		var guilds = this.jda.getGuilds();
 		File f = null;
 		File ff = null;
@@ -1184,6 +1188,42 @@ public class ScannerV_0_3 extends ListenerAdapter
 		}
 		return ans;
 	}
+	public String parseTangentTheta(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Give an angle.";
+		if(args.length==1)
+		{
+			ans=MathAlgs.tan(ScannerV_0_3.strToNum(args[0]).multiply(MathAlgs.PI_BY_180,MathContext.DECIMAL128)).toString();
+		}
+		return ans;
+	}
+	public String parseCotangentTheta(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Give an angle.";
+		if(args.length==1)
+		{
+			ans=MathAlgs.cot(ScannerV_0_3.strToNum(args[0]).multiply(MathAlgs.PI_BY_180,MathContext.DECIMAL128)).toString();
+		}
+		return ans;
+	}
+	public String parseSecantTheta(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Give an angle.";
+		if(args.length==1)
+		{
+			ans=MathAlgs.sec(ScannerV_0_3.strToNum(args[0]).multiply(MathAlgs.PI_BY_180,MathContext.DECIMAL128)).toString();
+		}
+		return ans;
+	}
+	public String parseCosecantTheta(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans="Give an angle.";
+		if(args.length==1)
+		{
+			ans=MathAlgs.csc(ScannerV_0_3.strToNum(args[0]).multiply(MathAlgs.PI_BY_180,MathContext.DECIMAL128)).toString();
+		}
+		return ans;
+	}
 	public String parseInverseSine(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		var ans="Give an number.";
@@ -1324,6 +1364,15 @@ public class ScannerV_0_3 extends ListenerAdapter
 			System.out.println(this.replyWhiteList);
 			return ans;
 		}
+	}
+	public String parsePrimeFactor(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		ArrayList<ArrayList<BigInteger>>factors=new ArrayList<>(args.length);
+		for(int i=0;i<args.length;i++)
+		{
+			factors.add(MathAlgs.factor(new BigInteger(args[i])));
+		}
+		return"The list of prime factorizations are "+factors;
 	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{

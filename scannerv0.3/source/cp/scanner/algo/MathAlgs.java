@@ -1,12 +1,43 @@
 package cp.scanner.algo;
-import java.math.BigDecimal;
-import java.math.MathContext;
+import java.math.*;
+import java.util.ArrayList;
 public class MathAlgs
 {
 	public static final BigDecimal PI = new BigDecimal("3.1415926535897932384629433832795");
 	public static final BigDecimal PI_BY_180 = PI.divide(BigDecimal.valueOf(180), MathContext.DECIMAL128);
 	public static final int TRIG_TAYLOR_LIMIT=60;
 	public static final int ITRIG_TAYLOR_LIMIT=3628800;
+	public static final ArrayList<BigInteger>factor(BigInteger n)
+	{
+		ArrayList<BigInteger>factors=new ArrayList<>();
+		BigInteger lim = BigInteger.ONE.shiftLeft(n.bitLength() / 2 + 1);
+		int inc = 0;
+		while(!n.testBit(0))
+		{
+			n=n.shiftRight(1);
+			factors.add(BigInteger.valueOf(2));
+		}
+		BigInteger[]res=n.divideAndRemainder(BigInteger.valueOf(3));
+		while(BigInteger.ZERO.equals(res[1]))
+		{
+			n=res[0];
+			factors.add(BigInteger.valueOf(3));
+			res=n.divideAndRemainder(BigInteger.valueOf(3));
+		}
+		for(BigInteger i = BigInteger.valueOf(5); n.compareTo(BigInteger.ONE) > 0 && i.compareTo(lim) < 0; i=i.add(BigInteger.valueOf(2 + inc * 2)), inc = (inc + 1) % 2)
+		{
+			res=n.divideAndRemainder(i);
+			while(BigInteger.ZERO.equals(res[1]))
+			{
+				n=res[0];
+				factors.add(i);
+				res=n.divideAndRemainder(i);
+			}
+		}
+		if(n.compareTo(BigInteger.ONE)>0)
+			factors.add(n);
+		return factors;
+	}
 	/**
 	 * Finds a power of a BigDecimal.
 	 * @param x The base
