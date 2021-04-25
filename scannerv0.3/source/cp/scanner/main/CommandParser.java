@@ -31,7 +31,7 @@ public class CommandParser
 				for(var it = this.cmds.keySet().iterator();it.hasNext();)
 				{
 					name = it.next();
-					ans += name + " ";
+					ans += name + "\r\n";
 				}
 			}
 			else

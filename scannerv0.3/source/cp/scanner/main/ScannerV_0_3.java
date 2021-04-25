@@ -14,6 +14,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.EnumSet;
@@ -277,6 +278,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("remove_white_list", "Un-whitelists a member from a reply.", this::parseRemoveWhiteList);
 		this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower);
 		this.parser.put("factor", "Factors numbers.", this::parsePrimeFactor);
+		this.parser.put("encode_mime_64", "Encodes a string in base 64.", this::parseEncodeBase64).put("decode_mime_64", "Decodes a string in base 64.", this::parseDecodeBase64);
 		var guilds = this.jda.getGuilds();
 		File f = null;
 		File ff = null;
@@ -1373,6 +1375,20 @@ public class ScannerV_0_3 extends ListenerAdapter
 			factors.add(MathAlgs.factor(new BigInteger(args[i])));
 		}
 		return"The list of prime factorizations are "+factors;
+	}
+	public String parseEncodeBase64(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length==1)
+			return new String(Base64.getMimeEncoder().encode(args[0].getBytes()));
+		else
+			return"Only one argument is accepted.";
+	}
+	public String parseDecodeBase64(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length==1)
+			return new String(Base64.getMimeDecoder().decode(args[0].getBytes()));
+		else
+			return"Only one argument is accepted.";
 	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
