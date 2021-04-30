@@ -279,6 +279,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower);
 		this.parser.put("factor", "Factors numbers.", this::parsePrimeFactor);
 		this.parser.put("encode_mime_64", "Encodes a string in base 64.", this::parseEncodeBase64).put("decode_mime_64", "Decodes a string in base 64.", this::parseDecodeBase64);
+		this.parser.put("role_list_members", "Lists all members with a certain role.", this::parseListMembersWithRole);
 		var guilds = this.jda.getGuilds();
 		File f = null;
 		File ff = null;
@@ -1389,6 +1390,17 @@ public class ScannerV_0_3 extends ListenerAdapter
 			return new String(Base64.getMimeDecoder().decode(args[0].getBytes()));
 		else
 			return"Only one argument is accepted.";
+	}
+	public String parseListMembersWithRole(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length==0)
+			return"Give me a role.";
+		else
+		{
+			Role r = ScannerV_0_3.findRole(guild,args[0]);
+			var members=guild.getMembersWithRoles(r);
+			return"Found the following members "+members;
+		}
 	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
