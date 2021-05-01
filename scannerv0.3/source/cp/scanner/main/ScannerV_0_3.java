@@ -262,7 +262,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("define", "Defines a macro.", this::parseDefineMacro);
 		this.parser.put("macros", "Gets all the macros.", this::parseGetMacros);
 		this.parser.put("undef", "Undefines macros, put a letter in front of every macro you are undefining.", this::parseRemoveMacros);
-		this.parser.put("set_mute_role", "Sets the server role for a muted member.", this::parseSetMuteRole);
+		this.parser.put("set_mute_role", "Sets the server role for a muted member.", this::parseSetMuteRole).put("get_mute_role", "Get the mute role.", this::parseGetMuteRole);
 		this.parser.put("solve_linear_equations", "The first argument is the number of unknowns, then comes the matrix entries.", this::parseSolveEquations);
 		this.parser.put("sqrt", "Square roots a number, duh.", this::parseSquareRoot);
 		this.parser.put("sin", "Gets the sine of a number.", this::parseSineTheta).put("cos", "Gets the cosine of a number.", this::parseCosineTheta);
@@ -1139,6 +1139,10 @@ public class ScannerV_0_3 extends ListenerAdapter
 			ans="Set the new mute role.";
 		}
 		return ans;
+	}
+	public String parseGetMuteRole(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		return this.muteroles.get(guild.getIdLong()).toString();
 	}
 	public String parseSolveEquations(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
