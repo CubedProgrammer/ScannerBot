@@ -230,6 +230,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 	private HashMap<Long, HashMap<String, String>>macros;
 	private HashMap<Long, HashMap<String, String>>replies;
 	private HashMap<Long, HashMap<String,ArrayList<Long>>>replyWhiteList;
+	private HashMap<Long, ArrayList<Long>>playerPool;
+	private HashMap<Long, HashMap<Long, ArrayList<Long>>>teams;
 	private boolean ready;
 	public ScannerV_0_3() throws LoginException, InterruptedException
 	{
@@ -246,6 +248,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.macros = new HashMap<Long, HashMap<String, String>>();
 		this.replies = new HashMap<Long, HashMap<String, String>>();
 		this.replyWhiteList = new HashMap<>();
+		this.playerPool = new HashMap<>();
+		this.teams = new HashMap<>();
 		this.parser.put("sum", "Adds numbers together.", this::parseSum).put("product", "Multiplies numbers together.", this::parseProduct);
 		this.parser.put("average", "Computes arithmetic mean of a list.", this::parseArithmeticMean).put("gmean", "Computes geometric mean of a list.", this::parseGeometricMean);
 		this.parser.put("addrole", "Adds a role to a member.", this::parseAddRole).put("rmrole", "Removes a role from a member.", this::parseRemoveRole);
@@ -280,6 +284,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("factor", "Factors numbers.", this::parsePrimeFactor);
 		this.parser.put("encode_mime_64", "Encodes a string in base 64.", this::parseEncodeBase64).put("decode_mime_64", "Decodes a string in base 64.", this::parseDecodeBase64);
 		this.parser.put("role_list_members", "Lists all members with a certain role.", this::parseListMembersWithRole);
+		this.parser.put("set_team_captains", "Sets the team captains for team drafting.", this::parseSetCaptains).put("players", "Set the players who will be drafted.", this::parseSetPlayers);
+		this.parser.put("draft", "Drafts one player for your team.", this::parsePickTeammate).put("display_players_left", "Displays players that haven't been picked.", this::parseDisplayPlayers);
 		var guilds = this.jda.getGuilds();
 		File f = null;
 		File ff = null;
@@ -1405,6 +1411,111 @@ public class ScannerV_0_3 extends ListenerAdapter
 			var members=guild.getMembersWithRoles(r);
 			return"Found the following members "+members;
 		}
+	}
+	public String parseSetCaptains(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length==0)
+			return"Name a team captain.";
+		else
+		{
+			ArrayList<Member>captains=new ArrayList<Member>();
+			this.teams.put(guild.getIdLong(),new HashMap<>());
+			var teams = this.teams.get(guild.getIdLong());
+			Member mem = null;
+			for(int i=0;i<args.length;i++)
+			{
+				mem = ScannerV_0_3.findMember(guild, args[i]);
+				if(mem != null)
+				{
+					teams.put(mem.getIdLong(), new ArrayList<>());
+					captains.add(mem);
+				}
+			}
+			String reply = "Team captains have been set to ";
+			for(int i=0;i<captains.size();i++)
+			{
+				reply += captains.get(i).getAsMention();
+				if(i == captains.size() - 1)
+					reply += ".";
+				else if(i == captains.size() - 2)
+					reply += ", and ";
+				else
+					reply += ", ";
+			}
+			return reply;
+		}
+	}
+	public String parseSetPlayers(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length == 0)
+			return"Name some members.";
+		else
+		{
+			this.playerPool.put(guild.getIdLong(),new ArrayList<>());
+			var players = this.playerPool.get(guild.getIdLong());
+			Member mem = null;
+			for(int i=0;i<args.length;i++)
+			{
+				mem = ScannerV_0_3.findMember(guild, args[i]);
+				if(mem != null)
+					players.add(mem.getIdLong());
+			}
+			String reply = "Players are ";
+			for(int i=0;i<players.size();i++)
+			{
+				reply += guild.getMemberById(players.get(i)).getAsMention();
+				if(i == players.size() - 1)
+					reply += ".";
+				else if(i == players.size() - 2)
+					reply += ", and ";
+				else
+					reply += ", ";
+			}
+			return reply;
+		}
+	}
+	public String parsePickTeammate(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length != 1)
+			return"You may only draft one player at a time.";
+		else if(!this.teams.get(guild.getIdLong()).containsKey(author.getIdLong()))
+			return"You are not a team captain.";
+		else
+		{
+			Member mem = ScannerV_0_3.findMember(guild, args[0]);
+			var players = this.playerPool.get(guild.getIdLong());
+			var teams = this.teams.get(guild.getIdLong());
+			String reply = "";
+			if(players.remove(mem.getIdLong()))
+			{
+				reply = "Drafted " + mem.getEffectiveName() + " for your team.";
+				teams.get(author.getIdLong()).add(mem.getIdLong());
+			}
+			else
+				reply = "That player is not eligible to play.";
+			if(players.size() == 0)
+			{
+				reply = "";
+				for(Long captain : teams.keySet())
+				{
+					mem = guild.getMemberById(captain);
+					reply += "Team " + mem.getAsMention() + "has the following players.\r\n";
+					for(int i=0;i<teams.get(captain).size();i++)
+						reply += guild.getMemberById(teams.get(captain).get(i)).getAsMention() + "\r\n";
+					reply += "\r\n";
+				}
+				teams.clear();
+			}
+			return reply;
+		}
+	}
+	public String parseDisplayPlayers(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		String s="";
+		var players = this.playerPool.get(guild.getIdLong());
+		for(int i=0;i<players.size();i++)
+			s += guild.getMemberById(players.get(i)).getEffectiveName() + " ";
+		return s;
 	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
