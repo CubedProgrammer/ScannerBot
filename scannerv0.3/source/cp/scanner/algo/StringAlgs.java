@@ -2,6 +2,9 @@ package cp.scanner.algo;
 import java.util.Arrays;
 public class StringAlgs
 {
+	public static final void nextPermutation(char[]arr)
+	{
+	}
 	/**
 	 * Gets all permutations of a string
 	 * @param s The string dumbass
@@ -18,8 +21,5 @@ public class StringAlgs
 			StringAlgs.nextPermutation(arr);
 		}
 		return res;
-	}
-	public static final void nextPermutation(char[]arr)
-	{
 	}
 }
