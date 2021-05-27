@@ -278,6 +278,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("timestamp", "Get readable date from time since epoch in milliseconds.", this::parseGetTime);
 		this.parser.put("add_reply_msg", "Adds messages the bot will reply to with a reply message.", this::parseAddReply);
 		this.parser.put("remove_reply_msg", "Removes messages the bot will reply to.", this::parseRemoveReplies);
+		this.parser.put("replies", "Gets all messages and corresponding replies.", this::parseGetReplies);
 		this.parser.put("reply_white_list", "Whitelists members from a reply, this bot will no longer reply to whitelisted users who say a certain message.", this::parseWhiteList);
 		this.parser.put("remove_white_list", "Un-whitelists a member from a reply.", this::parseRemoveWhiteList);
 		this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower);
@@ -311,6 +312,16 @@ public class ScannerV_0_3 extends ListenerAdapter
 				}
 			}
 		}
+		String[]ccn="message kick ban member role nickname ls save load".split("\\s+");
+		String[]ccd="Sends a message to the current channel.____Kicks a member.____Bans a member.____Gets the information of a member.____Add a role to a member if the member doesn't have it, removes it otherwise.____Changes the nickname of a member.____Lists information about servers.____Saves information to hard drive.____Loads information from hard drive.".split("____");
+		CmdFunction[]funcs={this::parseSendMessage,this::parseConsoleKick,this::parseConsoleBan,this::parseMemberInfo,this::parseToggleRole,this::parseConsoleNickname,this::parseConsoleList,this::parseConsoleSave,this::parseConsoleLoad};
+		ConsoleController gay=new ConsoleController(this.jda,ccn,ccd,funcs,this);
+		Thread thread = new Thread(gay::run);
+		thread.start();
+		this.ready = true;
+	}
+	public void load()
+	{
 		Scanner sc = null;
 		FileInputStream fin=null;
 		long r=0;
@@ -374,13 +385,6 @@ public class ScannerV_0_3 extends ListenerAdapter
 				e.printStackTrace();
 			}
 		}
-		String[]ccn="message kick ban member role nickname ls save".split("\\s+");
-		String[]ccd="Sends a message to the current channel.____Kicks a member.____Bans a member.____Gets the information of a member.____Add a role to a member if the member doesn't have it, removes it otherwise.____Changes the nickname of a member.____Lists information about servers.____Saves information to hard drive.".split("____");
-		CmdFunction[]funcs={this::parseSendMessage,this::parseConsoleKick,this::parseConsoleBan,this::parseMemberInfo,this::parseToggleRole,this::parseConsoleNickname,this::parseConsoleList,this::parseConsoleSave};
-		ConsoleController gay=new ConsoleController(this.jda,ccn,ccd,funcs,this);
-		Thread thread = new Thread(gay::run);
-		thread.start();
-		this.ready = true;
 	}
 	public void save()
 	{
@@ -1517,6 +1521,10 @@ public class ScannerV_0_3 extends ListenerAdapter
 			s += guild.getMemberById(players.get(i)).getEffectiveName() + " ";
 		return s;
 	}
+	public String parseGetReplies(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		return this.replies.get(guild.getIdLong()).toString();
+	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		String s="";
@@ -1679,13 +1687,18 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.save();
 		return"If no exception is thrown, the save was successful.";
 	}
+	public String parseConsoleLoad(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		this.load();
+		return"If no exception is thrown, the load was successful.";
+	}
 	public static void main(String[] args)
 	{
 		try
 		{
 			if(args.length==1)
 				System.setOut(new PrintStream(new FileOutputStream(args[0])));
-			new ScannerV_0_3();
+			new ScannerV_0_3().load();
 			System.out.println("done");
 		}
 		catch(Exception e)
