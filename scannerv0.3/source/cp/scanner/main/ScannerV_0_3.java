@@ -108,7 +108,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 			{
 				open=!open;
 			}
-			else if(cs[i]==ScannerV_0_3.DELIMITER&&!open)
+			else if(cs[i]==ScannerV_0_3.DELIMITER&&!open&&builder.length()>0)
 			{
 				argsal.add(builder.toString());
 				builder.delete(0,builder.length());
@@ -547,7 +547,10 @@ public class ScannerV_0_3 extends ListenerAdapter
 					if(args.length > 0)
 					{
 						String response = this.parser.parse(message,evt.getGuild(),evt.getChannel(),evt.getAuthor(),args);
-						evt.getChannel().sendMessage(response).queue();
+						if(response.length()<2000)
+							evt.getChannel().sendMessage(response).queue();
+						else
+							evt.getChannel().sendFile(response.getBytes(), "message.txt").queue();
 						System.out.println("Sent message to channel " + evt.getChannel().getId() + " in guild " + (evt.getGuild()==null?"null":evt.getGuild().getId()));
 						System.out.println(response);
 					}
@@ -1413,7 +1416,10 @@ public class ScannerV_0_3 extends ListenerAdapter
 		{
 			Role r = ScannerV_0_3.findRole(guild,args[0]);
 			var members=guild.getMembersWithRoles(r);
-			return"Found the following members "+members;
+			String replies = "Found the following members";
+			for(var mem : members)
+				replies += "\r\n" + mem.getUser() + " AKA " + mem.getEffectiveName();
+			return replies;
 		}
 	}
 	public String parseSetCaptains(Message message,Guild guild,MessageChannel channel,User author,String[]args)
@@ -1503,7 +1509,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 				for(Long captain : teams.keySet())
 				{
 					mem = guild.getMemberById(captain);
-					reply += "Team " + mem.getAsMention() + "has the following players.\r\n";
+					reply += "Team " + mem.getAsMention() + " has the following players.\r\n";
 					for(int i=0;i<teams.get(captain).size();i++)
 						reply += guild.getMemberById(teams.get(captain).get(i)).getAsMention() + "\r\n";
 					reply += "\r\n";
