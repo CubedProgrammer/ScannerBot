@@ -29,6 +29,7 @@ import org.apache.commons.math3.special.Erf;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import cp.scanner.algo.MathAlgs;
+import cp.scanner.algo.StringAlgs;
 import cp.scanner.cmd.CmdFunction;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -287,6 +288,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("role_list_members", "Lists all members with a certain role.", this::parseListMembersWithRole);
 		this.parser.put("set_team_captains", "Sets the team captains for team drafting.", this::parseSetCaptains).put("players", "Set the players who will be drafted.", this::parseSetPlayers);
 		this.parser.put("draft", "Drafts one player for your team.", this::parsePickTeammate).put("display_players_left", "Displays players that haven't been picked.", this::parseDisplayPlayers);
+		this.parser.put("anagrams", "Gets all permutations of a string.", this::parseGetPermutations);
 		var guilds = this.jda.getGuilds();
 		File f = null;
 		File ff = null;
@@ -1530,6 +1532,13 @@ public class ScannerV_0_3 extends ListenerAdapter
 	public String parseGetReplies(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		return this.replies.get(guild.getIdLong()).toString();
+	}
+	public String parseGetPermutations(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length==1)
+			return StringAlgs.permutes(args[0]);
+		else
+			return"Only one argument is accepted.";
 	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
