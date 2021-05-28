@@ -1536,7 +1536,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	public String parseGetPermutations(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		if(args.length==1)
-			return StringAlgs.permutes(args[0]);
+			return args[0].length()<11?StringAlgs.permutes(args[0]):"Input too long.";
 		else
 			return"Only one argument is accepted.";
 	}
