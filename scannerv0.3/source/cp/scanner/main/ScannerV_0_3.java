@@ -12,6 +12,7 @@ import java.math.BigInteger;
 import java.math.MathContext;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -54,7 +55,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	/**
 	 * Token for bot authentication.
 	 */
-	public static final String TOKEN="MzY3NDI2MTc4MDE5MjI5Njk3.Wd0-Sw.9378vFUiMlQPMcLzJ6aH_B-fylY";
+	public static final String TOKEN="MzY3NDI2MTc4MDE5MjI5Njk3.Wd0-Sw.n-IW_EnTrWC2vNY2N5Zr2L_QgJ8";
 	/**
 	 * Delimiter character.
 	 */
@@ -233,6 +234,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	private HashMap<Long, HashMap<String,ArrayList<Long>>>replyWhiteList;
 	private HashMap<Long, ArrayList<Long>>playerPool;
 	private HashMap<Long, HashMap<Long, ArrayList<Long>>>teams;
+	private SecureRandom dice;
 	private boolean ready;
 	public ScannerV_0_3() throws LoginException, InterruptedException
 	{
@@ -251,6 +253,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.replyWhiteList = new HashMap<>();
 		this.playerPool = new HashMap<>();
 		this.teams = new HashMap<>();
+		this.dice = new SecureRandom();
 		this.parser.put("sum", "Adds numbers together.", this::parseSum).put("product", "Multiplies numbers together.", this::parseProduct);
 		this.parser.put("average", "Computes arithmetic mean of a list.", this::parseArithmeticMean).put("gmean", "Computes geometric mean of a list.", this::parseGeometricMean);
 		this.parser.put("addrole", "Adds a role to a member.", this::parseAddRole).put("rmrole", "Removes a role from a member.", this::parseRemoveRole);
@@ -289,6 +292,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("set_team_captains", "Sets the team captains for team drafting.", this::parseSetCaptains).put("players", "Set the players who will be drafted.", this::parseSetPlayers);
 		this.parser.put("draft", "Drafts one player for your team.", this::parsePickTeammate).put("display_players_left", "Displays players that haven't been picked.", this::parseDisplayPlayers);
 		this.parser.put("anagrams", "Gets all permutations of a string.", this::parseGetPermutations);
+		this.parser.put("request_server_data", "Request the settings files for this server.", this::parseRequestData);
+		this.parser.put("rand", "Gets a certain number of random numbers between an upper bound and lower bound, omit count for one number, omit lower bound for zero.", this::parseGetRandom);
 		var guilds = this.jda.getGuilds();
 		File f = null;
 		File ff = null;
@@ -1539,6 +1544,50 @@ public class ScannerV_0_3 extends ListenerAdapter
 			return args[0].length()<11?StringAlgs.permutes(args[0]):"Input too long.";
 		else
 			return"Only one argument is accepted.";
+	}
+	public String parseRequestData(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		this.save();
+		File dir = new File(Long.toHexString(guild.getIdLong()));
+		File[]files = dir.listFiles();
+		String cmd = "zip " + dir.getName() + ".zip";
+		for(int i=0;i<files.length;i++)
+			cmd += " " + files[i].getPath();
+		String msg = "Here's the data for your server.";
+		try
+		{
+			Runtime.getRuntime().exec(cmd);
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+			msg = e.getMessage();
+		}
+		channel.sendFile(new File(dir.getName() + ".zip")).queue();
+		return msg;
+	}
+	public String parseGetRandom(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length != 0)
+		{
+			BigInteger lower = args.length==1?BigInteger.ZERO:new BigInteger(args[0]);
+			BigInteger upper = new BigInteger(args[args.length==1?0:1]);
+			int cnt = args.length==3?Integer.parseInt(args[2]):1;
+			BigInteger range = upper.subtract(lower).add(BigInteger.ONE);
+			BigInteger num = null;
+			int bits = range.bitLength() + 7;
+			byte[]bytes = new byte[bits / 8];
+			String result = "";
+			for(int i=0;i<cnt;i++)
+			{
+				this.dice.nextBytes(bytes);
+				num = new BigInteger(bytes).mod(range);
+				result += num.add(lower) + ", ";
+			}
+			return result.substring(0, result.length() - 2);
+		}
+		else
+			return String.valueOf(this.dice.nextDouble());
 	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
