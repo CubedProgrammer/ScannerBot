@@ -1589,6 +1589,20 @@ public class ScannerV_0_3 extends ListenerAdapter
 		else
 			return String.valueOf(this.dice.nextDouble());
 	}
+	public String parseGetEmoji(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length==1)
+		{
+			String name = args[0];
+			var emotes = guild.getEmotesByName(name,false);
+			if(emotes.size() == 0)
+				return"Emote not found, check spelling and case.";
+			else
+				return emotes.get(0).getImageUrl();
+		}
+		else
+			return"Only one argument is accepted, the name of the emoji.";
+	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		String s="";
