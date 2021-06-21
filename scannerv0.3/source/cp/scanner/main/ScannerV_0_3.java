@@ -55,7 +55,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	/**
 	 * Token for bot authentication.
 	 */
-	public static final String TOKEN="MzY3NDI2MTc4MDE5MjI5Njk3.Wd0-Sw.n-IW_EnTrWC2vNY2N5Zr2L_QgJ8";
+	public static final String TOKEN="Njg2MjUxMjQ5NzkxNzk1MjE0.XmUfRw.7TRUj1vY2y7sfa89u0LI7l17unI";
 	/**
 	 * Delimiter character.
 	 */
@@ -294,6 +294,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("anagrams", "Gets all permutations of a string.", this::parseGetPermutations);
 		this.parser.put("request_server_data", "Request the settings files for this server.", this::parseRequestData);
 		this.parser.put("rand", "Gets a certain number of random numbers between an upper bound and lower bound, omit count for one number, omit lower bound for zero.", this::parseGetRandom);
+		this.parser.put("emoji", "Get picture of emoji.", this::parseGetEmoji);
+		this.parser.put("get_reply_whitelist", "Get the whitelisted members from replies.", this::parseGetWhitelist);
 		var guilds = this.jda.getGuilds();
 		File f = null;
 		File ff = null;
@@ -1602,6 +1604,10 @@ public class ScannerV_0_3 extends ListenerAdapter
 		}
 		else
 			return"Only one argument is accepted, the name of the emoji.";
+	}
+	public String parseGetWhitelist(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		return this.replyWhiteList.get(guild.getIdLong()).toString();
 	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
