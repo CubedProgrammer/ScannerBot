@@ -288,7 +288,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower);
 		this.parser.put("factor", "Factors numbers.", this::parsePrimeFactor);
 		this.parser.put("encode_mime_64", "Encodes a string in base 64.", this::parseEncodeBase64).put("decode_mime_64", "Decodes a string in base 64.", this::parseDecodeBase64);
-		this.parser.put("role_list_members", "Lists all members with a certain role.", this::parseListMembersWithRole);
+		this.parser.put("role_list_members", "Lists all members with a certain role.", this::parseListMembersWithRole).put("role_list_without", "List members without a certain role.", this::parseListMembersWithoutRole);
 		this.parser.put("set_team_captains", "Sets the team captains for team drafting.", this::parseSetCaptains).put("players", "Set the players who will be drafted.", this::parseSetPlayers);
 		this.parser.put("draft", "Drafts one player for your team.", this::parsePickTeammate).put("display_players_left", "Displays players that haven't been picked.", this::parseDisplayPlayers);
 		this.parser.put("anagrams", "Gets all permutations of a string.", this::parseGetPermutations);
@@ -1425,6 +1425,22 @@ public class ScannerV_0_3 extends ListenerAdapter
 		{
 			Role r = ScannerV_0_3.findRole(guild,args[0]);
 			var members=guild.getMembersWithRoles(r);
+			String replies = "Found the following members";
+			for(var mem : members)
+				replies += "\r\n" + mem.getUser() + " AKA " + mem.getEffectiveName();
+			return replies;
+		}
+	}
+	public String parseListMembersWithoutRole(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length==0)
+			return"Give me a role.";
+		else
+		{
+			Role r = ScannerV_0_3.findRole(guild,args[0]);
+			var has=guild.getMembersWithRoles(r);
+			ArrayList<Member>members=new ArrayList<Member>(guild.getMembers());
+			members.removeAll(has);
 			String replies = "Found the following members";
 			for(var mem : members)
 				replies += "\r\n" + mem.getUser() + " AKA " + mem.getEffectiveName();
