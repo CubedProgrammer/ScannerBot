@@ -296,6 +296,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("rand", "Gets a certain number of random numbers between an upper bound and lower bound, omit count for one number, omit lower bound for zero.", this::parseGetRandom);
 		this.parser.put("emoji", "Get picture of emoji.", this::parseGetEmoji);
 		this.parser.put("get_reply_whitelist", "Get the whitelisted members from replies.", this::parseGetWhitelist);
+		this.parser.put("report", "Report a bug.", this::parseReportBug);
 		var guilds = this.jda.getGuilds();
 		File f = null;
 		File ff = null;
@@ -1624,6 +1625,23 @@ public class ScannerV_0_3 extends ListenerAdapter
 	public String parseGetWhitelist(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		return this.replyWhiteList.get(guild.getIdLong()).toString();
+	}
+	public String parseReportBug(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		String bug = message.getContentRaw();
+		try
+		{
+			FileOutputStream fout = new FileOutputStream("bugs.txt",true);
+			fout.write(bug.getBytes());
+			fout.write("____end____".getBytes());
+			fout.close();
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			return e.toString();
+		}
+		return"Successfully reported bug.";
 	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
