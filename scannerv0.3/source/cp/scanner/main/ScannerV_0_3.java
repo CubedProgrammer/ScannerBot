@@ -297,6 +297,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("emoji", "Get picture of emoji.", this::parseGetEmoji);
 		this.parser.put("get_reply_whitelist", "Get the whitelisted members from replies.", this::parseGetWhitelist);
 		this.parser.put("report", "Report a bug.", this::parseReportBug);
+		this.parser.put("arithmancy", "Calculate your character, heart, and social number.", this::parseArithmancyCalculator);
 		var guilds = this.jda.getGuilds();
 		File f = null;
 		File ff = null;
@@ -329,6 +330,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		Thread thread = new Thread(gay::run);
 		thread.start();
 		this.ready = true;
+		System.loadLibrary("arithmancy");
 	}
 	public void load()
 	{
@@ -1642,6 +1644,15 @@ public class ScannerV_0_3 extends ListenerAdapter
 			return e.toString();
 		}
 		return"Successfully reported bug.";
+	}
+	public String parseArithmancyCalculator(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		String s="";
+		for(int i=0;i<args.length;i++)
+		{
+			s+=args[i];
+		}
+		return Integer.toString(StringAlgs.arithmancy(s));
 	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{

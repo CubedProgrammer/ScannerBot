@@ -3,6 +3,12 @@ import java.util.Arrays;
 public class StringAlgs
 {
 	/**
+	 * Arithmancy calculator
+	 * @param name Your name
+	 * @return the character, heart, and social number
+	 */
+	public static native int arithmancy(String name);
+	/**
 	 * Next permutation of a char array
 	 * @param arr An array
 	 */
