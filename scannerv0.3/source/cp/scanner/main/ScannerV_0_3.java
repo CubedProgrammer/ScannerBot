@@ -558,7 +558,11 @@ public class ScannerV_0_3 extends ListenerAdapter
 					String[]args = ScannerV_0_3.getCmdArgs(raw);
 					if(args.length > 0)
 					{
-						String response = this.parser.parse(message,evt.getGuild(),evt.getChannel(),evt.getAuthor(),args);
+						String response = "";
+						if("echo".equals(args[0]))
+							response = raw.substring(4).strip();
+						else
+							response = this.parser.parse(message,evt.getGuild(),evt.getChannel(),evt.getAuthor(),args);
 						if(response.length()<2000)
 							evt.getChannel().sendMessage(response).queue();
 						else
