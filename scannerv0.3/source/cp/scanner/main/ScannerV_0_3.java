@@ -32,6 +32,7 @@ import org.json.simple.parser.JSONParser;
 import cp.scanner.algo.MathAlgs;
 import cp.scanner.algo.StringAlgs;
 import cp.scanner.cmd.CmdFunction;
+import cp.scanner.scoreboard.Scoreboard;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.Permission;
@@ -234,6 +235,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	private HashMap<Long, HashMap<String,ArrayList<Long>>>replyWhiteList;
 	private HashMap<Long, ArrayList<Long>>playerPool;
 	private HashMap<Long, HashMap<Long, ArrayList<Long>>>teams;
+	private HashMap<Long,ArrayList<Scoreboard>>scoreboards;
 	private SecureRandom dice;
 	private boolean ready;
 	public ScannerV_0_3() throws LoginException, InterruptedException
@@ -253,6 +255,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.replyWhiteList = new HashMap<>();
 		this.playerPool = new HashMap<>();
 		this.teams = new HashMap<>();
+		this.scoreboards = new HashMap<>();
 		this.dice = new SecureRandom();
 		this.parser.put("sum", "Adds numbers together.", this::parseSum).put("product", "Multiplies numbers together.", this::parseProduct);
 		this.parser.put("average", "Computes arithmetic mean of a list.", this::parseArithmeticMean).put("gmean", "Computes geometric mean of a list.", this::parseGeometricMean);
