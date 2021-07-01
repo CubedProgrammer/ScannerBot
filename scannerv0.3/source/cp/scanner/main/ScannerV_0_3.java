@@ -301,6 +301,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("get_reply_whitelist", "Get the whitelisted members from replies.", this::parseGetWhitelist);
 		this.parser.put("report", "Report a bug.", this::parseReportBug);
 		this.parser.put("arithmancy", "Calculate your character, heart, and social number.", this::parseArithmancyCalculator);
+		this.parser.put("scoreboard", "Server scoreboard actions.", this::parseScoreboardActions);
 		var guilds = this.jda.getGuilds();
 		File f = null;
 		File ff = null;
@@ -349,6 +350,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 				this.macros.put(this.jda.getGuilds().get(i).getIdLong(),new HashMap<String, String>());
 				this.replies.put(this.jda.getGuilds().get(i).getIdLong(),new HashMap<String, String>());
 				this.replyWhiteList.put(this.jda.getGuilds().get(i).getIdLong(),new HashMap<String, ArrayList<Long>>());
+				this.scoreboards.put(this.jda.getGuilds().get(i).getIdLong(),new ArrayList<>());
 				for(int j=0;j<ScannerV_0_3.MACROS.length;j++)
 				{
 					this.macros.get(this.jda.getGuilds().get(i).getIdLong()).put(ScannerV_0_3.MACROS[j],ScannerV_0_3.MDEFS[j]);
@@ -1660,6 +1662,37 @@ public class ScannerV_0_3 extends ListenerAdapter
 			s+=args[i];
 		}
 		return Integer.toString(StringAlgs.arithmancy(s));
+	}
+	public String parseScoreboardActions(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		String s="Name an action.";
+		if(args.length>1)
+		{
+			String action = args[0];
+			String name = args[1];
+			var scoreboards = this.scoreboards.get(guild.getIdLong());
+			Scoreboard scores = null;
+			if("display".equals(action))
+			{
+				boolean found = false;
+				for(int i=0;i<scoreboards.size();i++)
+				{
+					if(scoreboards.get(i).getName().equals(name))
+					{
+						scores = scoreboards.get(i);
+						s = "";
+						for(var id : scores.getScores().keySet())
+						{
+							s += guild.getMemberById(id) + " --- " + scores.getScores().get(id) + System.lineSeparator();
+						}
+						found = true;
+					}
+				}
+				if(!found)
+					s = "Scoreboard name not found, check your spelling.";
+			}
+		}
+		return s;
 	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
