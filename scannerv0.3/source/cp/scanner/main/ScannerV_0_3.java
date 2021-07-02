@@ -1672,7 +1672,12 @@ public class ScannerV_0_3 extends ListenerAdapter
 			String name = args[1];
 			var scoreboards = this.scoreboards.get(guild.getIdLong());
 			Scoreboard scores = null;
-			if("display".equals(action))
+			if("create".equals(action))
+			{
+				scoreboards.add(new Scoreboard(name));
+				s = "Created new scoreboard objective.";
+			}
+			else
 			{
 				boolean found = false;
 				for(int i=0;i<scoreboards.size();i++)
@@ -1680,16 +1685,30 @@ public class ScannerV_0_3 extends ListenerAdapter
 					if(scoreboards.get(i).getName().equals(name))
 					{
 						scores = scoreboards.get(i);
-						s = "";
-						for(var id : scores.getScores().keySet())
-						{
-							s += guild.getMemberById(id) + " --- " + scores.getScores().get(id) + System.lineSeparator();
-						}
 						found = true;
 					}
 				}
 				if(!found)
 					s = "Scoreboard name not found, check your spelling.";
+				else if("display".equals(action))
+				{
+					s = scores.getName();
+					for(var id : scores.getScores().keySet())
+					{
+						s += System.lineSeparator() + guild.getMemberById(id) + " --- " + scores.getScores().get(id);
+					}
+				}
+				else if("set".equals(action))
+				{
+					if(args.length != 4)
+						s = "Not enough arguments, give member and value";
+					else
+					{
+						Member target = ScannerV_0_3.findMember(guild, args[2]);
+						scores.getScores().put(target.getIdLong(), Long.parseLong(args[3]));
+						s = "Score has been set.";
+					}
+				}
 			}
 		}
 		return s;
