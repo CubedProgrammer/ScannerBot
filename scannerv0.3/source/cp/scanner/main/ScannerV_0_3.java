@@ -1709,6 +1709,27 @@ public class ScannerV_0_3 extends ListenerAdapter
 						s = "Score has been set.";
 					}
 				}
+				else if("get".equals(action))
+				{
+					if(args.length != 3)
+						s = "Not enough arguments, give member";
+					else
+					{
+						Member target = ScannerV_0_3.findMember(guild, args[2]);
+						s = scores.getScores().get(target.getIdLong()) + " is the score.";
+					}
+				}
+				else if("add".equals(action))
+				{
+					if(args.length != 4)
+						s = "Not enough arguments, give member and value";
+					else
+					{
+						Member target = ScannerV_0_3.findMember(guild, args[2]);
+						scores.getScores().put(target.getIdLong(), scores.getScores().get(target.getIdLong()) + Long.parseLong(args[3]));
+						s = "Score has been set.";
+					}
+				}
 			}
 		}
 		return s;
