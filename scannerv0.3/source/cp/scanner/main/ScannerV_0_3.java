@@ -387,11 +387,12 @@ public class ScannerV_0_3 extends ListenerAdapter
 					rbs=new byte[16];
 					fin.read(rbs);
 					for(int j=0;j<8;j++)
-						r+=(long)rbs[j]<<j*8;
+						r+=((long)rbs[j]&255)<<j*8;
 					if(r!=-1)
 						this.autoroles.put(this.jda.getGuilds().get(i).getIdLong(),this.jda.getGuilds().get(i).getRoleById(r));
+					r=0;
 					for(int j=0;j<8;j++)
-						r+=(long)rbs[j+8]<<j*8;
+						r+=((long)rbs[j+8]&255)<<j*8;
 					if(r!=-1)
 						this.muteroles.put(this.jda.getGuilds().get(i).getIdLong(),this.jda.getGuilds().get(i).getRoleById(r));
 				}
@@ -1176,7 +1177,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	}
 	public String parseGetMuteRole(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
-		return this.muteroles.get(guild.getIdLong()).toString();
+		return this.muteroles.get(guild.getIdLong()) + " is the mute role.";
 	}
 	public String parseSolveEquations(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
