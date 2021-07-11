@@ -721,6 +721,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 			Role role = ScannerV_0_3.findRole(guild,args[0]);
 			if(role == null)
 				ans = "Role does not exist you dummy.";
+			else if(!guild.getMember(author).hasPermission(Permission.MANAGE_SERVER))
+				ans = "You do not have permission to use this command.";
 			else
 			{
 				try
@@ -770,6 +772,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 		String ans = null;
 		if(args.length == 0)
 			ans = "Name some roles you idiot.";
+		else if(!guild.getMember(author).hasPermission(Permission.MANAGE_SERVER))
+			ans = "You do not have permission to use this command.";
 		else
 		{
 			Role role = null;
@@ -910,7 +914,9 @@ public class ScannerV_0_3 extends ListenerAdapter
 		var ans = "Specify a role you idiot.";
 		if(args.length == 1)
 		{
-			if("__clear__".equals(args[0]))
+			if(!guild.getMember(author).hasPermission(Permission.MANAGE_SERVER))
+				ans = "You do not have permission to use this command.";
+			else if("__clear__".equals(args[0]))
 			{
 				this.autoroles.remove(guild.getIdLong());
 				ans = "Cleared autorole.";
@@ -1170,8 +1176,13 @@ public class ScannerV_0_3 extends ListenerAdapter
 		var ans="Name a role, stupid.";
 		if(args.length==1)
 		{
-			this.muteroles.put(guild.getIdLong(),ScannerV_0_3.findRole(guild,args[0]));
-			ans="Set the new mute role.";
+			if(!guild.getMember(author).hasPermission(Permission.MANAGE_SERVER))
+				ans = "You do not have permission to use this command.";
+			else
+			{
+				this.muteroles.put(guild.getIdLong(),ScannerV_0_3.findRole(guild,args[0]));
+				ans="Set the new mute role.";
+			}
 		}
 		return ans;
 	}
