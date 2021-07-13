@@ -1112,7 +1112,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 			Calendar cb = Calendar.getInstance(TimeZone.getTimeZone("America/Toronto"));
 			ca.setTimeInMillis(1000 * sunrise);
 			cb.setTimeInMillis(1000 * sunset);
-			ans = String.format("The temperature today will be around %.2f degrees, with a minimum of %.2f and maximum of %.2f, pressure is %.2f kPa, humidity is %.2f. Wind blows at speed of %.1f m/s, at angle %d, which is direction %s. Sunrise happens at %d:%2d, sunset happens at %d:%2d.", temp, temps, tempb, pressure, humidity, speed, angle, direction, ca.get(Calendar.HOUR), ca.get(Calendar.MINUTE), cb.get(Calendar.HOUR), cb.get(Calendar.MINUTE));
+			ans = String.format("The temperature today will be around %.2f degrees, with a minimum of %.2f and maximum of %.2f, pressure is %.2f kPa, humidity is %.2f. Wind blows at speed of %.1f m/s, at angle %d, which is direction %s. Sunrise happens at %d:%02d, sunset happens at %d:%02d.", temp, temps, tempb, pressure, humidity, speed, angle, direction, ca.get(Calendar.HOUR), ca.get(Calendar.MINUTE), cb.get(Calendar.HOUR), cb.get(Calendar.MINUTE));
 		}
 		catch(Exception e)
 		{
@@ -1163,12 +1163,14 @@ public class ScannerV_0_3 extends ListenerAdapter
 		var ans="";
 		if(args.length==0)
 			ans="Specify the name of the macros to remove.";
-		else
+		else if(guild.getMember(author).hasPermission(Permission.MANAGE_SERVER))
 		{
 			for(int i=0;i<args.length;i++)
 				this.macros.get(guild.getIdLong()).remove(args[i].substring(1));
 			ans="Removed specified macros.";
 		}
+		else
+			ans="You do not have permission to use this command.";
 		return ans;
 	}
 	public String parseSetMuteRole(Message message,Guild guild,MessageChannel channel,User author,String[]args)
