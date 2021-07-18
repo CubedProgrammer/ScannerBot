@@ -302,6 +302,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("report", "Report a bug.", this::parseReportBug);
 		this.parser.put("arithmancy", "Calculate your character, heart, and social number.", this::parseArithmancyCalculator);
 		this.parser.put("scoreboard", "Server scoreboard actions.", this::parseScoreboardActions);
+		this.parser.put("send_message_later", "Send a message at a specified time later.", this::parseMessageLater);
 		var guilds = this.jda.getGuilds();
 		File f = null;
 		File ff = null;
@@ -1747,6 +1748,44 @@ public class ScannerV_0_3 extends ListenerAdapter
 			}
 		}
 		return s;
+	}
+	public String parseMessageLater(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length>=2)
+		{
+			String ts = args[0];
+			int multiplier = 1;
+			if('d'==ts.charAt(ts.length()-1))
+				multiplier = 86400;
+			else if('h'==ts.charAt(ts.length()-1))
+				multiplier = 3600;
+			else if('m'==ts.charAt(ts.length()-1))
+				multiplier = 60;
+			int ind = message.getContentRaw().indexOf(ts);
+			String tosend = message.getContentRaw().substring(ind + ts.length());
+			if(multiplier!=1)
+				ts = ts.substring(0,ts.length()-1);
+			int time = Integer.parseInt(ts) * multiplier;
+			Thread thread = new Thread
+			(
+				()->
+				{
+					try
+					{
+						Thread.sleep(1000*time);
+						channel.sendMessage(tosend).queue();
+					}
+					catch(InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+				}
+			);
+			thread.start();
+			return"Message has been timed.";
+		}
+		else
+			return"Specify time after command to send message and message to send.";
 	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
