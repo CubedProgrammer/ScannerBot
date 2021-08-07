@@ -867,11 +867,13 @@ public class ScannerV_0_3 extends ListenerAdapter
 	public String parseGetSelfrole(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		String ans = null;
-		Role role = ScannerV_0_3.findRole(guild, args[0]);
-		if(role == null)
-			ans = "The role doesn't exist you idiot.";
+		if(args.length == 0)
+			ans = "Name at least one role.";
 		else
 		{
+			Role[]roles = new Role[args.length];
+			for(int i=0;i<roles.length;i++)
+				roles[i]=ScannerV_0_3.findRole(guild,args[i]);
 			try
 			{
 				FileInputStream in = new FileInputStream(Long.toHexString(guild.getIdLong())+"/roles.dat");
@@ -889,19 +891,29 @@ public class ScannerV_0_3 extends ListenerAdapter
 					rids.add(id);
 				}
 				in.close();
-				if(rids.contains(role.getIdLong()))
+				Role role=null;
+				int nfc = 0;
+				for(int i=0;i<roles.length;i++)
 				{
-					if(guild.getMember(author).getRoles().contains(role))
+					role = roles[i];
+					if(role!=null&&rids.contains(role.getIdLong()))
 					{
-						guild.removeRoleFromMember(author.getIdLong(),role).queue();
-						ans = "Successfully removed role from you.";
+						if(guild.getMember(author).getRoles().contains(role))
+							guild.removeRoleFromMember(author.getIdLong(),role).queue();
+						else
+							guild.addRoleToMember(author.getIdLong(),role).queue();
 					}
 					else
-					{
-						guild.addRoleToMember(author.getIdLong(),role).queue();
-						ans = "Successfully added role to you.";
-					}
+						++nfc;
 				}
+				if(nfc == 0)
+					ans = "Successfully added all specified roles to you or removed from you.";
+				else if(nfc == roles.length)
+					ans = "None of the roles were found, nothing was changed, try again.";
+				else if(nfc == 1)
+					ans = "One role was not found, the rest were added or removed successfully.";
+				else
+					ans = nfc + " roles were not found, the rest were added or removed successfully.";
 			}
 			catch(IOException e)
 			{
