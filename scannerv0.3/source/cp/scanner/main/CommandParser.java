@@ -26,7 +26,7 @@ public class CommandParser
 		{
 			if(args.length == 1)
 			{
-				ans = "This is the list of commands, arguments must be **SPACE SEPARATED**, if an argument must have spaces in them, use quotes." + System.getProperty("line.separator");
+				ans = "This is the list of commands, arguments must be **SPACE SEPARATED**, if an argument must have spaces in them, use quotes. Use help *command* to show information about a specific command." + System.getProperty("line.separator");
 				String name = null;
 				for(var it = this.cmds.keySet().iterator();it.hasNext();)
 				{

@@ -76,7 +76,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	/**
 	 * Files to create for storing data of each server
 	 */
-	public static final String files = "automuteroles.dat macros.txt roles.dat prefix.txt banwords.txt replies.txt whitelist.txt";
+	public static final String files = "automuteroles.dat macros.txt roles.dat prefix.txt banwords.txt replies.txt whitelist.txt kills.txt";
 	/**
 	 * Open weather map application programming interface key
 	 */
@@ -236,6 +236,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	private HashMap<Long, ArrayList<Long>>playerPool;
 	private HashMap<Long, HashMap<Long, ArrayList<Long>>>teams;
 	private HashMap<Long,ArrayList<Scoreboard>>scoreboards;
+	private HashMap<Long,ArrayList<String>>killmsgs;
 	private SecureRandom dice;
 	private boolean ready;
 	public ScannerV_0_3() throws LoginException, InterruptedException
@@ -256,6 +257,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.playerPool = new HashMap<>();
 		this.teams = new HashMap<>();
 		this.scoreboards = new HashMap<>();
+		this.killmsgs = new HashMap<>();
 		this.dice = new SecureRandom();
 		this.parser.put("sum", "Adds numbers together.", this::parseSum).put("product", "Multiplies numbers together.", this::parseProduct);
 		this.parser.put("average", "Computes arithmetic mean of a list.", this::parseArithmeticMean).put("gmean", "Computes geometric mean of a list.", this::parseGeometricMean);
@@ -303,6 +305,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("arithmancy", "Calculate your character, heart, and social number.", this::parseArithmancyCalculator);
 		this.parser.put("scoreboard", "Server scoreboard actions.", this::parseScoreboardActions);
 		this.parser.put("send_message_later", "Send a message at a specified time later.", this::parseMessageLater);
+		this.parser.put("add_kill_msg", "Add a kill message, use \\\\t as placeholder for member name.", this::parseAddKillMsg);
+		this.parser.put("get_kill_msgs", "Get all kill messages.", this::parseGetKillMsgs).put("kill", "Sends a death message about a member.", this::parseSendKillMsg);
 		var guilds = this.jda.getGuilds();
 		File f = null;
 		File ff = null;
@@ -382,6 +386,11 @@ public class ScannerV_0_3 extends ListenerAdapter
 				}
 				sc.close();
 				System.out.println(this.replyWhiteList);
+				this.killmsgs.put(this.jda.getGuilds().get(i).getIdLong(),new ArrayList<>());
+				sc = new Scanner(new FileInputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/kills.txt"));
+				while(sc.hasNextLine())
+					this.killmsgs.get(this.jda.getGuilds().get(i).getIdLong()).add(sc.nextLine());
+				sc.close();
 				fin=new FileInputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/automuteroles.dat");
 				if(fin.available()==16)
 				{
@@ -447,6 +456,10 @@ public class ScannerV_0_3 extends ListenerAdapter
 						ps.print("____next____" + this.replyWhiteList.get(this.jda.getGuilds().get(i).getIdLong()).get(reply).get(j));
 					ps.println();
 				}
+				ps.close();
+				ps = new PrintStream(new FileOutputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/kills.txt"));
+				for(int j=0;j<this.killmsgs.get(this.jda.getGuilds().get(i).getIdLong()).size();j++)
+					ps.println(this.killmsgs.get(this.jda.getGuilds().get(i).getIdLong()).get(j));
 				ps.close();
 				ps = new PrintStream(new FileOutputStream(Long.toHexString(this.jda.getGuilds().get(i).getIdLong()) + "/automuteroles.dat"));
 				rbs=new byte[16];
@@ -575,7 +588,6 @@ public class ScannerV_0_3 extends ListenerAdapter
 						else
 							evt.getChannel().sendFile(response.getBytes(), "message.txt").queue();
 						System.out.println("Sent message to channel " + evt.getChannel().getId() + " in guild " + (evt.getGuild()==null?"null":evt.getGuild().getId()));
-						System.out.println(response);
 					}
 				}
 			}
@@ -1798,6 +1810,42 @@ public class ScannerV_0_3 extends ListenerAdapter
 		}
 		else
 			return"Specify time after command to send message and message to send.";
+	}
+	public String parseAddKillMsg(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length!=0)
+		{
+			String msg = args[0];
+			for(int i=1;i<args.length;i++)
+				msg += " " + args[i];
+			this.killmsgs.get(guild.getIdLong()).add(msg);
+			return"Successfully added kill message.";
+		}
+		else
+			return"Specify a message to add.";
+	}
+	public String parseGetKillMsgs(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		String resp = "This is the list of kill messages.";
+		for(int i=0;i<this.killmsgs.get(guild.getIdLong()).size();i++)
+			resp += System.lineSeparator() + this.killmsgs.get(guild.getIdLong()).get(i);
+		return resp;
+	}
+	public String parseSendKillMsg(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length!=0)
+		{
+			String msg = args[0];
+			for(int i=1;i<args.length;i++)
+				msg += " " + args[i];
+			Member mem = ScannerV_0_3.findMember(guild, msg);
+			var messages = this.killmsgs.get(guild.getIdLong());
+			int rand = this.dice.nextInt(messages.size());
+			msg = messages.get(rand).replace("\\t", mem.getEffectiveName());
+			return msg;
+		}
+		else
+			return"Name a member to kill.";
 	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
