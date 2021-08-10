@@ -305,7 +305,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("arithmancy", "Calculate your character, heart, and social number.", this::parseArithmancyCalculator);
 		this.parser.put("scoreboard", "Server scoreboard actions.", this::parseScoreboardActions);
 		this.parser.put("send_message_later", "Send a message at a specified time later.", this::parseMessageLater);
-		this.parser.put("add_kill_msg", "Add a kill message, use \\\\t as placeholder for member name.", this::parseAddKillMsg);
+		this.parser.put("add_kill_msg", "Add a kill message, use \\\\t as placeholder for member name.", this::parseAddKillMsg).put("rm_kill_msg", "Removes a death message by its index.", this::parseRemoveKillMsg);
 		this.parser.put("get_kill_msgs", "Get all kill messages.", this::parseGetKillMsgs).put("kill", "Sends a death message about a member.", this::parseSendKillMsg);
 		var guilds = this.jda.getGuilds();
 		File f = null;
@@ -1828,7 +1828,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	{
 		String resp = "This is the list of kill messages.";
 		for(int i=0;i<this.killmsgs.get(guild.getIdLong()).size();i++)
-			resp += System.lineSeparator() + this.killmsgs.get(guild.getIdLong()).get(i);
+			resp += System.lineSeparator() + (i + 1) + ". " + this.killmsgs.get(guild.getIdLong()).get(i);
 		return resp;
 	}
 	public String parseSendKillMsg(Message message,Guild guild,MessageChannel channel,User author,String[]args)
@@ -1846,6 +1846,23 @@ public class ScannerV_0_3 extends ListenerAdapter
 		}
 		else
 			return"Name a member to kill.";
+	}
+	public String parseRemoveKillMsg(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length!=0)
+		{
+			int ind = Integer.parseInt(args[0]);
+			var messages = this.killmsgs.get(guild.getIdLong());
+			if(ind>messages.size()||ind<=0)
+				return"Index out of bounds.";
+			else
+			{
+				messages.remove(ind - 1);
+				return"Removed kill message.";
+			}
+		}
+		else
+			return"Name a message to remove.";
 	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
