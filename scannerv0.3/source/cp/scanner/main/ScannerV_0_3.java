@@ -1088,12 +1088,15 @@ public class ScannerV_0_3 extends ListenerAdapter
 	public String parseComputePower(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		var ans = "You need one or two arguments.";
-		if(args.length == 1 || args.length == 2)
+		if(args.length == 1)
 		{
-			BigDecimal base = args.length == 1 ? new BigDecimal("2.7182818284590452353602874713527") : ScannerV_0_3.strToNum(args[0]);
-			BigDecimal exponent = args.length == 1 ? ScannerV_0_3.strToNum(args[0]) : ScannerV_0_3.strToNum(args[1]);
+			ans = MathAlgs.exp(ScannerV_0_3.strToNum(args[0])).toString();
+		}
+		else if(args.length == 2)
+		{
+			BigDecimal base = ScannerV_0_3.strToNum(args[0]);
+			BigDecimal exponent = ScannerV_0_3.strToNum(args[1]);
 			ans = MathAlgs.pow(base, exponent).toString();
-			System.out.println("faggot");
 		}
 		return ans;
 	}

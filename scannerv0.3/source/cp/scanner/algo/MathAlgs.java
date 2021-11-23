@@ -76,12 +76,23 @@ public class MathAlgs
 	{
 		BigDecimal ans=BigDecimal.ONE;
 		BigDecimal denom=BigDecimal.ONE;
+		int scale = exp.precision() - exp.scale();
+		if(scale>0)
+			exp = exp.scaleByPowerOfTen(-scale);
+		else
+			scale = 0;
 		BigDecimal pow=exp;
 		for(int i=1;i<100;i++)
 		{
 			denom=denom.multiply(new BigDecimal(i));
 			ans=ans.add(pow.divide(denom,MathContext.DECIMAL128),MathContext.DECIMAL128);
 			pow=pow.multiply(exp);
+		}
+		for(int i=0;i<scale;i++)
+		{
+			exp = ans.multiply(ans,MathContext.DECIMAL128);
+			denom = exp.multiply(exp,MathContext.DECIMAL128);
+			ans = denom.multiply(denom,MathContext.DECIMAL128).multiply(exp,MathContext.DECIMAL128);
 		}
 		return ans;
 	}
