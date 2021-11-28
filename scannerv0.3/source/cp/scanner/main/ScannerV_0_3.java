@@ -290,7 +290,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("replies", "Gets all messages and corresponding replies.", this::parseGetReplies);
 		this.parser.put("reply_white_list", "Whitelists members from a reply, this bot will no longer reply to whitelisted users who say a certain message.", this::parseWhiteList);
 		this.parser.put("remove_white_list", "Un-whitelists a member from a reply.", this::parseRemoveWhiteList);
-		this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower);
+		this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower).put("log", "Logarithm of a number.", this::parseComputeLog);
 		this.parser.put("factor", "Factors numbers.", this::parsePrimeFactor);
 		this.parser.put("encode_mime_64", "Encodes a string in base 64.", this::parseEncodeBase64).put("decode_mime_64", "Decodes a string in base 64.", this::parseDecodeBase64);
 		this.parser.put("role_list_members", "Lists all members with a certain role.", this::parseListMembersWithRole).put("role_list_without", "List members without a certain role.", this::parseListMembersWithoutRole);
@@ -1097,6 +1097,21 @@ public class ScannerV_0_3 extends ListenerAdapter
 			BigDecimal base = ScannerV_0_3.strToNum(args[0]);
 			BigDecimal exponent = ScannerV_0_3.strToNum(args[1]);
 			ans = MathAlgs.pow(base, exponent).toString();
+		}
+		return ans;
+	}
+	public String parseComputeLog(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		var ans = "You need one or two arguments.";
+		if(args.length == 1)
+		{
+			ans = MathAlgs.log(ScannerV_0_3.strToNum(args[0])).toString();
+		}
+		else if(args.length == 2)
+		{
+			BigDecimal base = ScannerV_0_3.strToNum(args[0]);
+			BigDecimal p = ScannerV_0_3.strToNum(args[1]);
+			ans = MathAlgs.log(p).divide(MathAlgs.log(base), MathContext.DECIMAL128).toString();
 		}
 		return ans;
 	}

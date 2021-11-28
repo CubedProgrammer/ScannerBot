@@ -102,6 +102,10 @@ public class MathAlgs
 	 */
 	public static final BigDecimal log(BigDecimal x)
 	{
+		if(x.compareTo(BigDecimal.ZERO) <= 0)
+			return null;
+		int scale = x.precision() - x.scale() - 1;
+		x=x.scaleByPowerOfTen(-scale);
 		BigDecimal guess=BigDecimal.TEN;
 		BigDecimal check=exp(guess).subtract(x,MathContext.DECIMAL128);
 		while(check.abs().compareTo(new BigDecimal("0.0000000000000000000000001"))>0)
@@ -109,7 +113,7 @@ public class MathAlgs
 			guess=guess.subtract(check.divide(check.add(x,MathContext.DECIMAL128),MathContext.DECIMAL128),MathContext.DECIMAL128);
 			check=exp(guess).subtract(x,MathContext.DECIMAL128);
 		}
-		return guess;
+		return guess.add(new BigDecimal(scale).multiply(new BigDecimal("2.302585092994045684017991454684364"),MathContext.DECIMAL128),MathContext.DECIMAL128);
 	}
 	/**
 	 * Adds 2D vectors in polar form
@@ -289,6 +293,7 @@ public class MathAlgs
 	 */
 	public static final BigDecimal sin(BigDecimal theta)
 	{
+		theta=theta.remainder(MathAlgs.PI.multiply(new BigDecimal(2)),MathContext.DECIMAL128);
 		BigDecimal len=BigDecimal.ZERO;
 		BigDecimal num=theta;
 		BigDecimal denom=BigDecimal.ONE;
