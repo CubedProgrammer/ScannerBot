@@ -260,6 +260,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.killmsgs = new HashMap<>();
 		this.dice = new SecureRandom();
 		this.parser.put("sum", "Adds numbers together.", this::parseSum).put("product", "Multiplies numbers together.", this::parseProduct);
+		this.parser.put("quotient", "Calculates a number divided by another, or the reciprocal of a number.", this::parseQuotient).put("remainder", "Calculates the remainder of a number divided by another.", this::parseRemainder);
 		this.parser.put("average", "Computes arithmetic mean of a list.", this::parseArithmeticMean).put("gmean", "Computes geometric mean of a list.", this::parseGeometricMean);
 		this.parser.put("addrole", "Adds a role to a member.", this::parseAddRole).put("rmrole", "Removes a role from a member.", this::parseRemoveRole);
 		this.parser.put("kick", "Kicks a member.", this::parseKickMember).put("ban", "Bans a member.", this::parseBanMember);
@@ -615,6 +616,22 @@ public class ScannerV_0_3 extends ListenerAdapter
 		for(int i=0;i<args.length;i++)
 			product = product.multiply(ScannerV_0_3.strToNum(args[i]));
 		return product.toString();
+	}
+	public String parseQuotient(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		String ans = "You need one or two arguments.";
+		if(args.length==1)
+			ans = BigDecimal.ONE.divide(ScannerV_0_3.strToNum(args[0]),MathContext.DECIMAL128).toString();
+		else if(args.length==2)
+			ans = ScannerV_0_3.strToNum(args[0]).divide(ScannerV_0_3.strToNum(args[1]),MathContext.DECIMAL128).toString();
+		return ans;
+	}
+	public String parseRemainder(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		String ans = "You need two arguments.";
+		if(args.length==2)
+			ans = ScannerV_0_3.strToNum(args[0]).remainder(ScannerV_0_3.strToNum(args[1]),MathContext.DECIMAL128).toString();
+		return ans;
 	}
 	public String parseArithmeticMean(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
