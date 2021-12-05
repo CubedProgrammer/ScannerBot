@@ -735,20 +735,21 @@ public class ScannerV_0_3 extends ListenerAdapter
 	public String parseKickMember(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		var ans = "Name a member to kick and a reason.";
-		if(args.length == 2)
+		if(args.length >= 2)
 		{
 			Member kicker = guild.getMember(author);
 			if(kicker.hasPermission(Permission.KICK_MEMBERS))
 			{
 				var victim=ScannerV_0_3.findMember(guild,args[0]);
 				boolean capable = kicker.getRoles().size() > 0 && (victim.getRoles().size() == 0 || kicker.getRoles().get(0).compareTo(victim.getRoles().get(0)) > 0);
+				capable = capable || kicker.getIdLong() == victim.getIdLong();
 				if(capable)
 				{
 					guild.kick(victim, args[1]).queue();
 					ans = "Successfully kicked that member.";
 				}
 				else
-					ans = "You cannot kick a member higher than you.";
+					ans = "You can only kick people lower than you.";
 			}
 			else
 			{
@@ -760,20 +761,21 @@ public class ScannerV_0_3 extends ListenerAdapter
 	public String parseBanMember(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		var ans = "Name a member to ban and a reason.";
-		if(args.length == 2)
+		if(args.length >= 2)
 		{
 			Member banner = guild.getMember(author);
 			if(banner.hasPermission(Permission.BAN_MEMBERS))
 			{
 				var victim=ScannerV_0_3.findMember(guild,args[0]);
 				boolean capable = banner.getRoles().size() > 0 && (victim.getRoles().size() == 0 || banner.getRoles().get(0).compareTo(victim.getRoles().get(0)) > 0);
+				capable = capable || banner.getIdLong() == victim.getIdLong();
 				if(capable)
 				{
 					guild.ban(victim, 0, args[1]).queue();
 					ans = "Successfully banned that member.";
 				}
 				else
-					ans = "You cannot ban a member higher than you.";
+					ans = "You can only ban people lower than you.";
 			}
 			else
 			{
