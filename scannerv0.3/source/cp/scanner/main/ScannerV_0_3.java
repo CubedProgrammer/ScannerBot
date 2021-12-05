@@ -262,6 +262,9 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("sum", "Adds numbers together.", this::parseSum).put("product", "Multiplies numbers together.", this::parseProduct);
 		this.parser.put("quotient", "Calculates a number divided by another, or the reciprocal of a number.", this::parseQuotient).put("remainder", "Calculates the remainder of a number divided by another.", this::parseRemainder);
 		this.parser.put("modexp", "Three numbers, the first to the second mod the third.", this::parseModExp).put("modinv", "Gets the modular inverse of the first number mod the second.", this::parseModInv);
+		this.parser.put("gcd", "Get the greatest common divisor of two numbers.", this::parseGCD);
+		this.parser.put("prime", "Checks if numbers are prime.", this::parseCheckPrime);
+		this.parser.put("baseconv", "Convert from one base to another, parameters are from, to, numbers... in base from.", this::parseConvertBase);
 		this.parser.put("average", "Computes arithmetic mean of a list.", this::parseArithmeticMean).put("gmean", "Computes geometric mean of a list.", this::parseGeometricMean);
 		this.parser.put("addrole", "Adds a role to a member.", this::parseAddRole).put("rmrole", "Removes a role from a member.", this::parseRemoveRole);
 		this.parser.put("kick", "Kicks a member.", this::parseKickMember).put("ban", "Bans a member.", this::parseBanMember);
@@ -309,6 +312,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("send_message_later", "Send a message at a specified time later.", this::parseMessageLater);
 		this.parser.put("add_kill_msg", "Add a kill message, use \\\\t as placeholder for member name.", this::parseAddKillMsg).put("rm_kill_msg", "Removes a death message by its index.", this::parseRemoveKillMsg);
 		this.parser.put("get_kill_msgs", "Get all kill messages.", this::parseGetKillMsgs).put("kill", "Sends a death message about a member.", this::parseSendKillMsg);
+		this.parser.put("strip_non_digits", "Filters out all non-digit characters.", this::parseStripNonDigits);
 		var guilds = this.jda.getGuilds();
 		File f = null;
 		File ff = null;
@@ -646,6 +650,44 @@ public class ScannerV_0_3 extends ListenerAdapter
 		String ans = "You need three arguments.";
 		if(args.length==3)
 			ans = new BigInteger(args[0]).modPow(new BigInteger(args[1]), new BigInteger(args[2])).toString();
+		return ans;
+	}
+	public String parseGCD(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		String ans = "You need two arguments.";
+		if(args.length==2)
+			ans = new BigInteger(args[0]).gcd(new BigInteger(args[1])).toString();
+		return ans;
+	}
+	public String parseCheckPrime(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		ArrayList<String>ans = new ArrayList<>();
+		BigInteger n = null;
+		for(int i=0;i<args.length;i++)
+		{
+			n = new BigInteger(args[i]);
+			if(n.compareTo(BigInteger.ONE) <= 0)
+				ans.add("Neither");
+			else if(n.isProbablePrime(100))
+				ans.add("Prime");
+			else
+				ans.add("Composite");
+		}
+		return ans.toString();
+	}
+	public String parseConvertBase(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		String ans = "There should be at least three parameters.";
+		if(args.length>=3)
+		{
+			int from = Integer.parseInt(args[0]);
+			int to = Integer.parseInt(args[1]);
+			ans = "";
+			for(int i=2;i<args.length;i++)
+			{
+				ans += new BigInteger(args[i], from).toString(to) + " ";
+			}
+		}
 		return ans;
 	}
 	public String parseArithmeticMean(Message message,Guild guild,MessageChannel channel,User author,String[]args)
@@ -1913,6 +1955,15 @@ public class ScannerV_0_3 extends ListenerAdapter
 		}
 		else
 			return"Name a message to remove.";
+	}
+	public String parseStripNonDigits(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		String s="";
+		for(int i=0;i<args.length;i++)
+		{
+			s+=StringAlgs.stripNonDigits(args[i])+" ";
+		}
+		return s;
 	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{

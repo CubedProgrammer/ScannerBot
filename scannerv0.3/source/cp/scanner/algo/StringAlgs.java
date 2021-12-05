@@ -9,6 +9,14 @@ public class StringAlgs
 	 */
 	public static native int arithmancy(String name);
 	/**
+	 * Strips a string of all non-digits
+	 * @return A string consisting of only digits
+	 */
+	public static final String stripNonDigits(String s)
+	{
+		return s.replaceAll("\\D", "");
+	}
+	/**
 	 * Next permutation of a char array
 	 * @param arr An array
 	 */
