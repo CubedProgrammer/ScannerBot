@@ -56,7 +56,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 	/**
 	 * Token for bot authentication.
 	 */
-	public static final String TOKEN="Njg2MjUxMjQ5NzkxNzk1MjE0.XmUfRw.7TRUj1vY2y7sfa89u0LI7l17unI";
+	public static final String TOKEN="MzY3NDI2MTc4MDE5MjI5Njk3.Wd0-Sw.6Hj-8dqsFayyRsOZj_PX2_VEkL4";
 	/**
 	 * Delimiter character.
 	 */
@@ -82,9 +82,13 @@ public class ScannerV_0_3 extends ListenerAdapter
 	 */
 	public static final String owmapik = "ab76d12edd1bf3728192764d47b2a990";
 	/**
+	 * Longitude and latitude for Windsor, Ontario
+	 */
+	public static final float WINDSOR_LON = -83.042463f, WINDSOR_LAT = 42.20965f;
+	/**
 	 * Path for open weather map
 	 */
-	public static final String owmrq = "data/2.5/weather?lat=42.20965&lon=-83.042463&appid=";
+	public static final String owmrq = "data/2.5/weather?lat=%f&lon=%f&appid=%s";
 	/**
 	 * Macro names
 	 */
@@ -276,7 +280,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("zprob", "Calculates the probablility of a z-score being less than a given z-score.", this::parseZProb).put("probz", "Calculates what z-score has a certain probability of having z-scores less than them.", this::parseProbZ);
 		this.parser.put("get_mute_words", "Gets the words that could get you muted.", this::parseGetBanWords).put("set_mute_words", "Sets the words that could get you muted.", this::parseSetBanWords);
 		this.parser.put("add_mute_words", "Adds words that could get you muted.", this::parseAddBanWords).put("remove_mute_words", "Removes words that could get you muted.", this::parseRemoveBanWords);
-		this.parser.put("weather", "Gets the weather.", this::parseGetWeather).put("weatherraw", "Gets the raw weather data.", this::parseRawWeather);
+		this.parser.put("weather", "Gets the weather, latitude and longitude are optional.", this::parseGetWeather).put("weatherraw", "Gets the raw weather data.", this::parseRawWeather);
 		this.parser.put("define", "Defines a macro.", this::parseDefineMacro);
 		this.parser.put("macros", "Gets all the macros.", this::parseGetMacros);
 		this.parser.put("undef", "Undefines macros, put a letter in front of every macro you are undefining.", this::parseRemoveMacros);
@@ -298,7 +302,8 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("pow", "Computes one number raised to the power of another.", this::parseComputePower).put("log", "Logarithm of a number.", this::parseComputeLog);
 		this.parser.put("factor", "Factors numbers.", this::parsePrimeFactor);
 		this.parser.put("encode_mime_64", "Encodes a string in base 64.", this::parseEncodeBase64).put("decode_mime_64", "Decodes a string in base 64.", this::parseDecodeBase64);
-		this.parser.put("role_list_members", "Lists all members with a certain role.", this::parseListMembersWithRole).put("role_list_without", "List members without a certain role.", this::parseListMembersWithoutRole);
+		this.parser.put("list_with_all_roles", "Lists all members with all specified roles.", this::parseListMembersWithRolesAll).put("list_with_any_roles", "Lists all members with any specified role.", this::parseListMembersWithRolesAny);
+		this.parser.put("list_without_all_roles", "List members who don't have all specified roles.", this::parseListMembersWithoutRolesAll).put("list_without_any_roles", "List members who don't have any of the specified roles.", this::parseListMembersWithoutRolesAll);
 		this.parser.put("set_team_captains", "Sets the team captains for team drafting.", this::parseSetCaptains).put("players", "Set the players who will be drafted.", this::parseSetPlayers);
 		this.parser.put("draft", "Drafts one player for your team.", this::parsePickTeammate).put("display_players_left", "Displays players that haven't been picked.", this::parseDisplayPlayers);
 		this.parser.put("anagrams", "Gets all permutations of a string.", this::parseGetPermutations);
@@ -313,6 +318,7 @@ public class ScannerV_0_3 extends ListenerAdapter
 		this.parser.put("add_kill_msg", "Add a kill message, use \\\\t as placeholder for member name.", this::parseAddKillMsg).put("rm_kill_msg", "Removes a death message by its index.", this::parseRemoveKillMsg);
 		this.parser.put("get_kill_msgs", "Get all kill messages.", this::parseGetKillMsgs).put("kill", "Sends a death message about a member.", this::parseSendKillMsg);
 		this.parser.put("strip_non_digits", "Filters out all non-digit characters.", this::parseStripNonDigits);
+		this.parser.put("concat", "Concatenates arguments with spaces in between.", this::parseConcat);
 		var guilds = this.jda.getGuilds();
 		File f = null;
 		File ff = null;
@@ -1194,9 +1200,15 @@ public class ScannerV_0_3 extends ListenerAdapter
 	public String parseGetWeather(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		var ans = "";
+		float lat = ScannerV_0_3.WINDSOR_LAT, lon = ScannerV_0_3.WINDSOR_LON;
+		if(args.length > 0)
+			lat = Float.parseFloat(args[0]);
+		if(args.length > 1)
+			lon = Float.parseFloat(args[1]);
 		try
 		{
-			HttpURLConnection connection = (HttpURLConnection)new URL("http://api.openweathermap.org/" + ScannerV_0_3.owmrq + ScannerV_0_3.owmapik).openConnection();
+			String path = String.format(ScannerV_0_3.owmrq, lat, lon, ScannerV_0_3.owmapik);
+			HttpURLConnection connection = (HttpURLConnection)new URL("http://api.openweathermap.org/" + path).openConnection();
 			JSONObject obj = (JSONObject)new JSONParser().parse(new InputStreamReader(connection.getInputStream()));
 			JSONObject main = (JSONObject)obj.get("main");
 			JSONObject wind = (JSONObject)obj.get("wind");
@@ -1243,9 +1255,15 @@ public class ScannerV_0_3 extends ListenerAdapter
 	public String parseRawWeather(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		var ans = "";
+		float lat = ScannerV_0_3.WINDSOR_LAT, lon = ScannerV_0_3.WINDSOR_LON;
+		if(args.length > 0)
+			lat = Float.parseFloat(args[0]);
+		if(args.length > 1)
+			lon = Float.parseFloat(args[1]);
 		try
 		{
-			HttpURLConnection connection = (HttpURLConnection)new URL("http://api.openweathermap.org/" + ScannerV_0_3.owmrq + ScannerV_0_3.owmapik).openConnection();
+			String path = String.format(ScannerV_0_3.owmrq, lat, lon, ScannerV_0_3.owmapik);
+			HttpURLConnection connection = (HttpURLConnection)new URL("http://api.openweathermap.org/" + path).openConnection();
 			var in = connection.getInputStream();
 			BufferedReader reader=new BufferedReader(new InputStreamReader(in));
 			ans=reader.readLine();
@@ -1562,29 +1580,85 @@ public class ScannerV_0_3 extends ListenerAdapter
 		else
 			return"Only one argument is accepted.";
 	}
-	public String parseListMembersWithRole(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	public String parseListMembersWithRolesAll(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		if(args.length==0)
 			return"Give me a role.";
 		else
 		{
-			Role r = ScannerV_0_3.findRole(guild,args[0]);
-			var members=guild.getMembersWithRoles(r);
+			Role r = null;
+			ArrayList<Role>rs = new ArrayList<>();
+			for(int i=0;i<args.length;i++)
+			{
+				r = ScannerV_0_3.findRole(guild,args[i]);
+				if(r != null)
+					rs.add(r);
+			}
+			var members=guild.getMembersWithRoles(rs);
 			String replies = "Found the following members";
 			for(var mem : members)
 				replies += "\r\n" + mem.getUser() + " AKA " + mem.getEffectiveName();
 			return replies;
 		}
 	}
-	public String parseListMembersWithoutRole(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	public String parseListMembersWithRolesAny(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
 		if(args.length==0)
 			return"Give me a role.";
 		else
 		{
-			Role r = ScannerV_0_3.findRole(guild,args[0]);
-			var has=guild.getMembersWithRoles(r);
+			Role r = null;
+			ArrayList<Member>members = new ArrayList<>();
+			for(int i=0;i<args.length;i++)
+			{
+				r = ScannerV_0_3.findRole(guild,args[i]);
+				if(r != null)
+					members.addAll(guild.getMembersWithRoles(r));
+			}
+			String replies = "Found the following members";
+			for(var mem : members)
+				replies += "\r\n" + mem.getUser() + " AKA " + mem.getEffectiveName();
+			return replies;
+		}
+	}
+	public String parseListMembersWithoutRolesAll(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length==0)
+			return"Give me a role.";
+		else
+		{
+			Role r = null;
+			ArrayList<Role>rs = new ArrayList<>();
+			for(int i=0;i<args.length;i++)
+			{
+				r = ScannerV_0_3.findRole(guild,args[i]);
+				if(r != null)
+					rs.add(r);
+			}
+			var has=guild.getMembersWithRoles(rs);
 			ArrayList<Member>members=new ArrayList<Member>(guild.getMembers());
+			members.removeAll(has);
+			String replies = "Found the following members";
+			for(var mem : members)
+				replies += "\r\n" + mem.getUser() + " AKA " + mem.getEffectiveName();
+			return replies;
+		}
+	}
+	public String parseListMembersWithoutRolesAny(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		if(args.length==0)
+			return"Give me a role.";
+		else
+		{
+			Role r = null;
+			ArrayList<Member>has = new ArrayList<>();
+			for(int i=0;i<args.length;i++)
+			{
+				r = ScannerV_0_3.findRole(guild,args[i]);
+				if(r != null)
+					has.addAll(guild.getMembersWithRoles(r));
+			}
+			var members = guild.getMembers();
 			members.removeAll(has);
 			String replies = "Found the following members";
 			for(var mem : members)
@@ -1966,6 +2040,13 @@ public class ScannerV_0_3 extends ListenerAdapter
 			s+=StringAlgs.stripNonDigits(args[i])+" ";
 		}
 		return s;
+	}
+	public String parseConcat(Message message,Guild guild,MessageChannel channel,User author,String[]args)
+	{
+		String s="";
+		for(int i=0;i<args.length;i++)
+			s+=args[i]+" ";
+		return s.strip();
 	}
 	public String parseSendMessage(Message message,Guild guild,MessageChannel channel,User author,String[]args)
 	{
