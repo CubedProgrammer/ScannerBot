@@ -79,7 +79,10 @@ int main(int argl,char**argv)
 #else
             if(guilds.end() == guilds.find(evt.msg.guild_id))
 #endif
+            {
+            	cout << "Added guild " << evt.msg.guild_id << endl;
             	guilds[evt.msg.guild_id]["pref"] = "--";
+			}
 #if __cplusplus >= 202002L
             if(msg.starts_with(mention))
 #else
