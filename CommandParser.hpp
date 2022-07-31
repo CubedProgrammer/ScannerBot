@@ -14,7 +14,8 @@ struct Command
 	Command(Command&& cmd)=default;
 	Command& operator=(const Command& cmd)=default;
 	Command& operator=(Command&& cmd)=default;
-	std::string operator()(const std::string* args, std::size_t size)const;
+	virtual std::string operator()(const std::string* args, std::size_t size)const=0;
+	virtual~Command()=default;
 };
 
 using ptrCommand = std::unique_ptr<Command>;
@@ -32,7 +33,7 @@ public:
 	CommandParser& operator=(const CommandParser& cmd)=default;
 	CommandParser& operator=(CommandParser&& cmd)=default;
 	std::string operator()(const std::string& cmd)const;
-	std::string run(const std::string* args, std::size_t size)const;
+	std::string run(std::string* args, std::size_t size)const;
 };
 
 #endif
