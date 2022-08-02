@@ -29,15 +29,25 @@ std::string CommandParser::operator()(const std::string& cmd)const
 	vector<string>tokens;
 	string curr;
 	bool esc = false;
+	bool closed = false;
 	for(char c : cmd)
 	{
 		switch(c)
 		{
-			case' ':
+			case'"':
 				if(esc)
-					tokens.push_back(curr);
-				else
 					curr += c;
+				else
+					closed = !closed;
+				break;
+			case' ':
+				if(closed || esc)
+					curr += c;
+				else if(curr.size())
+				{
+					tokens.push_back(curr);
+					curr.clear();
+				}
 				break;
 			case'\\':
 				esc = !esc;
@@ -56,23 +66,47 @@ std::string CommandParser::operator()(const std::string& cmd)const
 string CommandParser::run(string* args, size_t size)const
 {
 	string res;
-	size_t argbegin = 1;
 	vector<pair<size_t,size_t>>pending;
 	pending.emplace_back(0,0);
 	for(size_t i=1;i<size;i++)
 	{
 		const auto &token = args[i];
-		if(this->cmds.find(token) != this->cmds.cend())
+		if(token == ENDCMD)
 		{
-			pending.emplace_back(i,0);
-			argbegin = i + 1;
-		}
-		else if(token == ENDCMD)
-		{
-			const auto &cmd = *this->cmds.at(args[pending.back().first]);
-			res = cmd(args + argbegin, i - argbegin);
+			const auto &cmdname = args[pending.back().first];
+			if(cmdname == "version")
+				res = this->verstr;
+			else
+			{
+				const auto &cmd = *this->cmds.at(cmdname);
+				res = cmd(args + pending.back().first + 1, pending.back().second);
+			}
 			pending.pop_back();
+			if(pending.size() > 0)
+				args[pending.back().second+pending.back().first] = move(res);
 		}
+		else
+		{
+			++pending.back().second;
+			if(token == "version" || this->cmds.find(token) != this->cmds.cend())
+				pending.emplace_back(i,0);
+			else if(pending.back().first + pending.back().second != i)
+				args[pending.back().first+pending.back().second] = move(args[i]);
+		}
+	}
+	while(pending.size() > 0)
+	{
+		const auto &cmdname = args[pending.back().first];
+		if(cmdname == "version")
+			res = this->verstr;
+		else
+		{
+			const auto &cmd = *this->cmds.at(cmdname);
+			res = cmd(args + pending.back().first + 1, pending.back().second);
+		}
+		pending.pop_back();
+		if(pending.size() > 0)
+			args[pending.back().second+pending.back().first] = move(res);
 	}
 	return res;
 }

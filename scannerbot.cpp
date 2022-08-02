@@ -8,14 +8,17 @@
 #include<vector>
 #include<nlohmann/json.hpp>
 #include<dpp/dpp.h>
+#include"cmds.hpp"
 
 using std::byte;
 using std::endl;
 using std::cin;
 using std::cout;
+using std::make_unique;
 using std::ostream;
 using std::ostringstream;
 using std::string;
+using std::vector;
 using nlohmann::json;
 using guildmap = std::unordered_map<dpp::snowflake,json>;
 
@@ -34,12 +37,15 @@ guildmap load_guilds()
 	using namespace std::filesystem;
 	path curr(".");
 	guildmap map;
+	string fname;
 	dpp::snowflake gid = 0;
 	for(path p : directory_iterator(curr))
 	{
 		if(p.extension() == ".json")
 		{
-			gid = std::stoul(p.string().substr(0, p.string().size() - 5),nullptr, 16);
+			cout << "Loaded " << p.string() << endl;
+			fname = p.filename();
+			gid = std::stoul(fname.substr(0, fname.size() - 5), nullptr, 16);
 			std::ifstream ifs(p);
 			map[gid] = json::parse(ifs);
 		}
@@ -69,11 +75,19 @@ int main(int argl,char**argv)
     cout << selfuser.id << ' ' << selfuser.username << endl;
     for(const auto &p : guilds)
     	cout << p.first << ' ' << p.second["pref"] << endl;
-    auto evtr = [&guilds,&mention,&selfuser,&verstr](const message_create_t &evt)
+    ptrCommand productcmd(new Productcmd("Computes the product of all numbers given."));
+    ptrCommand sumcmd(new Sumcmd("Computes the sum of all numbers given."));
+    vector<string>cmdnamevec{"product", "sum"};
+    vector<ptrCommand>cmdvec;
+    cmdvec.push_back(move(productcmd));
+    cmdvec.push_back(move(sumcmd));
+    CommandParser parser(verstr, cmdnamevec, cmdvec);
+    auto evtr = [&parser,&guilds,&mention,&selfuser,&verstr](const message_create_t &evt)
     {
         if(selfuser.id != evt.msg.author.id)
         {
             const auto &msg = evt.msg.content;
+            string sendstr;
 #if __cplusplus >= 202002L
             if(!guilds.contains(evt.msg.guild_id))
 #else
@@ -90,6 +104,8 @@ int main(int argl,char**argv)
             if(itx == mention.cend())
 #endif
             {
+            	sendstr = parser(msg.substr(mention.size()));
+            	evt.send(sendstr);
             }
         }
     };
