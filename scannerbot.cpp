@@ -97,16 +97,20 @@ int main(int argl,char**argv)
             	cout << "Added guild " << evt.msg.guild_id << endl;
             	guilds[evt.msg.guild_id]["pref"] = "--";
 			}
+            const string &pref = guilds[evt.msg.guild_id]["pref"];
 #if __cplusplus >= 202002L
-            if(msg.starts_with(mention))
+            if(msg.starts_with(pref) || msg.starts_with(mention))
 #else
             auto itx = mention.size() > msg.size() ? mention.cbegin() : std::mismatch(mention.cbegin(), mention.cend(), msg.cbegin()).first;
             if(itx == mention.cend())
 #endif
-            {
-            	sendstr = parser(msg.substr(mention.size()));
-            	evt.send(sendstr);
-            }
+            	evt.send(parser(msg.substr(mention.size())));
+#if __cplusplus >= 202002L
+#else
+            auto ity = pref.size() > msg.size() ? pref.cbegin() : std::mismatch(pref.cbegin(), pref.cend(), msg.cbegin()).first;
+            if(ity == pref.cend())
+#endif
+            	evt.send(parser(msg.substr(pref.size())));
         }
     };
     scannerbot.on_message_create(evtr);
