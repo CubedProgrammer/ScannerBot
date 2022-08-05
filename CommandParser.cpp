@@ -5,6 +5,7 @@ using std::pair;
 using std::size_t;
 using std::string;
 using std::vector;
+using namespace dpp;
 
 #if __cplusplus >= 202002L
 constexpr
@@ -24,7 +25,7 @@ CommandParser::CommandParser(string verstr,const vector<string>& names, vector<p
 		this->cmds[names[i]] = move(cmds[i]);
 }
 
-std::string CommandParser::operator()(const std::string& cmd)const
+std::string CommandParser::operator()(const message& og,const std::string& cmd)const
 {
 	vector<string>tokens;
 	string curr;
@@ -60,10 +61,10 @@ std::string CommandParser::operator()(const std::string& cmd)const
 	}
 	if(curr.size())
 		tokens.push_back(curr);
-	return this->run(tokens.data(),tokens.size());
+	return this->run(og, tokens.data(),tokens.size());
 }
 
-string CommandParser::run(string* args, size_t size)const
+string CommandParser::run(const message& og,string* args, size_t size)const
 {
 	string res;
 	vector<pair<size_t,size_t>>pending;
@@ -79,7 +80,7 @@ string CommandParser::run(string* args, size_t size)const
 			else
 			{
 				const auto &cmd = *this->cmds.at(cmdname);
-				res = cmd(args + pending.back().first + 1, pending.back().second);
+				res = cmd(og, args + pending.back().first + 1, pending.back().second);
 			}
 			pending.pop_back();
 			if(pending.size() > 0)
@@ -102,7 +103,7 @@ string CommandParser::run(string* args, size_t size)const
 		else
 		{
 			const auto &cmd = *this->cmds.at(cmdname);
-			res = cmd(args + pending.back().first + 1, pending.back().second);
+			res = cmd(og, args + pending.back().first + 1, pending.back().second);
 		}
 		pending.pop_back();
 		if(pending.size() > 0)

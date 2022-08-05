@@ -4,6 +4,7 @@
 #include<string>
 #include<unordered_map>
 #include<vector>
+#include<dpp/dpp.h>
 
 struct Command
 {
@@ -14,12 +15,13 @@ struct Command
 	Command(Command&& cmd)=default;
 	Command& operator=(const Command& cmd)=default;
 	Command& operator=(Command&& cmd)=default;
-	virtual std::string operator()(const std::string* args, std::size_t size)const=0;
+	virtual std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const=0;
 	virtual~Command()=default;
 };
 
 using ptrCommand = std::unique_ptr<Command>;
 using cmdmap = std::unordered_map<std::string,ptrCommand>;
+using guildmap = std::unordered_map<dpp::snowflake,json>;
 
 class CommandParser
 {
@@ -32,8 +34,8 @@ public:
 	CommandParser()=default;
 	CommandParser& operator=(const CommandParser& cmd)=default;
 	CommandParser& operator=(CommandParser&& cmd)=default;
-	std::string operator()(const std::string& cmd)const;
-	std::string run(std::string* args, std::size_t size)const;
+	std::string operator()(const dpp::message& og, const std::string& cmd)const;
+	std::string run(const dpp::message& og,std::string* args, std::size_t size)const;
 };
 
 #endif

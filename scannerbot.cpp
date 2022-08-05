@@ -20,11 +20,11 @@ using std::ostringstream;
 using std::string;
 using std::vector;
 using nlohmann::json;
-using guildmap = std::unordered_map<dpp::snowflake,json>;
 
 constexpr byte VERSION_MAJOR = (byte)1;
 constexpr byte VERSION_MINOR = (byte)0;
 constexpr byte VERSION_PATCH = (byte)0;
+guildmap allguilds;
 
 ostream &operator<<(ostream &os, byte b)
 {
@@ -68,7 +68,8 @@ int main(int argl,char**argv)
 {
     using namespace dpp;
     string bot_token = getenv("SBTOKEN"), verstr = get_version_string(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
-    guildmap guilds = load_guilds();
+    allguilds = load_guilds();
+    auto &guilds = allguilds;
     cluster scannerbot(bot_token, i_all_intents);
     auto selfuser = scannerbot.current_user_get_sync();
     string mention = selfuser.get_mention();
@@ -104,13 +105,13 @@ int main(int argl,char**argv)
             auto itx = mention.size() > msg.size() ? mention.cbegin() : std::mismatch(mention.cbegin(), mention.cend(), msg.cbegin()).first;
             if(itx == mention.cend())
 #endif
-            	evt.send(parser(msg.substr(mention.size())));
+            	evt.send(parser(evt.msg, msg.substr(mention.size())));
 #if __cplusplus >= 202002L
 #else
             auto ity = pref.size() > msg.size() ? pref.cbegin() : std::mismatch(pref.cbegin(), pref.cend(), msg.cbegin()).first;
             if(ity == pref.cend())
 #endif
-            	evt.send(parser(msg.substr(pref.size())));
+            	evt.send(parser(evt.msg, msg.substr(pref.size())));
         }
     };
     scannerbot.on_message_create(evtr);
