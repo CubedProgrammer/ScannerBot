@@ -100,6 +100,8 @@ string CommandParser::run(const message& og,string* args, size_t size)const
 		const auto &cmdname = args[pending.back().first];
 		if(cmdname == "version")
 			res = this->verstr;
+		else if(this->cmds.find(cmdname)==this->cmds.cend())
+			res = "Command not found.";
 		else
 		{
 			const auto &cmd = *this->cmds.at(cmdname);

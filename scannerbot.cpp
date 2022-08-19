@@ -3,6 +3,7 @@
 #include<filesystem>
 #include<fstream>
 #include<iostream>
+#include<stdexcept>
 #include<sstream>
 #include<unordered_map>
 #include<vector>
@@ -67,7 +68,11 @@ void save(const guildmap &map);
 int main(int argl,char**argv)
 {
     using namespace dpp;
-    string bot_token = getenv("SBTOKEN"), verstr = get_version_string(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+    using namespace std::string_literals;
+    char *tokenptr = getenv("SBTOKEN");
+    if(tokenptr == nullptr)
+		throw std::logic_error("Environment variable SBTOKEN is undefined.");
+    string bot_token = tokenptr, verstr = get_version_string(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
     allguilds = load_guilds();
     auto &guilds = allguilds;
     cluster scannerbot(bot_token, i_all_intents);
@@ -76,10 +81,12 @@ int main(int argl,char**argv)
     cout << selfuser.id << ' ' << selfuser.username << endl;
     for(const auto &p : guilds)
     	cout << p.first << ' ' << p.second["pref"] << endl;
+    ptrCommand prefixcmd(new Prefixcmd("Sets the prefix for the bot."));
     ptrCommand productcmd(new Productcmd("Computes the product of all numbers given."));
     ptrCommand sumcmd(new Sumcmd("Computes the sum of all numbers given."));
-    vector<string>cmdnamevec{"product", "sum"};
+    vector<string>cmdnamevec{"prefix", "product", "sum"};
     vector<ptrCommand>cmdvec;
+    cmdvec.push_back(move(prefixcmd));
     cmdvec.push_back(move(productcmd));
     cmdvec.push_back(move(sumcmd));
     CommandParser parser(verstr, cmdnamevec, cmdvec);
