@@ -2,6 +2,22 @@
 #define CMDS_HPP_
 #include"CommandParser.hpp"
 
+struct Modulocmd:Command
+{
+	Modulocmd(std::string desc)
+		:Command(move(desc))
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Quotientcmd:Command
+{
+	Quotientcmd(std::string desc)
+		:Command(move(desc))
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct Prefixcmd:Command
 {
 	Prefixcmd(std::string desc)
