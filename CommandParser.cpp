@@ -1,9 +1,11 @@
+#include<stdexcept>
 #include"CommandParser.hpp"
 
 using std::move;
 using std::pair;
 using std::size_t;
 using std::string;
+using std::string_literals::operator""s;
 using std::vector;
 using namespace dpp;
 
@@ -35,13 +37,13 @@ std::string CommandParser::operator()(const message& og,const std::string& cmd)c
 	{
 		switch(c)
 		{
-			case'"':
+			case '"':
 				if(esc)
 					curr += c;
 				else
 					closed = !closed;
 				break;
-			case' ':
+			case ' ':
 				if(closed || esc)
 					curr += c;
 				else if(curr.size())
@@ -50,7 +52,7 @@ std::string CommandParser::operator()(const message& og,const std::string& cmd)c
 					curr.clear();
 				}
 				break;
-			case'\\':
+			case '\\':
 				esc = !esc;
 				if(esc)
 					break;
@@ -61,7 +63,30 @@ std::string CommandParser::operator()(const message& og,const std::string& cmd)c
 	}
 	if(curr.size())
 		tokens.push_back(curr);
-	return this->run(og, tokens.data(),tokens.size());
+	try
+	{
+		return this->run(og, tokens.data(),tokens.size());
+	}
+	catch(std::invalid_argument&e)
+	{
+		return e.what() + " invalid argument"s;
+	}
+	catch(std::exception&e)
+	{
+		return"Exception occurred: "s + e.what();
+	}
+}
+
+void CommandParser::help(string& res, const vector<pair<size_t,size_t>>& pending, string *args)const
+{
+	if(pending.back().second > 0)
+		res = this->cmds.at(args[pending.back().first + 1])->description;
+	else
+	{
+		res = "The list of commands are as follows";
+		for(const auto&[x,y]:this->cmds)
+			res += "\r\n" + x;
+	}
 }
 
 string CommandParser::run(const message& og,string* args, size_t size)const
@@ -69,6 +94,7 @@ string CommandParser::run(const message& og,string* args, size_t size)const
 	string res;
 	vector<pair<size_t,size_t>>pending;
 	pending.emplace_back(0,0);
+	bool notcmd = args[0] == "help";
 	for(size_t i=1;i<size;i++)
 	{
 		const auto &token = args[i];
@@ -77,6 +103,11 @@ string CommandParser::run(const message& og,string* args, size_t size)const
 			const auto &cmdname = args[pending.back().first];
 			if(cmdname == "version")
 				res = this->verstr;
+			else if(cmdname == "help")
+			{
+				help(res, pending, args);
+				notcmd = false;
+			}
 			else
 			{
 				const auto &cmd = *this->cmds.at(cmdname);
@@ -89,8 +120,11 @@ string CommandParser::run(const message& og,string* args, size_t size)const
 		else
 		{
 			++pending.back().second;
-			if(token == "version" || this->cmds.find(token) != this->cmds.cend())
+			if(!notcmd && (token == "help" || token == "version" || this->cmds.find(token) != this->cmds.cend()))
+			{
 				pending.emplace_back(i,0);
+				notcmd = token == "help";
+			}
 			else if(pending.back().first + pending.back().second != i)
 				args[pending.back().first+pending.back().second] = move(args[i]);
 		}
@@ -100,6 +134,8 @@ string CommandParser::run(const message& og,string* args, size_t size)const
 		const auto &cmdname = args[pending.back().first];
 		if(cmdname == "version")
 			res = this->verstr;
+		else if(cmdname == "help")
+			help(res, pending, args);
 		else if(this->cmds.find(cmdname)==this->cmds.cend())
 			res = "Command not found.";
 		else
