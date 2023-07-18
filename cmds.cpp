@@ -1,18 +1,106 @@
 #include<cmath>
+#include<numeric>
+#include<sstream>
 #include<stdexcept>
 #include<nlohmann/json.hpp>
 #include"algo/discord.hpp"
+#include"algo/math.hpp"
 #include"algo/str.hpp"
 #include"cmds.hpp"
 
+using std::gcd;
+using std::pair;
 using std::size_t;
 using std::stod;
 using std::string;
 using std::string_literals::operator""s;
+using std::vector;
 using nlohmann::json;
 using namespace dpp;
 
 extern guildmap allguilds;
+
+string Factorcmd::operator()(const message& og, const string* args, size_t size)const
+{
+    long num = 0;
+    string resstr;
+	std::ostringstream oss;
+	vector<pair<long, int>>factors;
+    try
+    {
+        for(size_t i = 0; i < size; ++i)
+        {
+            num = toint(args[i]);
+			factors = pfactor(num);
+			for(const auto&[p, e]: factors)
+			{
+				oss << p;
+				if(e > 1)
+					oss << '^' << e;
+				oss << ' ';
+			}
+			oss << '\n';
+        }
+    }
+	catch(std::invalid_argument&e)
+	{
+		resstr = e.what() + " invalid argument"s;
+	}
+	catch(std::out_of_range&e)
+	{
+		resstr = e.what() + " out of range."s;
+	}
+	return oss.str();
+}
+
+string Primecmd::operator()(const message& og, const string* args, size_t size)const
+{
+    long num = 0;
+    string resstr;
+    try
+    {
+        for(size_t i = 0; i < size; ++i)
+        {
+            num = toint(args[i]);
+			if(i)
+				resstr += ", ";
+			resstr += checkprime(num) ? "true" : "false";
+        }
+    }
+	catch(std::invalid_argument&e)
+	{
+		resstr = e.what() + " invalid argument"s;
+	}
+	catch(std::out_of_range&e)
+	{
+		resstr = e.what() + " out of range."s;
+	}
+	return resstr;
+}
+
+string Gcdcmd::operator()(const message& og, const string* args, size_t size)const
+{
+    long num = 0, next = 0;
+    string resstr;
+    try
+    {
+        for(size_t i = 0; i < size; ++i)
+        {
+            next = toint(args[i]);
+            num = gcd(num, next);
+        }
+        resstr = tostr(num);
+    }
+	catch(std::invalid_argument&e)
+	{
+		resstr = e.what() + " invalid argument"s;
+	}
+	catch(std::out_of_range&e)
+	{
+		resstr = e.what() + " out of range."s;
+	}
+	return resstr;
+}
 
 string Modulocmd::operator()(const message& og, const string* args, size_t size)const
 {
