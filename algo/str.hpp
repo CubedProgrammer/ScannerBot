@@ -1,6 +1,29 @@
 #ifndef ALGO_STR_HPP_
 #define ALGO_STR_HPP_
+#include<algorithm>
 #include<sstream>
+
+std::string numstr(long num, int base)
+{
+    static const char digits[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+    std::ostringstream oss;
+    bool nega = false;
+    if(num < 0)
+    {
+        num *= -1;
+        nega = true;
+    }
+    while(num > 0)
+    {
+        oss << digits[num % base];
+        num /= base;
+    }
+    if(nega)
+        oss << '-';
+    std::string str = oss.str();
+    std::reverse(str.begin(), str.end());
+    return str;
+}
 
 long toint(const std::string& str)
 {
