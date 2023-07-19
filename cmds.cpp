@@ -20,6 +20,72 @@ using namespace dpp;
 
 extern guildmap allguilds;
 
+string HMeancmd::operator()(const message& og, const string* args, size_t size)const
+{
+    double num = 0;
+    string resstr;
+    try
+    {
+        for(size_t i = 0; i < size; ++i)
+            num += 1.0 / tonum(args[i]);
+		num = size / num;
+		resstr = tostr(num);
+    }
+	catch(std::invalid_argument&e)
+	{
+		resstr = tostr(num) + e.what() + " invalid argument"s;
+	}
+	catch(std::out_of_range&e)
+	{
+		resstr = tostr(num) + e.what() + " out of range."s;
+	}
+	return resstr;
+}
+
+string GMeancmd::operator()(const message& og, const string* args, size_t size)const
+{
+    double num = 1;
+    string resstr;
+    try
+    {
+        for(size_t i = 0; i < size; ++i)
+            num *= tonum(args[i]);
+		num = pow(num, 1.0 / size);
+		resstr = tostr(num);
+    }
+	catch(std::invalid_argument&e)
+	{
+		resstr = tostr(num) + e.what() + " invalid argument"s;
+	}
+	catch(std::out_of_range&e)
+	{
+		resstr = tostr(num) + e.what() + " out of range."s;
+	}
+	return resstr;
+}
+
+string AMeancmd::operator()(const message& og, const string* args, size_t size)const
+{
+    double num = 0;
+    string resstr;
+    try
+    {
+        for(size_t i = 0; i < size; ++i)
+            num += tonum(args[i]);
+		num /= size;
+		resstr = tostr(num);
+    }
+	catch(std::invalid_argument&e)
+	{
+		resstr = tostr(num) + e.what() + " invalid argument"s;
+	}
+	catch(std::out_of_range&e)
+	{
+		resstr = tostr(num) + e.what() + " out of range."s;
+	}
+	return resstr;
+}
+
 string Baseconvcmd::operator()(const message& og, const string* args, size_t size)const
 {
     if(size < 3)
@@ -189,8 +255,13 @@ string Prefixcmd::operator()(const message& og, const string* args, size_t size)
 	{
 		if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
 		{
-			allguilds[gid]["pref"] = *args;
-			return"New prefix has been set.";
+			if(args[0].size() <= 3)
+			{
+				allguilds[gid]["pref"] = *args;
+				return"New prefix has been set.";
+			}
+			else
+				return"Prefix must be no more than three characters.";
 		}
 		else
 			return"You do not have permission to use this command.";

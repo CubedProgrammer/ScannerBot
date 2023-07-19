@@ -81,6 +81,9 @@ int main(int argl,char**argv)
     cout << selfuser.id << ' ' << selfuser.username << endl;
     for(const auto &p : guilds)
     	cout << p.first << ' ' << p.second["pref"] << endl;
+    ptrCommand hmeancmd(new HMeancmd());
+    ptrCommand gmeancmd(new GMeancmd());
+    ptrCommand ameancmd(new AMeancmd());
     ptrCommand baseconvcmd(new Baseconvcmd());
     ptrCommand factorcmd(new Factorcmd());
     ptrCommand primecmd(new Primecmd());
@@ -90,8 +93,11 @@ int main(int argl,char**argv)
     ptrCommand prefixcmd(new Prefixcmd("Sets the prefix for the bot."));
     ptrCommand productcmd(new Productcmd("Computes the product of all numbers given."));
     ptrCommand sumcmd(new Sumcmd("Computes the sum of all numbers given."));
-    vector<string>cmdnamevec{"baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
+    vector<string>cmdnamevec{"harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
     vector<ptrCommand>cmdvec;
+    cmdvec.push_back(move(hmeancmd));
+    cmdvec.push_back(move(gmeancmd));
+    cmdvec.push_back(move(ameancmd));
     cmdvec.push_back(move(baseconvcmd));
     cmdvec.push_back(move(factorcmd));
     cmdvec.push_back(move(primecmd));

@@ -2,6 +2,30 @@
 #define CMDS_HPP_
 #include"CommandParser.hpp"
 
+struct HMeancmd:Command
+{
+	HMeancmd()
+		:Command("Evaluates the harmonic mean of a list of numbers.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct GMeancmd:Command
+{
+	GMeancmd()
+		:Command("Evaluates the geometric mean of a list of numbers.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct AMeancmd:Command
+{
+	AMeancmd()
+		:Command("Evaluates the arithmetic mean of a list of numbers.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct Baseconvcmd:Command
 {
 	Baseconvcmd()
