@@ -20,6 +20,38 @@ using namespace dpp;
 
 extern guildmap allguilds;
 
+string Logcmd::operator()(const message& og, const string* args, size_t size)const
+{
+    if(size == 0)
+        return"Provide the base and then the power.";
+    else
+    {
+        if(size == 1)
+            return tostr(std::log(tonum(args[0])));
+        else
+        {
+            double base = tonum(args[0]), p = tonum(args[1]);
+            return tostr(std::log(p) / std::log(base));
+        }
+    }
+}
+
+string Powcmd::operator()(const message& og, const string* args, size_t size)const
+{
+    if(size == 0)
+        return"Provide the base and then the exponent.";
+    else
+    {
+        if(size == 1)
+            return tostr(std::exp(tonum(args[0])));
+        else
+        {
+            double base = tonum(args[0]), exp = tonum(args[1]);
+            return tostr(std::pow(base, exp));
+        }
+    }
+}
+
 string HMeancmd::operator()(const message& og, const string* args, size_t size)const
 {
     double num = 0;

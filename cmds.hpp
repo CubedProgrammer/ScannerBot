@@ -2,6 +2,22 @@
 #define CMDS_HPP_
 #include"CommandParser.hpp"
 
+struct Logcmd:Command
+{
+	Logcmd()
+		:Command("Computes log base x of y.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Powcmd:Command
+{
+	Powcmd()
+		:Command("Computes x raised to the power of y.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct HMeancmd:Command
 {
 	HMeancmd()
