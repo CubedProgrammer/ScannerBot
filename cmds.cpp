@@ -8,17 +8,170 @@
 #include"algo/str.hpp"
 #include"cmds.hpp"
 
+using std::cos;
 using std::gcd;
 using std::pair;
+using std::sin;
 using std::size_t;
 using std::stod;
 using std::string;
 using std::string_literals::operator""s;
+using std::tan;
 using std::vector;
 using nlohmann::json;
 using namespace dpp;
 
 extern guildmap allguilds;
+
+string Csccmd::operator()(const message& og, const string* args, size_t size)const
+{
+	double num = 0;
+    string resstr;
+    try
+    {
+        for(size_t i = 0; i < size; ++i)
+        {
+            num = tonum(args[i]);
+			if(i)
+				resstr += ' ';
+			resstr += tostr(1.0 / sin(num));
+        }
+    }
+	catch(std::invalid_argument&e)
+	{
+		resstr += e.what() + " invalid argument"s;
+	}
+	catch(std::out_of_range&e)
+	{
+		resstr += e.what() + " out of range."s;
+	}
+	return resstr;
+}
+
+string Seccmd::operator()(const message& og, const string* args, size_t size)const
+{
+	double num = 0;
+    string resstr;
+    try
+    {
+        for(size_t i = 0; i < size; ++i)
+        {
+            num = tonum(args[i]);
+			if(i)
+				resstr += ' ';
+			resstr += tostr(1.0 / cos(num));
+        }
+    }
+	catch(std::invalid_argument&e)
+	{
+		resstr += e.what() + " invalid argument"s;
+	}
+	catch(std::out_of_range&e)
+	{
+		resstr += e.what() + " out of range."s;
+	}
+	return resstr;
+}
+
+string Cotcmd::operator()(const message& og, const string* args, size_t size)const
+{
+	double num = 0;
+    string resstr;
+    try
+    {
+        for(size_t i = 0; i < size; ++i)
+        {
+            num = tonum(args[i]);
+			if(i)
+				resstr += ' ';
+			resstr += tostr(1.0 / tan(num));
+        }
+    }
+	catch(std::invalid_argument&e)
+	{
+		resstr += e.what() + " invalid argument"s;
+	}
+	catch(std::out_of_range&e)
+	{
+		resstr += e.what() + " out of range."s;
+	}
+	return resstr;
+}
+
+string Tancmd::operator()(const message& og, const string* args, size_t size)const
+{
+	double num = 0;
+    string resstr;
+    try
+    {
+        for(size_t i = 0; i < size; ++i)
+        {
+            num = tonum(args[i]);
+			if(i)
+				resstr += ' ';
+			resstr += tostr(tan(num));
+        }
+    }
+	catch(std::invalid_argument&e)
+	{
+		resstr += e.what() + " invalid argument"s;
+	}
+	catch(std::out_of_range&e)
+	{
+		resstr += e.what() + " out of range."s;
+	}
+	return resstr;
+}
+
+string Coscmd::operator()(const message& og, const string* args, size_t size)const
+{
+	double num = 0;
+    string resstr;
+    try
+    {
+        for(size_t i = 0; i < size; ++i)
+        {
+            num = tonum(args[i]);
+			if(i)
+				resstr += ' ';
+			resstr += tostr(cos(num));
+        }
+    }
+	catch(std::invalid_argument&e)
+	{
+		resstr += e.what() + " invalid argument"s;
+	}
+	catch(std::out_of_range&e)
+	{
+		resstr += e.what() + " out of range."s;
+	}
+	return resstr;
+}
+
+string Sincmd::operator()(const message& og, const string* args, size_t size)const
+{
+	double num = 0;
+    string resstr;
+    try
+    {
+        for(size_t i = 0; i < size; ++i)
+        {
+            num = tonum(args[i]);
+			if(i)
+				resstr += ' ';
+			resstr += tostr(sin(num));
+        }
+    }
+	catch(std::invalid_argument&e)
+	{
+		resstr += e.what() + " invalid argument"s;
+	}
+	catch(std::out_of_range&e)
+	{
+		resstr += e.what() + " out of range."s;
+	}
+	return resstr;
+}
 
 string Logcmd::operator()(const message& og, const string* args, size_t size)const
 {

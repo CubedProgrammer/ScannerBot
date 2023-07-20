@@ -27,11 +27,11 @@ std::string numstr(long num, int base)
 
 long toint(const std::string& str)
 {
-	if(str.size() > 0 && str[0] == '0')
+	if(str.size() > 1 && str[0] == '0')
 	{
-		if(str.size() > 1 && str[1] == 'x')
+		if(str.size() > 2 && str[1] == 'x')
 			return std::stol(str.substr(2), nullptr, 16);
-		else if(str.size() > 1 && str[1] == 'b')
+		else if(str.size() > 2 && str[1] == 'b')
 			return std::stol(str.substr(2), nullptr, 2);
 		else
 			return std::stol(str.substr(1), nullptr, 8);
@@ -42,13 +42,13 @@ long toint(const std::string& str)
 
 double tonum(const std::string& str)
 {
-	if(str.size() > 0 && str[0] == '0')
+	if(str.size() > 1 && str[0] == '0')
 	{
-		if(str.size() > 1 && str[1] == 'x')
+		if(str.size() > 2 && str[1] == 'x')
 			return std::stol(str.substr(2), nullptr, 16);
-		else if(str.size() > 1 && str[1] == 'b')
+		else if(str.size() > 2 && str[1] == 'b')
 			return std::stol(str.substr(2), nullptr, 2);
-		else if(str.size() > 1 && str[1] == '.')
+		else if(str.size() > 2 && str[1] == '.')
 			return std::stod(str);
 		else
 			return std::stol(str.substr(1), nullptr, 8);

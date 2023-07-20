@@ -2,6 +2,54 @@
 #define CMDS_HPP_
 #include"CommandParser.hpp"
 
+struct Csccmd:Command
+{
+	Csccmd()
+        :Command("Computes cosecant of an angle in radians.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Seccmd:Command
+{
+	Seccmd()
+        :Command("Computes secant of an angle in radians.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Cotcmd:Command
+{
+	Cotcmd()
+        :Command("Computes cotangent of an angle in radians.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Tancmd:Command
+{
+	Tancmd()
+        :Command("Computes tangent of an angle in radians.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Coscmd:Command
+{
+	Coscmd()
+        :Command("Computes cosine of an angle in radians.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Sincmd:Command
+{
+	Sincmd()
+        :Command("Computes sine of an angle in radians.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct Logcmd:Command
 {
 	Logcmd()
