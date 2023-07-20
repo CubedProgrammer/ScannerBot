@@ -81,6 +81,10 @@ int main(int argl,char**argv)
     cout << selfuser.id << ' ' << selfuser.username << endl;
     for(const auto &p : guilds)
     	cout << p.first << ' ' << p.second["pref"] << endl;
+    ptrCommand atan2cmd(new Atan2cmd());
+    ptrCommand atancmd(new Atancmd());
+    ptrCommand acoscmd(new Acoscmd());
+    ptrCommand asincmd(new Asincmd());
     ptrCommand csccmd(new Csccmd());
     ptrCommand seccmd(new Seccmd());
     ptrCommand cotcmd(new Cotcmd());
@@ -101,8 +105,12 @@ int main(int argl,char**argv)
     ptrCommand prefixcmd(new Prefixcmd("Sets the prefix for the bot."));
     ptrCommand productcmd(new Productcmd("Computes the product of all numbers given."));
     ptrCommand sumcmd(new Sumcmd("Computes the sum of all numbers given."));
-    vector<string>cmdnamevec{"csc", "sec", "cot", "tan", "cos", "sin", "log", "pow", "harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
+    vector<string>cmdnamevec{"atan2", "atan", "acos", "asin", "csc", "sec", "cot", "tan", "cos", "sin", "log", "pow", "harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
     vector<ptrCommand>cmdvec;
+    cmdvec.push_back(move(atan2cmd));
+    cmdvec.push_back(move(atancmd));
+    cmdvec.push_back(move(acoscmd));
+    cmdvec.push_back(move(asincmd));
     cmdvec.push_back(move(csccmd));
     cmdvec.push_back(move(seccmd));
     cmdvec.push_back(move(cotcmd));

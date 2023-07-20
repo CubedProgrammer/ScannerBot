@@ -23,6 +23,92 @@ using namespace dpp;
 
 extern guildmap allguilds;
 
+string Atan2cmd::operator()(const message& og, const string* args, size_t size)const
+{
+    if(size < 2)
+        return "Two arguments are required, y and x.";
+    else
+    {
+        double x = tonum(args[1]), y = tonum(args[0]);
+		return tostr(std::atan2(y, x));
+    }
+}
+
+string Atancmd::operator()(const message& og, const string* args, size_t size)const
+{
+	double num = 0;
+    string resstr;
+    try
+    {
+        for(size_t i = 0; i < size; ++i)
+        {
+            num = tonum(args[i]);
+			if(i)
+				resstr += ' ';
+			resstr += tostr(std::atan(num));
+        }
+    }
+	catch(std::invalid_argument&e)
+	{
+		resstr += e.what() + " invalid argument"s;
+	}
+	catch(std::out_of_range&e)
+	{
+		resstr += e.what() + " out of range."s;
+	}
+	return resstr;
+}
+
+string Acoscmd::operator()(const message& og, const string* args, size_t size)const
+{
+	double num = 0;
+    string resstr;
+    try
+    {
+        for(size_t i = 0; i < size; ++i)
+        {
+            num = tonum(args[i]);
+			if(i)
+				resstr += ' ';
+			resstr += tostr(std::acos(num));
+        }
+    }
+	catch(std::invalid_argument&e)
+	{
+		resstr += e.what() + " invalid argument"s;
+	}
+	catch(std::out_of_range&e)
+	{
+		resstr += e.what() + " out of range."s;
+	}
+	return resstr;
+}
+
+string Asincmd::operator()(const message& og, const string* args, size_t size)const
+{
+	double num = 0;
+    string resstr;
+    try
+    {
+        for(size_t i = 0; i < size; ++i)
+        {
+            num = tonum(args[i]);
+			if(i)
+				resstr += ' ';
+			resstr += tostr(std::asin(num));
+        }
+    }
+	catch(std::invalid_argument&e)
+	{
+		resstr += e.what() + " invalid argument"s;
+	}
+	catch(std::out_of_range&e)
+	{
+		resstr += e.what() + " out of range."s;
+	}
+	return resstr;
+}
+
 string Csccmd::operator()(const message& og, const string* args, size_t size)const
 {
 	double num = 0;

@@ -2,6 +2,38 @@
 #define CMDS_HPP_
 #include"CommandParser.hpp"
 
+struct Atan2cmd:Command
+{
+	Atan2cmd()
+		:Command("Computes inverse tangent with two arguments, y and x, in radians.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Atancmd:Command
+{
+	Atancmd()
+		:Command("Computes inverse tangent in radians.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Acoscmd:Command
+{
+	Acoscmd()
+		:Command("Computes inverse cosine in radians.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Asincmd:Command
+{
+	Asincmd()
+		:Command("Computes inverse sine in radians.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct Csccmd:Command
 {
 	Csccmd()
