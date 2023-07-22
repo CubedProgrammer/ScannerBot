@@ -1,9 +1,25 @@
 #ifndef ALGO_STR_HPP_
 #define ALGO_STR_HPP_
 #include<algorithm>
+#include<cctype>
 #include<sstream>
 
-std::string numstr(long num, int base)
+inline bool are_equal_ignore_case(const std::string& l, const std::string& r)
+{
+    using std::size_t;
+    using std::tolower;
+    if(l.size() == r.size())
+    {
+        bool eq = true;
+        for(size_t i = 0; i < l.size(); ++i)
+            eq = eq && tolower(l[i]) == tolower(r[i]);
+        return eq;
+    }
+    else
+        return false;
+}
+
+inline std::string numstr(long num, int base)
 {
     static const char digits[] = "0123456789abcdefghijklmnopqrstuvwxyz";
     std::ostringstream oss;
@@ -25,7 +41,7 @@ std::string numstr(long num, int base)
     return str;
 }
 
-long toint(const std::string& str)
+inline long toint(const std::string& str)
 {
 	if(str.size() > 1 && str[0] == '0')
 	{
@@ -40,7 +56,7 @@ long toint(const std::string& str)
 		return std::stol(str);
 }
 
-double tonum(const std::string& str)
+inline double tonum(const std::string& str)
 {
 	if(str.size() > 1 && str[0] == '0')
 	{

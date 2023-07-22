@@ -23,6 +23,41 @@ using namespace dpp;
 
 extern guildmap allguilds;
 
+string Autorolecmd::operator()(const message& og, const string* args, size_t size)const
+{
+	snowflake gid = og.guild_id;
+	if(size > 0)
+	{
+		if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+		{
+			auto& aroles = allguilds[gid]["autoroles"];
+			json numid;
+			std::optional<role>roleid;
+			string retstr;
+			for(size_t i = 0; i < size; ++i)
+			{
+				roleid = findrole(*og.owner, gid, args[i]);
+				if(!roleid)
+				{
+					retstr += args[i] + " could not be found,\n";
+					continue;
+				}
+				numid = (std::uint64_t)roleid->id;
+				auto it = std::find(aroles.begin(), aroles.end(), numid);
+				if(it == aroles.end())
+					aroles.push_back(numid);
+				else
+					aroles.erase(it);
+			}
+			return retstr.size() ? retstr : "Successfully toggled autoroles.";
+		}
+		else
+			return"You do not have permission to use this command.";
+	}
+	else
+		return tostr(allguilds[gid]["autoroles"]);
+}
+
 string Atan2cmd::operator()(const message& og, const string* args, size_t size)const
 {
     if(size < 2)

@@ -2,6 +2,14 @@
 #define CMDS_HPP_
 #include"CommandParser.hpp"
 
+struct Autorolecmd:Command
+{
+	Autorolecmd()
+		:Command("Displays all autoroles with no arguments. Toggles if a role is an autorole.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct Atan2cmd:Command
 {
 	Atan2cmd()
