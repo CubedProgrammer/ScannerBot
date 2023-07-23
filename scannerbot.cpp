@@ -19,6 +19,7 @@ using std::make_unique;
 using std::ostream;
 using std::ostringstream;
 using std::string;
+using std::uint64_t;
 using std::vector;
 using nlohmann::json;
 
@@ -134,6 +135,12 @@ int main(int argl,char**argv)
     cmdvec.push_back(move(productcmd));
     cmdvec.push_back(move(sumcmd));
     CommandParser parser(verstr, cmdnamevec, cmdvec);
+    auto memjoin = [&scannerbot, &guilds](const guild_member_add_t &evt)
+    {
+        json& guild_dat = guilds[evt.added.guild_id];
+        for(const auto& roleid : guild_dat["autoroles"])
+            scannerbot.guild_member_add_role(evt.added.guild_id, evt.added.user_id, snowflake((uint64_t)roleid));
+    };
     auto evtr = [&parser,&guilds,&mention,&selfuser,&verstr](const message_create_t &evt)
     {
         if(selfuser.id != evt.msg.author.id)
@@ -148,6 +155,7 @@ int main(int argl,char**argv)
             {
             	cout << "Added guild " << evt.msg.guild_id << endl;
             	guilds[evt.msg.guild_id]["pref"] = "--";
+                guilds[evt.msg.guild_id]["autoroles"] = json::array();
 			}
             const string &pref = guilds[evt.msg.guild_id]["pref"];
 #if __cplusplus >= 202002L
@@ -166,9 +174,9 @@ int main(int argl,char**argv)
         }
     };
     scannerbot.on_message_create(evtr);
+    scannerbot.on_guild_member_add(memjoin);
     scannerbot.start();
     cout << "Scanner Bot v" << verstr << " has begun." << endl;
-    cout.flush();
     cin.get();
     save(guilds);
     return 0;
