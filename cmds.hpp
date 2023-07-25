@@ -2,6 +2,22 @@
 #define CMDS_HPP_
 #include"CommandParser.hpp"
 
+struct Selfrolecmd:Command
+{
+	Selfrolecmd()
+		:Command("Give yourself a selfrole.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Toggleselfrolecmd:Command
+{
+	Toggleselfrolecmd()
+		:Command("Displays all selfroles with no arguments. Toggles if a role is an selfrole.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct Autorolecmd:Command
 {
 	Autorolecmd()

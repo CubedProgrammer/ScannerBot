@@ -8,8 +8,9 @@ using namespace dpp;
 bool hasperm(cluster& bot, const guild_member& member, permission perm)
 {
 	permission mperms;
+	auto rmap = bot.roles_get_sync(member.guild_id);
 	for(auto x:member.roles)
-		mperms.add(getrole(bot, member.guild_id, x).permissions);
+		mperms.add(rmap.at(x).permissions);
 	return mperms.has(perm);
 }
 
