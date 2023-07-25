@@ -9,6 +9,7 @@
 #include"cmds.hpp"
 
 using std::cos;
+using std::find;
 using std::gcd;
 using std::pair;
 using std::sin;
@@ -22,6 +23,77 @@ using nlohmann::json;
 using namespace dpp;
 
 extern guildmap allguilds;
+
+string Selfrolecmd::operator()(const message& og, const string* args, size_t size)const
+{
+	snowflake gid = og.guild_id;
+	if(size > 0)
+	{
+		auto& sroles = allguilds[gid]["selfroles"];
+		json numid;
+		std::optional<role>roleid;
+		string retstr;
+		for(size_t i = 0; i < size; ++i)
+		{
+			roleid = findrole(*og.owner, gid, args[i]);
+			if(!roleid)
+			{
+				retstr += args[i] + " could not be found,\n";
+				continue;
+			}
+			numid = (std::uint64_t)roleid->id;
+			auto& memrole = og.member.roles;
+			auto it = find(sroles.begin(), sroles.end(), numid);
+			if(it == sroles.end())
+			{
+				retstr += args[i] + " could not be found,\n";
+				continue;
+			}
+			else if(find(memrole.begin(), memrole.end(), roleid->id) == memrole.end())
+				og.owner->guild_member_add_role(og.guild_id, og.author.id, roleid->id);
+			else
+				og.owner->guild_member_remove_role(og.guild_id, og.author.id, roleid->id);
+		}
+		return retstr.size() ? retstr : "Successfully updated your roles.";
+	}
+	else
+		return"Name a role to give yourself.";
+}
+
+string Toggleselfrolecmd::operator()(const message& og, const string* args, size_t size)const
+{
+	snowflake gid = og.guild_id;
+	if(size > 0)
+	{
+		if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+		{
+			auto& sroles = allguilds[gid]["selfroles"];
+			json numid;
+			std::optional<role>roleid;
+			string retstr;
+			for(size_t i = 0; i < size; ++i)
+			{
+				roleid = findrole(*og.owner, gid, args[i]);
+				if(!roleid)
+				{
+					retstr += args[i] + " could not be found,\n";
+					continue;
+				}
+				numid = (std::uint64_t)roleid->id;
+				auto it = find(sroles.begin(), sroles.end(), numid);
+				if(it == sroles.end())
+					sroles.push_back(numid);
+				else
+					sroles.erase(it);
+			}
+			return retstr.size() ? retstr : "Successfully toggled selfroles.";
+		}
+		else
+			return"You do not have permission to use this command.";
+	}
+	else
+		return tostr(allguilds[gid]["selfroles"]);
+}
 
 string Autorolecmd::operator()(const message& og, const string* args, size_t size)const
 {
@@ -43,7 +115,7 @@ string Autorolecmd::operator()(const message& og, const string* args, size_t siz
 					continue;
 				}
 				numid = (std::uint64_t)roleid->id;
-				auto it = std::find(aroles.begin(), aroles.end(), numid);
+				auto it = find(aroles.begin(), aroles.end(), numid);
 				if(it == aroles.end())
 					aroles.push_back(numid);
 				else

@@ -82,6 +82,8 @@ int main(int argl,char**argv)
     cout << selfuser.id << ' ' << selfuser.username << endl;
     for(const auto &p : guilds)
     	cout << p.first << ' ' << p.second["pref"] << endl;
+    ptrCommand selfrolecmd(new Selfrolecmd());
+    ptrCommand toggleselfrolecmd(new Toggleselfrolecmd());
     ptrCommand autorolecmd(new Autorolecmd());
     ptrCommand atan2cmd(new Atan2cmd());
     ptrCommand atancmd(new Atancmd());
@@ -107,8 +109,10 @@ int main(int argl,char**argv)
     ptrCommand prefixcmd(new Prefixcmd("Sets the prefix for the bot."));
     ptrCommand productcmd(new Productcmd("Computes the product of all numbers given."));
     ptrCommand sumcmd(new Sumcmd("Computes the sum of all numbers given."));
-    vector<string>cmdnamevec{"autorole", "atan2", "atan", "acos", "asin", "csc", "sec", "cot", "tan", "cos", "sin", "log", "pow", "harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
+    vector<string>cmdnamevec{"selfrole", "toggleselfrole", "autorole", "atan2", "atan", "acos", "asin", "csc", "sec", "cot", "tan", "cos", "sin", "log", "pow", "harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
     vector<ptrCommand>cmdvec;
+    cmdvec.push_back(move(selfrolecmd));
+    cmdvec.push_back(move(toggleselfrolecmd));
     cmdvec.push_back(move(autorolecmd));
     cmdvec.push_back(move(atan2cmd));
     cmdvec.push_back(move(atancmd));
@@ -156,6 +160,7 @@ int main(int argl,char**argv)
             	cout << "Added guild " << evt.msg.guild_id << endl;
             	guilds[evt.msg.guild_id]["pref"] = "--";
                 guilds[evt.msg.guild_id]["autoroles"] = json::array();
+                guilds[evt.msg.guild_id]["selfroles"] = json::array();
 			}
             const string &pref = guilds[evt.msg.guild_id]["pref"];
 #if __cplusplus >= 202002L
