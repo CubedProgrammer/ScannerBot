@@ -9,12 +9,14 @@ using std::string_literals::operator""s;
 using std::vector;
 using namespace dpp;
 
+constexpr char *ENDCMDCP = "__end__";
 #if __cplusplus >= 202002L
-constexpr
+//constexpr
+const
 #else
 const
 #endif
-string ENDCMD = "__end__";
+string ENDCMD = ENDCMDCP;
 
 Command::Command(string desc)
 	:description(move(desc))
