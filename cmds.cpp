@@ -3,6 +3,7 @@
 #include<regex>
 #include<sstream>
 #include<stdexcept>
+#include<thread>
 #include<nlohmann/json.hpp>
 #include"algo/discord.hpp"
 #include"algo/math.hpp"
@@ -25,6 +26,7 @@ using namespace dpp;
 
 extern guildmap allguilds;
 extern gdatamap gdata;
+std::chrono::time_point<std::chrono::system_clock>lastfetch;
 
 string Infocmd::operator()(const message& og, const string* args, size_t size)const
 {
@@ -78,6 +80,16 @@ string Infocmd::operator()(const message& og, const string* args, size_t size)co
 	}
 	else
 	{
+		using namespace std::chrono;
+		using namespace std::literals::chrono_literals;
+		auto currtm = system_clock::now();
+		auto elapsed = currtm - lastfetch;
+		if(elapsed > 6s)
+		{
+			fetch_guilds(bot);
+			lastfetch = currtm;
+			std::this_thread::sleep_for(997ms);
+		}
 		auto& currguild = gdata[gid];
 		oss << "Name: " << currguild.name << '\n';
 		oss << currguild.description << '\n';

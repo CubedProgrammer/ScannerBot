@@ -29,6 +29,7 @@ constexpr byte VERSION_MINOR = (byte)0;
 constexpr byte VERSION_PATCH = (byte)0;
 guildmap allguilds;
 gdatamap gdata;
+extern std::chrono::time_point<std::chrono::system_clock>lastfetch;
 
 ostream &operator<<(ostream &os, byte b)
 {
@@ -186,6 +187,7 @@ int main(int argl,char**argv)
     scannerbot.on_guild_member_add(memjoin);
     scannerbot.start();
     cout << "Scanner Bot v" << verstr << " has begun." << endl;
+    lastfetch = std::chrono::system_clock::now();
     fetch_guilds(scannerbot);
     cin.get();
     save(guilds);
