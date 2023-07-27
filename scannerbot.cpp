@@ -9,6 +9,7 @@
 #include<vector>
 #include<nlohmann/json.hpp>
 #include<dpp/dpp.h>
+#include"algo/discord.hpp"
 #include"cmds.hpp"
 
 using std::byte;
@@ -27,6 +28,7 @@ constexpr byte VERSION_MAJOR = (byte)1;
 constexpr byte VERSION_MINOR = (byte)0;
 constexpr byte VERSION_PATCH = (byte)0;
 guildmap allguilds;
+gdatamap gdata;
 
 ostream &operator<<(ostream &os, byte b)
 {
@@ -82,6 +84,7 @@ int main(int argl,char**argv)
     cout << selfuser.id << ' ' << selfuser.username << endl;
     for(const auto &p : guilds)
     	cout << p.first << ' ' << p.second["pref"] << endl;
+    ptrCommand infocmd(new Infocmd());
     ptrCommand selfrolecmd(new Selfrolecmd());
     ptrCommand toggleselfrolecmd(new Toggleselfrolecmd());
     ptrCommand autorolecmd(new Autorolecmd());
@@ -109,8 +112,9 @@ int main(int argl,char**argv)
     ptrCommand prefixcmd(new Prefixcmd("Sets the prefix for the bot."));
     ptrCommand productcmd(new Productcmd("Computes the product of all numbers given."));
     ptrCommand sumcmd(new Sumcmd("Computes the sum of all numbers given."));
-    vector<string>cmdnamevec{"selfrole", "toggleselfrole", "autorole", "atan2", "atan", "acos", "asin", "csc", "sec", "cot", "tan", "cos", "sin", "log", "pow", "harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
+    vector<string>cmdnamevec{"info", "selfrole", "toggleselfrole", "autorole", "atan2", "atan", "acos", "asin", "csc", "sec", "cot", "tan", "cos", "sin", "log", "pow", "harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
     vector<ptrCommand>cmdvec;
+    cmdvec.push_back(move(infocmd));
     cmdvec.push_back(move(selfrolecmd));
     cmdvec.push_back(move(toggleselfrolecmd));
     cmdvec.push_back(move(autorolecmd));
@@ -182,6 +186,7 @@ int main(int argl,char**argv)
     scannerbot.on_guild_member_add(memjoin);
     scannerbot.start();
     cout << "Scanner Bot v" << verstr << " has begun." << endl;
+    fetch_guilds(scannerbot);
     cin.get();
     save(guilds);
     return 0;

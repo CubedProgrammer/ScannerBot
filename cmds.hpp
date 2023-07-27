@@ -2,6 +2,14 @@
 #define CMDS_HPP_
 #include"CommandParser.hpp"
 
+struct Infocmd:Command
+{
+	Infocmd()
+		:Command("Gives information on the server with no arguments, or a user, channel, or role by mention.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct Selfrolecmd:Command
 {
 	Selfrolecmd()

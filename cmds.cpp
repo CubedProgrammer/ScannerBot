@@ -1,5 +1,6 @@
 #include<cmath>
 #include<numeric>
+#include<regex>
 #include<sstream>
 #include<stdexcept>
 #include<nlohmann/json.hpp>
@@ -23,6 +24,78 @@ using nlohmann::json;
 using namespace dpp;
 
 extern guildmap allguilds;
+extern gdatamap gdata;
+
+string Infocmd::operator()(const message& og, const string* args, size_t size)const
+{
+	std::ostringstream oss;
+	cluster &bot = *og.owner;
+	snowflake gid = og.guild_id, id;
+	long unsigned luid;
+	string idstr;
+	guild_member mem;
+	role r;
+	channel ch;
+	if(size > 0)
+	{
+		role_map rmap = bot.roles_get_sync(gid);
+		std::regex digitonly("[^0-9]");
+		for(size_t i = 0; i < size; ++i)
+		{
+			if(args[i].size() > 4)
+			{
+				idstr = regex_replace(args[i], digitonly, "");
+				luid = std::stoul(idstr);
+				id = luid;
+				switch(args[i][1])
+				{
+					case '#':
+						ch = bot.channel_get_sync(id);
+						oss << "ID: " << luid << '\n';
+						oss << "Member Count: " << ch.get_members().size() << '\n';
+						oss << "Rate Limit in Seconds: " << ch.rate_limit_per_user << '\n';
+						break;
+						break;
+					default:
+						if(args[i][2] == '&')
+						{
+							r = rmap.at(id);
+							oss << "ID: " << luid << '\n';
+							oss << "Colour: 0x" << std::hex << r.colour << '\n';
+							oss << "Permissions: 0x" << (std::uint64_t)r.permissions << std::dec << '\n';
+							oss << "Position: " << (int)r.position << '\n';
+						}
+						else
+						{
+							mem = bot.guild_get_member_sync(gid, id);
+							oss << "ID: " << luid << '\n';
+							oss << "Joined at: " << mem.joined_at << '\n';
+							oss << "Number of roles: " << mem.roles.size() << '\n';
+						}
+				}
+			}
+		}
+	}
+	else
+	{
+		auto& currguild = gdata[gid];
+		oss << "Name: " << currguild.name << '\n';
+		oss << currguild.description << '\n';
+		oss << "Roles: " << currguild.roles.size() << '\n';
+		oss << "Channels: " << currguild.channels.size() << '\n';
+		oss << "Threads: " << currguild.threads.size() << '\n';
+		oss << "Emoji: " << currguild.emojis.size() << '\n';
+		oss << "Owner ID: " << (std::uint64_t)currguild.owner_id << '\n';
+		oss << "Member Count: " << currguild.member_count << '\n';
+		oss << "ID: " << currguild.id << '\n';
+		oss << "Creation Time: " << currguild.get_creation_time() << '\n';
+		oss << "Rules Channel: " << (std::uint64_t)currguild.rules_channel_id << '\n';
+		oss << "System Channel: " << (std::uint64_t)currguild.system_channel_id << '\n';
+		oss << "Icon URL: " << currguild.get_icon_url() << '\n';
+		oss << "Splash URL: " << currguild.get_splash_url() << '\n';
+	}
+	return oss.str();
+}
 
 string Selfrolecmd::operator()(const message& og, const string* args, size_t size)const
 {

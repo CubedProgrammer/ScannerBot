@@ -1,9 +1,14 @@
+#include<iostream>
+#include<nlohmann/json.hpp>
 #include"str.hpp"
 #include"discord.hpp"
 
 using std::optional;
 using std::string;
 using namespace dpp;
+
+extern std::unordered_map<dpp::snowflake,nlohmann::json>allguilds;
+extern std::unordered_map<dpp::snowflake,dpp::guild>gdata;
 
 bool hasperm(cluster& bot, const guild_member& member, permission perm)
 {
@@ -39,4 +44,18 @@ optional<role> findrole(cluster& bot, snowflake guild, string value)
 		}
 	}
     return ret;
+}
+
+void fetch_guilds(cluster& bot)
+{
+	snowflake idagain;
+    for(const auto &[id, j]: allguilds)
+    {
+		idagain = id;
+		auto callback = [idagain](const confirmation_callback_t& res)
+		{
+			gdata[idagain] = res.get<guild>();
+    	};
+        bot.guild_get(id, callback);
+    }
 }
