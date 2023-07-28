@@ -85,6 +85,7 @@ int main(int argl,char**argv)
     cout << selfuser.id << ' ' << selfuser.username << endl;
     for(const auto &p : guilds)
     	cout << p.first << ' ' << p.second["pref"] << endl;
+    ptrCommand muterolecmd(new Muterolecmd());
     ptrCommand bancmd(new Bancmd());
     ptrCommand kickcmd(new Kickcmd());
     ptrCommand dloptionscmd(new DLOptionscmd());
@@ -116,8 +117,9 @@ int main(int argl,char**argv)
     ptrCommand prefixcmd(new Prefixcmd("Sets the prefix for the bot."));
     ptrCommand productcmd(new Productcmd("Computes the product of all numbers given."));
     ptrCommand sumcmd(new Sumcmd("Computes the sum of all numbers given."));
-    vector<string>cmdnamevec{"ban", "kick", "dloptions", "info", "selfrole", "toggleselfrole", "autorole", "atan2", "atan", "acos", "asin", "csc", "sec", "cot", "tan", "cos", "sin", "log", "pow", "harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
+    vector<string>cmdnamevec{"muterole", "ban", "kick", "dloptions", "info", "selfrole", "toggleselfrole", "autorole", "atan2", "atan", "acos", "asin", "csc", "sec", "cot", "tan", "cos", "sin", "log", "pow", "harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
     vector<ptrCommand>cmdvec;
+    cmdvec.push_back(move(muterolecmd));
     cmdvec.push_back(move(bancmd));
     cmdvec.push_back(move(kickcmd));
     cmdvec.push_back(move(dloptionscmd));
@@ -172,6 +174,7 @@ int main(int argl,char**argv)
             	guilds[evt.msg.guild_id]["pref"] = "--";
                 guilds[evt.msg.guild_id]["autoroles"] = json::array();
                 guilds[evt.msg.guild_id]["selfroles"] = json::array();
+            	guilds[evt.msg.guild_id]["muterole"] = 0;
 			}
             const string &pref = guilds[evt.msg.guild_id]["pref"];
 #if __cplusplus >= 202002L

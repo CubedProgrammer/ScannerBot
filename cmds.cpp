@@ -28,6 +28,37 @@ extern guildmap allguilds;
 extern gdatamap gdata;
 std::chrono::time_point<std::chrono::system_clock>lastfetch;
 
+string Muterolecmd::operator()(const message& og, const string* args, size_t size)const
+{
+	snowflake gid = og.guild_id;
+	if(size > 0)
+	{
+		if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+		{
+			auto& mrole = allguilds[gid]["muterole"];
+			json numid;
+			std::optional<role>roleid = findrole(*og.owner, gid, args[0]);
+			if(!roleid)
+			{
+				return args[0] + " could not be found,\n";
+			}
+			else
+			{
+				numid = (std::uint64_t)roleid->id;
+				if(numid == mrole)
+					mrole = nullptr;
+				else
+					mrole = numid;
+				return"Successfully updated muterole.";
+			}
+		}
+		else
+			return"You do not have permission to use this command.";
+	}
+	else
+		return tostr(allguilds[gid]["muterole"]);
+}
+
 string Bancmd::operator()(const message& og, const string* args, size_t size)const
 {
     unsigned failed = 0;

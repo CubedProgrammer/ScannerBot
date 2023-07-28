@@ -3,6 +3,14 @@
 #include<chrono>
 #include"CommandParser.hpp"
 
+struct Muterolecmd:Command
+{
+	Muterolecmd()
+		:Command("Displays the current muterole with no arguments. Sets the new muterole otherwise to the first argument.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct Bancmd:Command
 {
 	Bancmd()
