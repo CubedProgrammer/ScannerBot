@@ -1,4 +1,5 @@
-#include<iostream>
+#include<algorithm>
+#include<vector>
 #include<nlohmann/json.hpp>
 #include"str.hpp"
 #include"discord.hpp"
@@ -44,6 +45,20 @@ optional<role> findrole(cluster& bot, snowflake guild, string value)
 		}
 	}
     return ret;
+}
+
+int member_cmpr(cluster& bot, const dpp::guild_member& x, const dpp::guild_member& y)
+{
+	using namespace std;
+	snowflake gid = x.guild_id;
+	auto roles = bot.roles_get_sync(gid);
+	// ()
+	role xhigh = roles.at(gid), yhigh = xhigh;
+	for(auto rid : x.roles)
+		xhigh = max(xhigh, roles.at(rid));
+	for(auto rid : y.roles)
+		yhigh = max(yhigh, roles.at(rid));
+	return xhigh > yhigh ? 1 : xhigh < yhigh ? -1 : 0;
 }
 
 void fetch_guilds(cluster& bot)

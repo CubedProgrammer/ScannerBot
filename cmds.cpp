@@ -28,6 +28,67 @@ extern guildmap allguilds;
 extern gdatamap gdata;
 std::chrono::time_point<std::chrono::system_clock>lastfetch;
 
+string Bancmd::operator()(const message& og, const string* args, size_t size)const
+{
+    unsigned failed = 0;
+	long unsigned luid;
+	snowflake id;
+	// () >
+	if(hasperm(*og.owner, og.member, permissions::p_ban_members))
+    {
+		string retstr;
+        for(size_t i = 0; i < size; ++i)
+        {
+			auto& arg = args[i];
+			if(arg.size() > 3 && arg[1] == '@')
+			{
+				luid = std::stoul(arg.substr(2, arg.size() - 3));
+				id = luid;
+				if(member_cmpr(*og.owner, og.member, og.owner->guild_get_member_sync(og.guild_id, id)) > 0)
+					og.owner->guild_ban_add(og.guild_id, id);
+				else
+					retstr += "You have insufficient rank to ban " + arg + ".\n";
+			}
+			else
+				++failed;
+        }
+		retstr += failed ? tostr(failed) + " failed, you must ping the users." : "Successfully banned them.";
+		return retstr;
+    }
+	else
+		return"You do not have permission to use this command.";
+}
+
+string Kickcmd::operator()(const message& og, const string* args, size_t size)const
+{
+    unsigned failed = 0;
+	long unsigned luid;
+	snowflake id;
+	if(hasperm(*og.owner, og.member, permissions::p_kick_members))
+    {
+		string retstr;
+        for(size_t i = 0; i < size; ++i)
+        {
+			auto& arg = args[i];
+			if(arg.size() > 3 && arg[1] == '@')
+			{
+				luid = std::stoul(arg.substr(2, arg.size() - 3));
+				id = luid;
+				if(member_cmpr(*og.owner, og.member, og.owner->guild_get_member_sync(og.guild_id, id)) > 0)
+					og.owner->guild_member_kick(og.guild_id, id);
+				else
+					retstr += "You have insufficient rank to kick " + arg + ".\n";
+			}
+			else
+				++failed;
+        }
+		retstr += failed ? tostr(failed) + " failed, you must ping the users." : "Successfully kicked them.";
+		return retstr;
+    }
+	else
+		return"You do not have permission to use this command.";
+}
+
 string DLOptionscmd::operator()(const message& og, const string* args, size_t size)const
 {
 	snowflake gid = og.guild_id;

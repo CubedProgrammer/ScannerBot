@@ -3,6 +3,22 @@
 #include<chrono>
 #include"CommandParser.hpp"
 
+struct Bancmd:Command
+{
+	Bancmd()
+		:Command("Bans a user from this server.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Kickcmd:Command
+{
+	Kickcmd()
+		:Command("Kicks a user from this server.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct DLOptionscmd:Command
 {
 	DLOptionscmd()

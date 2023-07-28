@@ -149,7 +149,5 @@ string CommandParser::run(const message& og,string* args, size_t size)const
 		if(pending.size() > 0)
 			args[pending.back().second+pending.back().first] = move(res);
 	}
-	if(res.size() == 0)
-		res = "k";
 	return res;
 }
