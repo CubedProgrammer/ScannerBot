@@ -54,7 +54,7 @@ void fetch_guilds(cluster& bot)
 		idagain = id;
 		auto callback = [idagain](const confirmation_callback_t& res)
 		{
-			gdata[idagain] = res.get<guild>();
+			gdata[idagain] = std::get<guild>(res.value);
     	};
         bot.guild_get(id, callback);
     }

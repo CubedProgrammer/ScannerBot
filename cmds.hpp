@@ -3,6 +3,14 @@
 #include<chrono>
 #include"CommandParser.hpp"
 
+struct DLOptionscmd:Command
+{
+	DLOptionscmd()
+		:Command("Download the options file for this server.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct Infocmd:Command
 {
 	Infocmd()

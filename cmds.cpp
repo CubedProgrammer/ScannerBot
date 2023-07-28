@@ -28,6 +28,31 @@ extern guildmap allguilds;
 extern gdatamap gdata;
 std::chrono::time_point<std::chrono::system_clock>lastfetch;
 
+string DLOptionscmd::operator()(const message& og, const string* args, size_t size)const
+{
+	snowflake gid = og.guild_id;
+	if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+	{
+		auto& options = allguilds[gid];
+		std::ostringstream oss;
+		oss << options;
+		string cont = oss.str();
+		oss.str("");
+		oss << std::hex << (std::uint64_t)gid << ".json";
+		string fname = oss.str();
+		std::cout << 1;
+		message m(og.channel_id, "Here are the options you have set for your server.");
+		std::cout << 2;
+		m.add_file(fname, cont);
+		std::cout << 3;
+		og.owner->message_create(m);
+		std::cout << 4;
+		return"";
+	}
+	else
+		return"You do not have permission to use this command.";
+}
+
 string Infocmd::operator()(const message& og, const string* args, size_t size)const
 {
 	std::ostringstream oss;
