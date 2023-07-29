@@ -28,6 +28,44 @@ extern guildmap allguilds;
 extern gdatamap gdata;
 std::chrono::time_point<std::chrono::system_clock>lastfetch;
 
+string Macrolscmd::operator()(const message& og, const string* args, size_t size)const
+{
+	snowflake gid = og.guild_id;
+	auto& macros = allguilds[gid]["macros"];
+	string retstr;
+	for(auto it = macros.begin(); it != macros.end(); ++it)
+	{
+		string name = it.key(), expand = (string)it.value();
+		retstr += name + ' ' + expand + '\n';
+	}
+	return retstr;
+}
+
+string Undefcmd::operator()(const message& og, const string* args, size_t size)const
+{
+	snowflake gid = og.guild_id;
+	auto& macros = allguilds[gid]["macros"];
+    for(size_t i = 0; i < size; ++i)
+	{
+		string name = args[i].substr(1);
+		macros.erase(name);
+	}
+	return"Successfully removed macros.";
+}
+
+string Definecmd::operator()(const message& og, const string* args, size_t size)const
+{
+	snowflake gid = og.guild_id;
+	auto& macros = allguilds[gid]["macros"];
+	if(size >= 2)
+	{
+		macros[args[0]] = args[1];
+		return"Defined new macro.";
+	}
+	else
+		return"Give the macro a name and specify what it should expand to.";
+}
+
 string Muterolecmd::operator()(const message& og, const string* args, size_t size)const
 {
 	snowflake gid = og.guild_id;
@@ -64,7 +102,6 @@ string Bancmd::operator()(const message& og, const string* args, size_t size)con
     unsigned failed = 0;
 	long unsigned luid;
 	snowflake id;
-	// () >
 	if(hasperm(*og.owner, og.member, permissions::p_ban_members))
     {
 		string retstr;

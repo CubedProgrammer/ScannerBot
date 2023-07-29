@@ -85,6 +85,9 @@ int main(int argl,char**argv)
     cout << selfuser.id << ' ' << selfuser.username << endl;
     for(const auto &p : guilds)
     	cout << p.first << ' ' << p.second["pref"] << endl;
+    ptrCommand macrolscmd(new Macrolscmd());
+    ptrCommand undefcmd(new Undefcmd());
+    ptrCommand definecmd(new Definecmd());
     ptrCommand muterolecmd(new Muterolecmd());
     ptrCommand bancmd(new Bancmd());
     ptrCommand kickcmd(new Kickcmd());
@@ -117,8 +120,11 @@ int main(int argl,char**argv)
     ptrCommand prefixcmd(new Prefixcmd("Sets the prefix for the bot."));
     ptrCommand productcmd(new Productcmd("Computes the product of all numbers given."));
     ptrCommand sumcmd(new Sumcmd("Computes the sum of all numbers given."));
-    vector<string>cmdnamevec{"muterole", "ban", "kick", "dloptions", "info", "selfrole", "toggleselfrole", "autorole", "atan2", "atan", "acos", "asin", "csc", "sec", "cot", "tan", "cos", "sin", "log", "pow", "harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
+    vector<string>cmdnamevec{"macrols","undef","define", "muterole", "ban", "kick", "dloptions", "info", "selfrole", "toggleselfrole", "autorole", "atan2", "atan", "acos", "asin", "csc", "sec", "cot", "tan", "cos", "sin", "log", "pow", "harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
     vector<ptrCommand>cmdvec;
+    cmdvec.push_back(move(macrolscmd));
+    cmdvec.push_back(move(undefcmd));
+    cmdvec.push_back(move(definecmd));
     cmdvec.push_back(move(muterolecmd));
     cmdvec.push_back(move(bancmd));
     cmdvec.push_back(move(kickcmd));
@@ -175,6 +181,13 @@ int main(int argl,char**argv)
                 guilds[evt.msg.guild_id]["autoroles"] = json::array();
                 guilds[evt.msg.guild_id]["selfroles"] = json::array();
             	guilds[evt.msg.guild_id]["muterole"] = 0;
+            	guilds[evt.msg.guild_id]["macros"] = json::object();
+                json &macroobj = guilds[evt.msg.guild_id]["macros"];
+                macroobj["PI"] = "3.1415926535897932";
+                macroobj["E"] = "2.7182818245904524";
+                macroobj["SQRT2"] = "1.41421356237309505";
+                macroobj["SQRT3"] = "1.73205080756887729";
+                macroobj["prefreset"] = "prefix --";
 			}
             const string &pref = guilds[evt.msg.guild_id]["pref"];
 #if __cplusplus >= 202002L

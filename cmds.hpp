@@ -3,6 +3,30 @@
 #include<chrono>
 #include"CommandParser.hpp"
 
+struct Macrolscmd:Command
+{
+	Macrolscmd()
+		:Command("Displays all macros of this server.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Undefcmd:Command
+{
+	Undefcmd()
+		:Command("Removes a macro from your server, place a dash in front of the name so it does not get expanded.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Definecmd:Command
+{
+	Definecmd()
+		:Command("Defines a macro for your server, first argument is name, second is the macro expansion.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct Muterolecmd:Command
 {
 	Muterolecmd()

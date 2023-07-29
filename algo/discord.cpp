@@ -52,7 +52,6 @@ int member_cmpr(cluster& bot, const dpp::guild_member& x, const dpp::guild_membe
 	using namespace std;
 	snowflake gid = x.guild_id;
 	auto roles = bot.roles_get_sync(gid);
-	// ()
 	role xhigh = roles.at(gid), yhigh = xhigh;
 	for(auto rid : x.roles)
 		xhigh = max(xhigh, roles.at(rid));

@@ -1,3 +1,4 @@
+#include<regex>
 #include<stdexcept>
 #include"CommandParser.hpp"
 
@@ -7,16 +8,11 @@ using std::size_t;
 using std::string;
 using std::string_literals::operator""s;
 using std::vector;
+using nlohmann::json;
 using namespace dpp;
 
-constexpr char *ENDCMDCP = "__end__";
-#if __cplusplus >= 202002L
-//constexpr
-const
-#else
-const
-#endif
-string ENDCMD = ENDCMDCP;
+const string ENDCMD = "__end__";
+extern guildmap allguilds;
 
 Command::Command(string desc)
 	:description(move(desc))
@@ -29,12 +25,20 @@ CommandParser::CommandParser(string verstr,const vector<string>& names, vector<p
 		this->cmds[names[i]] = move(cmds[i]);
 }
 
-std::string CommandParser::operator()(const message& og,const std::string& cmd)const
+std::string CommandParser::operator()(const message& og,string cmd)const
 {
 	vector<string>tokens;
 	string curr;
+	json& macroobj = allguilds[og.guild_id]["macros"];
 	bool esc = false;
 	bool closed = false;
+	cmd = ' ' + cmd + ' ';
+	for(auto it = macroobj.begin(); it != macroobj.end(); ++it)
+	{
+		string name = it.key(), expand = ' ' + (string)it.value() + ' ';
+		std::regex tofind("\\s+" + name + "\\s+");
+		cmd = std::regex_replace(cmd, tofind, expand);
+	}
 	for(char c : cmd)
 	{
 		switch(c)

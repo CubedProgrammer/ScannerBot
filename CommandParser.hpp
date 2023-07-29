@@ -35,7 +35,7 @@ public:
 	CommandParser()=default;
 	CommandParser& operator=(const CommandParser& cmd)=default;
 	CommandParser& operator=(CommandParser&& cmd)=default;
-	std::string operator()(const dpp::message& og, const std::string& cmd)const;
+	std::string operator()(const dpp::message& og, std::string cmd)const;
 	void help(std::string& res, const std::vector<std::pair<std::size_t,std::size_t>>& pending, std::string *args)const;
 	std::string run(const dpp::message& og,std::string* args, std::size_t size)const;
 };
