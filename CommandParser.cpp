@@ -48,6 +48,7 @@ std::string CommandParser::operator()(const message& og,string cmd)const
 					curr += c;
 				else
 					closed = !closed;
+				esc = false;
 				break;
 			case ' ':
 				if(closed || esc)
@@ -57,6 +58,7 @@ std::string CommandParser::operator()(const message& og,string cmd)const
 					tokens.push_back(curr);
 					curr.clear();
 				}
+				esc = false;
 				break;
 			case '\\':
 				esc = !esc;

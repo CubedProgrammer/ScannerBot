@@ -309,14 +309,19 @@ string Infocmd::operator()(const message& og, const string* args, size_t size)co
 			std::this_thread::sleep_for(997ms);
 		}
 		auto& currguild = gdata[gid];
+		long rolecnt = bot.roles_get_sync(gid).size();
+		long channelcnt = bot.channels_get_sync(gid).size();
+		long threadcnt = bot.threads_get_active_sync(gid).threads.size();
+		long emojicnt = bot.guild_emojis_get_sync(gid).size();
+		long memcnt = bot.guild_get_members_sync(gid, 999, 0).size();
 		oss << "Name: " << currguild.name << '\n';
 		oss << currguild.description << '\n';
-		oss << "Roles: " << currguild.roles.size() << '\n';
-		oss << "Channels: " << currguild.channels.size() << '\n';
-		oss << "Threads: " << currguild.threads.size() << '\n';
-		oss << "Emoji: " << currguild.emojis.size() << '\n';
+		oss << "Roles: " << rolecnt << '\n';
+		oss << "Channels: " << channelcnt << '\n';
+		oss << "Threads: " << threadcnt << '\n';
+		oss << "Emoji: " << emojicnt << '\n';
 		oss << "Owner ID: " << (std::uint64_t)currguild.owner_id << '\n';
-		oss << "Member Count: " << currguild.member_count << '\n';
+		oss << "Member Count: " << memcnt << '\n';
 		oss << "ID: " << currguild.id << '\n';
 		oss << "Creation Time: " << currguild.get_creation_time() << '\n';
 		oss << "Rules Channel: " << (std::uint64_t)currguild.rules_channel_id << '\n';
