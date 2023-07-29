@@ -3,6 +3,22 @@
 #include<chrono>
 #include"CommandParser.hpp"
 
+struct Takerolecmd:Command
+{
+	Takerolecmd()
+		:Command("Takes a role from a member, first argument is a mention of the target user.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Giverolecmd:Command
+{
+	Giverolecmd()
+		:Command("Gives a member a role, first argument is a mention of the target user.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct Macrolscmd:Command
 {
 	Macrolscmd()

@@ -64,6 +64,7 @@ std::string CommandParser::operator()(const message& og,string cmd)const
 					break;
 			default:
 				curr += c;
+				esc = false;
 				break;
 		}
 	}

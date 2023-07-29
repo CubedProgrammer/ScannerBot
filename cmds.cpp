@@ -28,6 +28,70 @@ extern guildmap allguilds;
 extern gdatamap gdata;
 std::chrono::time_point<std::chrono::system_clock>lastfetch;
 
+string Takerolecmd::operator()(const message& og, const string* args, size_t size)const
+{
+	snowflake gid = og.guild_id;
+	if(size >= 2)
+	{
+		if(hasperm(*og.owner, og.member, permissions::p_manage_roles))
+		{
+			if(args[0][1] == '@')
+			{
+				std::optional<role>oprole;
+				std::uint64_t id = std::stoul(args[0].substr(2, args[0].size() - 3));
+				string retstr;
+    			for(size_t i = 1; i < size; ++i)
+				{
+					oprole = findrole(*og.owner, og.guild_id, args[i]);
+					if(oprole)
+						og.owner->guild_member_remove_role(og.guild_id, id, oprole->id);
+					else
+						retstr += args[i] + " could not be found.\n";
+				}
+				return retstr.size() ? retstr : "Succesfully updated member.";
+			}
+			else
+				return"Mention the user you wish to take the role from.";
+		}
+		else
+			return"You do not have permission to use this command.";
+	}
+	else
+		return"Name a member and a role to take from that member.";
+}
+
+string Giverolecmd::operator()(const message& og, const string* args, size_t size)const
+{
+	snowflake gid = og.guild_id;
+	if(size >= 2)
+	{
+		if(hasperm(*og.owner, og.member, permissions::p_manage_roles))
+		{
+			if(args[0][1] == '@')
+			{
+				std::optional<role>oprole;
+				std::uint64_t id = std::stoul(args[0].substr(2, args[0].size() - 3));
+				string retstr;
+    			for(size_t i = 1; i < size; ++i)
+				{
+					oprole = findrole(*og.owner, og.guild_id, args[i]);
+					if(oprole)
+						og.owner->guild_member_add_role(og.guild_id, id, oprole->id);
+					else
+						retstr += args[i] + " could not be found.\n";
+				}
+				return retstr.size() ? retstr : "Succesfully updated member.";
+			}
+			else
+				return"Mention the user you wish to give the role to.";
+		}
+		else
+			return"You do not have permission to use this command.";
+	}
+	else
+		return"Name a member and a role to give to that member.";
+}
+
 string Macrolscmd::operator()(const message& og, const string* args, size_t size)const
 {
 	snowflake gid = og.guild_id;
