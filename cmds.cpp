@@ -143,9 +143,11 @@ string Allrolecmd::operator()(const message& og, const string* args, size_t size
 	snowflake gid = og.guild_id;
 	if(size > 0)
 	{
+		cluster& bot = *og.owner;
 		std::optional<role>roleid;
 		string retstr;
-		map<snowflake, guild_member>mems, nxt;
+		vector<snowflake>rolelist;
+		auto gmems = bot.guild_get_members_sync(gid, 999, 0);
 		for(size_t i = 0; i < size; ++i)
 		{
 			roleid = findrole(*og.owner, gid, args[i]);
@@ -155,23 +157,14 @@ string Allrolecmd::operator()(const message& og, const string* args, size_t size
 				continue;
 			}
 			auto& r = *roleid;
-			auto rmembers = r.get_members();
-			if(i == 0)
-				mems.insert(rmembers.cbegin(), rmembers.cend());
-			else
-			{
-				for(const auto& [id, m]: mems)
-				{
-					if(rmembers.find(id) != rmembers.end())
-						nxt[id] = m;
-				}
-				mems = nxt;
-				nxt.clear();
-			}
+			rolelist.push_back(r.id);
 		}
 		retstr += "Here is the list of members.\n";
-		for(const auto& [id, m]: mems)
-			retstr += tostr((std::uint64_t)id) + ' ' + m.nickname + '\n';
+		for(const auto& [id, m]: gmems)
+		{
+			if(has_all(m.roles.cbegin(), m.roles.cend(), rolelist.begin(), rolelist.end()))
+				retstr += tostr((std::uint64_t)id) + ' ' + m.get_user()->username + '\n';
+		}
 		return retstr;
 	}
 	else
@@ -183,9 +176,11 @@ string Anyrolecmd::operator()(const message& og, const string* args, size_t size
 	snowflake gid = og.guild_id;
 	if(size > 0)
 	{
+		cluster& bot = *og.owner;
 		std::optional<role>roleid;
 		string retstr;
-		map<snowflake, guild_member>mems;
+		vector<snowflake>rolelist;
+		auto gmems = bot.guild_get_members_sync(gid, 999, 0);
 		for(size_t i = 0; i < size; ++i)
 		{
 			roleid = findrole(*og.owner, gid, args[i]);
@@ -195,12 +190,14 @@ string Anyrolecmd::operator()(const message& og, const string* args, size_t size
 				continue;
 			}
 			auto& r = *roleid;
-			auto rmembers = r.get_members();
-			mems.insert(rmembers.cbegin(), rmembers.cend());
+			rolelist.push_back(r.id);
 		}
 		retstr += "Here is the list of members.\n";
-		for(const auto& [id, m]: mems)
-			retstr += tostr((std::uint64_t)id) + ' ' + m.nickname + '\n';
+		for(const auto& [id, m]: gmems)
+		{
+			if(has_any(m.roles.cbegin(), m.roles.cend(), rolelist.begin(), rolelist.end()))
+				retstr += tostr((std::uint64_t)id) + ' ' + m.get_user()->username + '\n';
+		}
 		return retstr;
 	}
 	else
