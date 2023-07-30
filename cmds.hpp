@@ -3,6 +3,30 @@
 #include<chrono>
 #include"CommandParser.hpp"
 
+struct Mutecmd:Command
+{
+	Mutecmd()
+		:Command("Mutes a member for a specified amount of time, first argument must be a mention to the member.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Mutetimecmd:Command
+{
+	Mutetimecmd()
+		:Command("Set the mute time or see the mute time, in minutes, suffix h for hour and d for day.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Mutablecmd:Command
+{
+	Mutablecmd()
+		:Command("Displays mute words with no arguments, toggless mute words otherwise.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct Allrolecmd:Command
 {
 	Allrolecmd()

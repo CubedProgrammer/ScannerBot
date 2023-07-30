@@ -9,6 +9,7 @@
 #include"algo/discord.hpp"
 #include"algo/math.hpp"
 #include"algo/str.hpp"
+#include"algo/utils.hpp"
 #include"cmds.hpp"
 
 using std::cos;
@@ -29,6 +30,113 @@ using namespace dpp;
 extern guildmap allguilds;
 extern gdatamap gdata;
 std::chrono::time_point<std::chrono::system_clock>lastfetch;
+
+string Mutecmd::operator()(const message& og, const string* args, size_t size)const
+{
+	snowflake gid = og.guild_id;
+	if(size > 0)
+	{
+		if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+		{
+			auto& mrole = allguilds[gid]["muterole"];
+			if(mrole.is_null())
+				return"Mute role has not been set, use the muterole command to set a mute role.";
+			else if(args[0].size() > 3 && args[0][1] == '@')
+			{
+				using namespace std::chrono;
+				long unsigned uid = std::stoul(args[0].substr(2, args[0].size() - 3));
+				int mtime = (int)allguilds[gid]["mutetime"];
+				if(size > 1)
+				{
+					string s = args[1];
+					int mult = 1;
+					if(s.back() == 'H' || s.back() == 'h')
+					{
+						mult = 60;
+						s.pop_back();
+					}
+					else if(s.back() == 'D' || s.back() == 'd')
+					{
+						mult = 1440;
+						s.pop_back();
+					}
+					mtime = std::stoi(s) * mult;
+				}
+				cluster& bot = *og.owner;
+				long unsigned rid = (long unsigned)mrole;
+				bot.guild_member_add_role(gid, uid, rid);
+				auto calllater = [&bot, gid, uid, rid]()
+				{
+					bot.guild_member_remove_role(gid, uid, rid);
+				};
+				setTimeout(calllater, minutes(mtime));
+				return"Successfully muted user.";
+			}
+			else
+				return"Mention the user you wish to mute.";
+		}
+		else
+			return"You do not have permission to use this command.";
+	}
+	else
+		return"Specify a member to mute.";
+}
+
+string Mutetimecmd::operator()(const message& og, const string* args, size_t size)const
+{
+	snowflake gid = og.guild_id;
+	if(size > 0)
+	{
+		if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+		{
+			string s = args[0];
+			int mult = 1;
+			if(s.back() == 'H' || s.back() == 'h')
+			{
+				mult = 60;
+				s.pop_back();
+			}
+			else if(s.back() == 'D' || s.back() == 'd')
+			{
+				mult = 1440;
+				s.pop_back();
+			}
+			allguilds[gid]["mutetime"] = std::stoi(s) * mult;
+			return"Successfully set the new mute time.";
+		}
+		else
+			return"You do not have permission to use this command.";
+	}
+	else
+		return tostr(allguilds[gid]["mutetime"]) + " minutes";
+}
+
+string Mutablecmd::operator()(const message& og, const string* args, size_t size)const
+{
+	snowflake gid = og.guild_id;
+	if(size > 0)
+	{
+		if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+		{
+			auto& m = allguilds[gid]["mutable"];
+			json str;
+			for(size_t i = 0; i < size; ++i)
+			{
+				str = args[i];
+				auto it = find(m.begin(), m.end(), str);
+				if(it == m.end())
+					m.push_back(str);
+				else
+					m.erase(it);
+			}
+			return"Updated mute words.";
+		}
+		else
+			return"You do not have permission to use this command.";
+	}
+	else
+		return tostr(allguilds[gid]["mutable"]);
+}
 
 string Allrolecmd::operator()(const message& og, const string* args, size_t size)const
 {

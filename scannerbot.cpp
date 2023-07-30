@@ -10,6 +10,7 @@
 #include<nlohmann/json.hpp>
 #include<dpp/dpp.h>
 #include"algo/discord.hpp"
+#include"algo/utils.hpp"
 #include"cmds.hpp"
 
 using std::byte;
@@ -85,6 +86,9 @@ int main(int argl,char**argv)
     cout << selfuser.id << ' ' << selfuser.username << endl;
     for(const auto &p : guilds)
     	cout << p.first << ' ' << p.second["pref"] << endl;
+    ptrCommand mutecmd(new Mutecmd());
+    ptrCommand mutetimecmd(new Mutetimecmd());
+    ptrCommand mutablecmd(new Mutablecmd());
     ptrCommand allrolecmd(new Allrolecmd());
     ptrCommand anyrolecmd(new Anyrolecmd());
     ptrCommand purgecmd(new Purgecmd());
@@ -125,11 +129,14 @@ int main(int argl,char**argv)
     ptrCommand prefixcmd(new Prefixcmd("Sets the prefix for the bot."));
     ptrCommand productcmd(new Productcmd("Computes the product of all numbers given."));
     ptrCommand sumcmd(new Sumcmd("Computes the sum of all numbers given."));
-    vector<string>cmdnamevec{"allrole", "anyrole", "purge", "takerole", "giverole", "macrols", "undef", "define", "muterole",
-    "ban", "kick", "dloptions", "info", "selfrole", "toggleselfrole", "autorole", "atan2", "atan", "acos", "asin",
-    "csc", "sec", "cot", "tan", "cos", "sin", "log", "pow", "harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd",
-    "remainder", "quotient", "prefix", "product", "sum"};
+    vector<string>cmdnamevec{"mute", "mutetime", "mutable", "allrole", "anyrole", "purge", "takerole", "giverole", "macrols",
+    "undef", "define", "muterole", "ban", "kick", "dloptions", "info", "selfrole", "toggleselfrole", "autorole", "atan2",
+    "atan", "acos", "asin", "csc", "sec", "cot", "tan", "cos", "sin", "log", "pow", "harmean", "geomean", "mean", "baseconv",
+    "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
     vector<ptrCommand>cmdvec;
+    cmdvec.push_back(move(mutecmd));
+    cmdvec.push_back(move(mutetimecmd));
+    cmdvec.push_back(move(mutablecmd));
     cmdvec.push_back(move(allrolecmd));
     cmdvec.push_back(move(anyrolecmd));
     cmdvec.push_back(move(purgecmd));
@@ -193,8 +200,10 @@ int main(int argl,char**argv)
             	guilds[evt.msg.guild_id]["pref"] = "--";
                 guilds[evt.msg.guild_id]["autoroles"] = json::array();
                 guilds[evt.msg.guild_id]["selfroles"] = json::array();
-            	guilds[evt.msg.guild_id]["muterole"] = 0;
+            	guilds[evt.msg.guild_id]["muterole"] = nullptr;
             	guilds[evt.msg.guild_id]["macros"] = json::object();
+            	guilds[evt.msg.guild_id]["mutables"] = json::array();
+            	guilds[evt.msg.guild_id]["mutetime"] = 60;
                 json &macroobj = guilds[evt.msg.guild_id]["macros"];
                 macroobj["PI"] = "3.1415926535897932";
                 macroobj["E"] = "2.7182818245904524";
@@ -225,6 +234,7 @@ int main(int argl,char**argv)
     scannerbot.on_guild_member_add(memjoin);
     scannerbot.start();
     cout << "Scanner Bot v" << verstr << " has begun." << endl;
+    startTimeout();
     lastfetch = std::chrono::system_clock::now();
     fetch_guilds(scannerbot);
     cin.get();
