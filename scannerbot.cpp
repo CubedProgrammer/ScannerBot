@@ -29,6 +29,7 @@ using nlohmann::json;
 constexpr byte VERSION_MAJOR = (byte)1;
 constexpr byte VERSION_MINOR = (byte)0;
 constexpr byte VERSION_PATCH = (byte)0;
+constexpr const char* VERSION_NAME = "The C++ Update";
 guildmap allguilds;
 gdatamap gdata;
 extern std::chrono::time_point<std::chrono::system_clock>lastfetch;
@@ -66,6 +67,7 @@ string get_version_string(byte major, byte minor, byte patch)
     oss << major << '.' << minor;
     if(static_cast<bool>(patch))
         oss << '.' << patch;
+    oss << ' ' << VERSION_NAME;
     return oss.str();
 }
 
@@ -185,6 +187,17 @@ int main(int argl,char**argv)
         for(const auto& roleid : guild_dat["autoroles"])
             scannerbot.guild_member_add_role(evt.added.guild_id, evt.added.user_id, snowflake((uint64_t)roleid));
     };
+    auto memleave = [&scannerbot, &guilds](const guild_member_remove_t &evt)
+    {
+        json& guild_dat = guilds[evt.removing_guild->id];
+        guild& g = *evt.removing_guild;
+        user& u = *evt.removed;
+        if(guild_dat["exitmsg"])
+        {
+            message m(g.system_channel_id, u.username + " has left.");
+            scannerbot.message_create(m);
+        }
+    };
     auto evtr = [&scannerbot,&parser,&guilds,&mention,&selfuser,&verstr](const message_create_t &evt)
     {
         if(selfuser.id != evt.msg.author.id)
@@ -205,6 +218,7 @@ int main(int argl,char**argv)
             	guilds[evt.msg.guild_id]["macros"] = json::object();
             	guilds[evt.msg.guild_id]["mutable"] = json::array();
             	guilds[evt.msg.guild_id]["mutetime"] = 60;
+            	guilds[evt.msg.guild_id]["exitmsg"] = false;
                 json &macroobj = guilds[evt.msg.guild_id]["macros"];
                 macroobj["PI"] = "3.1415926535897932";
                 macroobj["E"] = "2.7182818245904524";

@@ -92,7 +92,7 @@ void CommandParser::help(string& res, const vector<pair<size_t,size_t>>& pending
 		res = this->cmds.at(args[pending.back().first + 1])->description;
 	else
 	{
-		res = "The list of commands are as follows";
+		res = "Scanner Bot https://github.com/CubedProgrammer/ScannerBot\nThe list of commands are as follows";
 		for(const auto&[x,y]:this->cmds)
 			res += "\r\n" + x;
 	}
