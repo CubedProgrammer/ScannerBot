@@ -3,6 +3,22 @@
 #include<chrono>
 #include"CommandParser.hpp"
 
+struct Allrolecmd:Command
+{
+	Allrolecmd()
+		:Command("Lists all members that have all of the specified roles.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
+struct Anyrolecmd:Command
+{
+	Anyrolecmd()
+		:Command("Lists all members that have any of the specified roles.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct Purgecmd:Command
 {
 	Purgecmd()

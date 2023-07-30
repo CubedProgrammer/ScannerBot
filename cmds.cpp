@@ -1,4 +1,5 @@
 #include<cmath>
+#include<map>
 #include<numeric>
 #include<regex>
 #include<sstream>
@@ -13,6 +14,7 @@
 using std::cos;
 using std::find;
 using std::gcd;
+using std::map;
 using std::pair;
 using std::sin;
 using std::size_t;
@@ -27,6 +29,75 @@ using namespace dpp;
 extern guildmap allguilds;
 extern gdatamap gdata;
 std::chrono::time_point<std::chrono::system_clock>lastfetch;
+
+string Allrolecmd::operator()(const message& og, const string* args, size_t size)const
+{
+	snowflake gid = og.guild_id;
+	if(size > 0)
+	{
+		std::optional<role>roleid;
+		string retstr;
+		map<snowflake, guild_member>mems, nxt;
+		for(size_t i = 0; i < size; ++i)
+		{
+			roleid = findrole(*og.owner, gid, args[i]);
+			if(!roleid)
+			{
+				retstr += args[i] + " could not be found,\n";
+				continue;
+			}
+			auto& r = *roleid;
+			auto rmembers = r.get_members();
+			if(i == 0)
+				mems.insert(rmembers.cbegin(), rmembers.cend());
+			else
+			{
+				for(const auto& [id, m]: mems)
+				{
+					if(rmembers.find(id) != rmembers.end())
+						nxt[id] = m;
+				}
+				mems = nxt;
+				nxt.clear();
+			}
+		}
+		retstr += "Here is the list of members.\n";
+		for(const auto& [id, m]: mems)
+			retstr += tostr((std::uint64_t)id) + ' ' + m.nickname + '\n';
+		return retstr;
+	}
+	else
+		return"Give a list of roles.";
+}
+
+string Anyrolecmd::operator()(const message& og, const string* args, size_t size)const
+{
+	snowflake gid = og.guild_id;
+	if(size > 0)
+	{
+		std::optional<role>roleid;
+		string retstr;
+		map<snowflake, guild_member>mems;
+		for(size_t i = 0; i < size; ++i)
+		{
+			roleid = findrole(*og.owner, gid, args[i]);
+			if(!roleid)
+			{
+				retstr += args[i] + " could not be found,\n";
+				continue;
+			}
+			auto& r = *roleid;
+			auto rmembers = r.get_members();
+			mems.insert(rmembers.cbegin(), rmembers.cend());
+		}
+		retstr += "Here is the list of members.\n";
+		for(const auto& [id, m]: mems)
+			retstr += tostr((std::uint64_t)id) + ' ' + m.nickname + '\n';
+		return retstr;
+	}
+	else
+		return"Give a list of roles.";
+}
 
 string Purgecmd::operator()(const message& og, const string* args, size_t size)const
 {
