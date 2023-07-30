@@ -3,6 +3,14 @@
 #include<chrono>
 #include"CommandParser.hpp"
 
+struct Purgecmd:Command
+{
+	Purgecmd()
+		:Command("Purges up to one hundred messages from a channel, specify number of messages to remove.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct Takerolecmd:Command
 {
 	Takerolecmd()

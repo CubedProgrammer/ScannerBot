@@ -11,6 +11,15 @@ using namespace dpp;
 extern std::unordered_map<dpp::snowflake,nlohmann::json>allguilds;
 extern std::unordered_map<dpp::snowflake,dpp::guild>gdata;
 
+std::chrono::time_point<std::chrono::system_clock>to_time(dpp::snowflake id)
+{
+	using namespace std::chrono;
+	std::uint64_t tm = (std::uint64_t)id >> 22;
+	tm += discord_epoch;
+	seconds x(tm);
+	return time_point<system_clock>(duration_cast<system_clock::duration>(x));
+}
+
 bool hasperm(cluster& bot, const guild_member& member, permission perm)
 {
 	permission mperms;
