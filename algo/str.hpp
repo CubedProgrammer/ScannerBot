@@ -3,6 +3,27 @@
 #include<algorithm>
 #include<cctype>
 #include<sstream>
+#include<vector>
+
+inline std::vector<std::string>split(const std::string& str, const std::string& pattern)
+{
+    using namespace std;
+    vector<string>vec;
+    string tmp;
+    for(char c : str)
+    {
+        if(pattern.find(c) == string::npos)
+            tmp.push_back(c);
+        else if(tmp.size() > 0)
+        {
+            vec.push_back(tmp);
+            tmp.clear();
+        }
+    }
+    if(tmp.size() > 0)
+        vec.push_back(tmp);
+    return vec;
+}
 
 inline bool are_equal_ignore_case(const std::string& l, const std::string& r)
 {

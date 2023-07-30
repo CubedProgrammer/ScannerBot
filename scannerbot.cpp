@@ -10,6 +10,7 @@
 #include<nlohmann/json.hpp>
 #include<dpp/dpp.h>
 #include"algo/discord.hpp"
+#include"algo/str.hpp"
 #include"algo/utils.hpp"
 #include"cmds.hpp"
 
@@ -184,7 +185,7 @@ int main(int argl,char**argv)
         for(const auto& roleid : guild_dat["autoroles"])
             scannerbot.guild_member_add_role(evt.added.guild_id, evt.added.user_id, snowflake((uint64_t)roleid));
     };
-    auto evtr = [&parser,&guilds,&mention,&selfuser,&verstr](const message_create_t &evt)
+    auto evtr = [&scannerbot,&parser,&guilds,&mention,&selfuser,&verstr](const message_create_t &evt)
     {
         if(selfuser.id != evt.msg.author.id)
         {
@@ -202,7 +203,7 @@ int main(int argl,char**argv)
                 guilds[evt.msg.guild_id]["selfroles"] = json::array();
             	guilds[evt.msg.guild_id]["muterole"] = nullptr;
             	guilds[evt.msg.guild_id]["macros"] = json::object();
-            	guilds[evt.msg.guild_id]["mutables"] = json::array();
+            	guilds[evt.msg.guild_id]["mutable"] = json::array();
             	guilds[evt.msg.guild_id]["mutetime"] = 60;
                 json &macroobj = guilds[evt.msg.guild_id]["macros"];
                 macroobj["PI"] = "3.1415926535897932";
@@ -211,6 +212,26 @@ int main(int argl,char**argv)
                 macroobj["SQRT3"] = "1.73205080756887729";
                 macroobj["prefreset"] = "prefix --";
 			}
+            vector<string>words = split(msg, "?!,. \n");
+            bool badmsg = false;
+            for(const auto& m: guilds[evt.msg.guild_id]["mutable"])
+            {
+                string s = (string)m;
+                if(std::find(words.begin(), words.end(), s) != words.end())
+                    badmsg = true;
+            }
+            if(badmsg)
+            {
+                snowflake gid, uid, rid;
+                scannerbot.guild_member_add_role(gid = evt.msg.guild_id, uid = evt.msg.author.id, rid = (std::uint64_t)guilds[evt.msg.guild_id]["muterole"]);
+                evt.send("You used a bad word, you shall now be muted.");
+                int mins = (int)guilds[evt.msg.guild_id]["mutetime"];
+                auto calllater = [&scannerbot, gid, uid, rid]()
+                {
+                    scannerbot.guild_member_remove_role(gid, uid, rid);
+                };
+                setTimeout(calllater, std::chrono::minutes(mins));
+            }
             const string &pref = guilds[evt.msg.guild_id]["pref"];
 #if __cplusplus >= 202002L
             if(msg.starts_with(mention))

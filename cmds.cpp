@@ -213,35 +213,40 @@ string Purgecmd::operator()(const message& og, const string* args, size_t size)c
 	auto& macros = allguilds[gid]["macros"];
 	if(size > 0)
 	{
-		int cnt = std::stoi(args[0]);
-		if(cnt > 100)
-			return"No more than one hundred messages.";
-		else if(cnt < 2)
-			return"At least one message.";
-		else
+		if(hasperm(*og.owner, og.member, permissions::p_manage_messages))
 		{
-			using namespace std::chrono;
-			using namespace std::chrono_literals;
-			cluster& bot = *og.owner;
-			auto msgmap = bot.messages_get_sync(og.channel_id, 0, og.id, 0, cnt);
-			vector<snowflake>recent, older;
-			auto currtm = to_time(og.id);
-			for(const auto&[id, msg]: msgmap)
+			int cnt = std::stoi(args[0]);
+			if(cnt > 100)
+				return"No more than one hundred messages.";
+			else if(cnt < 2)
+				return"At least one message.";
+			else
 			{
-				auto tm = to_time(id);
-				if(tm - currtm > 336h)
-					older.push_back(id);
-				else
-					recent.push_back(id);
+				using namespace std::chrono;
+				using namespace std::chrono_literals;
+				cluster& bot = *og.owner;
+				auto msgmap = bot.messages_get_sync(og.channel_id, 0, og.id, 0, cnt);
+				vector<snowflake>recent, older;
+				auto currtm = to_time(og.id);
+				for(const auto&[id, msg]: msgmap)
+				{
+					auto tm = to_time(id);
+					if(tm - currtm > 336h)
+						older.push_back(id);
+					else
+						recent.push_back(id);
+				}
+				if(recent.size() > 1)
+					bot.message_delete_bulk_sync(recent, og.channel_id);
+				else if(recent.size() == 1)
+					bot.message_delete_sync(recent[0], og.channel_id);
+				for(auto id: older)
+					bot.message_delete_sync(id, og.channel_id);
+				return"Purged messages successfully.";
 			}
-			if(recent.size() > 1)
-				bot.message_delete_bulk_sync(recent, og.channel_id);
-			else if(recent.size() == 1)
-				bot.message_delete_sync(recent[0], og.channel_id);
-			for(auto id: older)
-				bot.message_delete_sync(id, og.channel_id);
-			return"Purged messages successfully.";
 		}
+		else
+			return"You do not have permission to use this command.";
 	}
 	else
 		return"Specify the number of messages to purge.";
