@@ -45,14 +45,18 @@ role getrole(cluster& bot, snowflake guild, snowflake value)
 
 optional<role> findrole(cluster& bot, snowflake guild, string value)
 {
-    role_map roles = bot.roles_get_sync(guild);
+	return findrole(bot.roles_get_sync(guild), bot, guild, value);
+}
+
+optional<role> findrole(const role_map& roles, cluster& bot, snowflake guild, string value)
+{
     optional<role>ret;
 	snowflake id;
     if(value.size() >= 5 && value[1] == '@')
 	{
 		id = std::stoul(value.substr(3, value.size() - 4));
 		if(roles.find(id) != roles.end())
-			ret = roles[id];
+			ret = roles.at(id);
 	}
 	else
 	{

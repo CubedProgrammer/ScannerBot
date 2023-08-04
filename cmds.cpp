@@ -157,9 +157,10 @@ string Allrolecmd::operator()(const message& og, const string* args, size_t size
 		string retstr;
 		vector<snowflake>rolelist;
 		auto gmems = bot.guild_get_members_sync(gid, 999, 0);
+		role_map roles = og.owner->roles_get_sync(og.guild_id);
 		for(size_t i = 0; i < size; ++i)
 		{
-			roleid = findrole(*og.owner, gid, args[i]);
+			roleid = findrole(roles, *og.owner, gid, args[i]);
 			if(!roleid)
 			{
 				retstr += args[i] + " could not be found,\n";
@@ -190,9 +191,10 @@ string Anyrolecmd::operator()(const message& og, const string* args, size_t size
 		string retstr;
 		vector<snowflake>rolelist;
 		auto gmems = bot.guild_get_members_sync(gid, 999, 0);
+		role_map roles = og.owner->roles_get_sync(og.guild_id);
 		for(size_t i = 0; i < size; ++i)
 		{
-			roleid = findrole(*og.owner, gid, args[i]);
+			roleid = findrole(roles, *og.owner, gid, args[i]);
 			if(!roleid)
 			{
 				retstr += args[i] + " could not be found,\n";
@@ -270,9 +272,10 @@ string Takerolecmd::operator()(const message& og, const string* args, size_t siz
 				std::optional<role>oprole;
 				std::uint64_t id = std::stoul(args[0].substr(2, args[0].size() - 3));
 				string retstr;
+				role_map roles = og.owner->roles_get_sync(og.guild_id);
     			for(size_t i = 1; i < size; ++i)
 				{
-					oprole = findrole(*og.owner, og.guild_id, args[i]);
+					oprole = findrole(roles, *og.owner, og.guild_id, args[i]);
 					if(oprole)
 						og.owner->guild_member_remove_role(og.guild_id, id, oprole->id);
 					else
@@ -302,9 +305,10 @@ string Giverolecmd::operator()(const message& og, const string* args, size_t siz
 				std::optional<role>oprole;
 				std::uint64_t id = std::stoul(args[0].substr(2, args[0].size() - 3));
 				string retstr;
+				role_map roles = og.owner->roles_get_sync(og.guild_id);
     			for(size_t i = 1; i < size; ++i)
 				{
-					oprole = findrole(*og.owner, og.guild_id, args[i]);
+					oprole = findrole(roles, *og.owner, og.guild_id, args[i]);
 					if(oprole)
 						og.owner->guild_member_add_role(og.guild_id, id, oprole->id);
 					else
@@ -571,9 +575,10 @@ string Selfrolecmd::operator()(const message& og, const string* args, size_t siz
 		json numid;
 		std::optional<role>roleid;
 		string retstr;
+		role_map roles = og.owner->roles_get_sync(og.guild_id);
 		for(size_t i = 0; i < size; ++i)
 		{
-			roleid = findrole(*og.owner, gid, args[i]);
+			roleid = findrole(roles, *og.owner, gid, args[i]);
 			if(!roleid)
 			{
 				retstr += args[i] + " could not be found,\n";
@@ -609,9 +614,10 @@ string Toggleselfrolecmd::operator()(const message& og, const string* args, size
 			json numid;
 			std::optional<role>roleid;
 			string retstr;
+			role_map roles = og.owner->roles_get_sync(og.guild_id);
 			for(size_t i = 0; i < size; ++i)
 			{
-				roleid = findrole(*og.owner, gid, args[i]);
+				roleid = findrole(roles, *og.owner, gid, args[i]);
 				if(!roleid)
 				{
 					retstr += args[i] + " could not be found,\n";
@@ -644,9 +650,10 @@ string Autorolecmd::operator()(const message& og, const string* args, size_t siz
 			json numid;
 			std::optional<role>roleid;
 			string retstr;
+			role_map roles = og.owner->roles_get_sync(og.guild_id);
 			for(size_t i = 0; i < size; ++i)
 			{
-				roleid = findrole(*og.owner, gid, args[i]);
+				roleid = findrole(roles, *og.owner, gid, args[i]);
 				if(!roleid)
 				{
 					retstr += args[i] + " could not be found,\n";
