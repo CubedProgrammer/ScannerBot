@@ -1,5 +1,5 @@
 Selfrole and autoroles do not update if roles are deleted.
-Info command should not be responsible for fetching role, channel, thread, and emoji data.
 Return message is currently limited to 2000 characters.
 Restarting the bot causes muted users to never be unmuted.
 Edited messages do not cause users to be muted if it contains a mute word.
+Caching for guild data should use event listeners, not queries.

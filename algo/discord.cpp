@@ -88,10 +88,47 @@ void fetch_guilds(cluster& bot)
     for(const auto &[id, j]: allguilds)
     {
 		idagain = id;
-		auto callback = [idagain](const confirmation_callback_t& res)
+		auto callback = [&bot, idagain](const confirmation_callback_t& res)
 		{
-			gdata[idagain] = std::get<guild>(res.value);
+			guild& g = gdata[idagain] = std::get<guild>(res.value);
+			auto rcallback = [&g](const confirmation_callback_t& res)
+			{
+				const role_map& rmap = std::get<role_map>(res.value);
+				for(const auto&[id, v]:rmap)
+					g.roles.push_back(id);
+			};
+			auto ccallback = [&g](const confirmation_callback_t& res)
+			{
+				const channel_map& cmap = std::get<channel_map>(res.value);
+				for(const auto&[id, v]:cmap)
+					g.channels.push_back(id);
+			};
+			auto tcallback = [&g](const confirmation_callback_t& res)
+			{
+				const thread_map& tmap = std::get<active_threads>(res.value).threads;
+				for(const auto&[id, v]:tmap)
+					g.threads.push_back(id);
+			};
+			auto ecallback = [&g](const confirmation_callback_t& res)
+			{
+				const emoji_map& emap = std::get<emoji_map>(res.value);
+				for(const auto&[id, v]:emap)
+					g.emojis.push_back(id);
+			};
+	        bot.roles_get(idagain, rcallback);
+	        bot.channels_get(idagain, ccallback);
+	        bot.threads_get_active(idagain, tcallback);
+	        bot.guild_emojis_get(idagain, ecallback);
     	};
         bot.guild_get(id, callback);
     }
 }
+
+
+
+
+
+
+
+
+

@@ -101,7 +101,11 @@ void CommandParser::help(string& res, const vector<pair<size_t,size_t>>& pending
 		res = this->cmds.at(args[pending.back().first + 1])->description;
 	else
 	{
-		res = "Scanner Bot https://github.com/CubedProgrammer/ScannerBot\nThe list of commands are as follows";
+		res = "Scanner Bot https://github.com/CubedProgrammer/ScannerBot\n";
+#ifdef BUILDER
+		res += "Built by "s + BUILDER + '\n'
+#endif
+		res += "Language: C++" + std::to_string(__cplusplus / 100 % 100) + "\nThe list of commands are as follows";
 		for(const auto&[x,y]:this->cmds)
 			res += "\r\n" + x;
 	}

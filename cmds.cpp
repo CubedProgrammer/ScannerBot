@@ -543,17 +543,17 @@ string Infocmd::operator()(const message& og, const string* args, size_t size)co
 		using namespace std::literals::chrono_literals;
 		auto currtm = system_clock::now();
 		auto elapsed = currtm - lastfetch;
-		if(elapsed > 6s)
+		if(elapsed > 24s)
 		{
 			fetch_guilds(bot);
 			lastfetch = currtm;
 			std::this_thread::sleep_for(997ms);
 		}
 		auto& currguild = gdata[gid];
-		long rolecnt = bot.roles_get_sync(gid).size();
-		long channelcnt = bot.channels_get_sync(gid).size();
-		long threadcnt = bot.threads_get_active_sync(gid).threads.size();
-		long emojicnt = bot.guild_emojis_get_sync(gid).size();
+		long rolecnt = currguild.roles.size();
+		long channelcnt = currguild.channels.size();
+		long threadcnt = currguild.threads.size();
+		long emojicnt = currguild.emojis.size();
 		long memcnt = bot.guild_get_members_sync(gid, 999, 0).size();
 		oss << "Name: " << currguild.name << '\n';
 		oss << currguild.description << '\n';
