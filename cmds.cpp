@@ -218,7 +218,6 @@ string Anyrolecmd::operator()(const message& og, const string* args, size_t size
 string Purgecmd::operator()(const message& og, const string* args, size_t size)const
 {
 	snowflake gid = og.guild_id;
-	auto& macros = allguilds[gid]["macros"];
 	if(size > 0)
 	{
 		if(hasperm(*og.owner, og.member, permissions::p_manage_messages))
@@ -262,7 +261,6 @@ string Purgecmd::operator()(const message& og, const string* args, size_t size)c
 
 string Takerolecmd::operator()(const message& og, const string* args, size_t size)const
 {
-	snowflake gid = og.guild_id;
 	if(size >= 2)
 	{
 		if(hasperm(*og.owner, og.member, permissions::p_manage_roles))
@@ -295,7 +293,6 @@ string Takerolecmd::operator()(const message& og, const string* args, size_t siz
 
 string Giverolecmd::operator()(const message& og, const string* args, size_t size)const
 {
-	snowflake gid = og.guild_id;
 	if(size >= 2)
 	{
 		if(hasperm(*og.owner, og.member, permissions::p_manage_roles))
@@ -398,6 +395,7 @@ string Muterolecmd::operator()(const message& og, const string* args, size_t siz
 string Bancmd::operator()(const message& og, const string* args, size_t size)const
 {
     unsigned failed = 0;
+    bool perm = true;
 	long unsigned luid;
 	snowflake id;
 	if(hasperm(*og.owner, og.member, permissions::p_ban_members))
@@ -413,12 +411,16 @@ string Bancmd::operator()(const message& og, const string* args, size_t size)con
 				if(member_cmpr(*og.owner, og.member, og.owner->guild_get_member_sync(og.guild_id, id)) > 0)
 					og.owner->guild_ban_add(og.guild_id, id);
 				else
+				{
 					retstr += "You have insufficient rank to ban " + arg + ".\n";
+					perm = false;
+				}
 			}
 			else
 				++failed;
         }
-		retstr += failed ? tostr(failed) + " failed, you must ping the users." : "Successfully banned them.";
+        if(perm)
+        	retstr += failed ? tostr(failed) + " failed, you must ping the users." : "Successfully banned them.";
 		return retstr;
     }
 	else
@@ -428,6 +430,7 @@ string Bancmd::operator()(const message& og, const string* args, size_t size)con
 string Kickcmd::operator()(const message& og, const string* args, size_t size)const
 {
     unsigned failed = 0;
+    bool perm = true;
 	long unsigned luid;
 	snowflake id;
 	if(hasperm(*og.owner, og.member, permissions::p_kick_members))
@@ -443,12 +446,16 @@ string Kickcmd::operator()(const message& og, const string* args, size_t size)co
 				if(member_cmpr(*og.owner, og.member, og.owner->guild_get_member_sync(og.guild_id, id)) > 0)
 					og.owner->guild_member_kick(og.guild_id, id);
 				else
+				{
 					retstr += "You have insufficient rank to kick " + arg + ".\n";
+					perm = false;
+				}
 			}
 			else
 				++failed;
         }
-		retstr += failed ? tostr(failed) + " failed, you must ping the users." : "Successfully kicked them.";
+        if(perm)
+        	retstr += failed ? tostr(failed) + " failed, you must ping the users." : "Successfully kicked them.";
 		return retstr;
     }
 	else
@@ -581,7 +588,7 @@ string Selfrolecmd::operator()(const message& og, const string* args, size_t siz
 			roleid = findrole(roles, *og.owner, gid, args[i]);
 			if(!roleid)
 			{
-				retstr += args[i] + " could not be found,\n";
+				retstr += args[i] + " could not be found.\n";
 				continue;
 			}
 			numid = (std::uint64_t)roleid->id;
@@ -589,7 +596,7 @@ string Selfrolecmd::operator()(const message& og, const string* args, size_t siz
 			auto it = find(sroles.begin(), sroles.end(), numid);
 			if(it == sroles.end())
 			{
-				retstr += args[i] + " could not be found,\n";
+				retstr += args[i] + " is not a selfrole.\n";
 				continue;
 			}
 			else if(find(memrole.begin(), memrole.end(), roleid->id) == memrole.end())
@@ -620,7 +627,7 @@ string Toggleselfrolecmd::operator()(const message& og, const string* args, size
 				roleid = findrole(roles, *og.owner, gid, args[i]);
 				if(!roleid)
 				{
-					retstr += args[i] + " could not be found,\n";
+					retstr += args[i] + " could not be found.\n";
 					continue;
 				}
 				numid = (std::uint64_t)roleid->id;
@@ -656,7 +663,7 @@ string Autorolecmd::operator()(const message& og, const string* args, size_t siz
 				roleid = findrole(roles, *og.owner, gid, args[i]);
 				if(!roleid)
 				{
-					retstr += args[i] + " could not be found,\n";
+					retstr += args[i] + " could not be found.\n";
 					continue;
 				}
 				numid = (std::uint64_t)roleid->id;

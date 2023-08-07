@@ -1,8 +1,5 @@
 Selfrole and autoroles do not update if roles are deleted.
-findrole function makes API call and is therefore slow, make overload that takes in a role map.
-Kick and ban should not say success when you try to kick or ban someone with equal rank or higher.
 Info command should not be responsible for fetching role, channel, thread, and emoji data.
 Return message is currently limited to 2000 characters.
-Selfrole should show different message if role is found but not a selfrole.
 Restarting the bot causes muted users to never be unmuted.
 Edited messages do not cause users to be muted if it contains a mute word.
