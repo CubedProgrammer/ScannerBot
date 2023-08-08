@@ -20,6 +20,7 @@ bool hasperm(dpp::cluster& bot, const dpp::guild_member& member, dpp::permission
 dpp::role getrole(dpp::cluster& bot, dpp::snowflake guild, dpp::snowflake value);
 std::optional<dpp::role> findrole(dpp::cluster& bot, dpp::snowflake guild, std::string value);
 std::optional<dpp::role> findrole(const dpp::role_map& roles, dpp::cluster& bot, dpp::snowflake guild, std::string value);
+dpp::role highrole(const dpp::role_map& roles, const dpp::guild_member& mem);
 int member_cmpr(dpp::cluster& bot, const dpp::guild_member& x, const dpp::guild_member& y);
 void fetch_guilds(dpp::cluster& bot);
 

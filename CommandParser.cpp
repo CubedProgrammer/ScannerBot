@@ -103,7 +103,7 @@ void CommandParser::help(string& res, const vector<pair<size_t,size_t>>& pending
 	{
 		res = "Scanner Bot https://github.com/CubedProgrammer/ScannerBot\n";
 #ifdef BUILDER
-		res += "Built by "s + BUILDER + '\n'
+		res += "Built by "s + BUILDER + '\n';
 #endif
 		res += "Language: C++" + std::to_string(__cplusplus / 100 % 100) + "\nThe list of commands are as follows";
 		for(const auto&[x,y]:this->cmds)

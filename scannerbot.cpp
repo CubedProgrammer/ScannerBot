@@ -37,7 +37,7 @@ using nlohmann::json;
 
 constexpr byte VERSION_MAJOR = (byte)1;
 constexpr byte VERSION_MINOR = (byte)0;
-constexpr byte VERSION_PATCH = (byte)2;
+constexpr byte VERSION_PATCH = (byte)3;
 constexpr const char* VERSION_NAME = "The C++ Update";
 guildmap allguilds;
 gdatamap gdata;
@@ -190,13 +190,13 @@ int main(int argl,char**argv)
     cmdvec.push_back(move(productcmd));
     cmdvec.push_back(move(sumcmd));
     CommandParser parser(verstr, cmdnamevec, cmdvec);
-    auto memjoin = [&scannerbot, &guilds](const guild_member_add_t &evt)
+    auto memjoin = [&scannerbot](const guild_member_add_t &evt)
     {
         json& guild_dat = guilds[evt.added.guild_id];
         for(const auto& roleid : guild_dat["autoroles"])
             scannerbot.guild_member_add_role(evt.added.guild_id, evt.added.user_id, snowflake((uint64_t)roleid));
     };
-    auto memleave = [&scannerbot, &guilds](const guild_member_remove_t &evt)
+    auto memleave = [&scannerbot](const guild_member_remove_t &evt)
     {
         json& guild_dat = guilds[evt.removing_guild->id];
         guild& g = *evt.removing_guild;
@@ -207,7 +207,7 @@ int main(int argl,char**argv)
             scannerbot.message_create(m);
         }
     };
-    auto evtr = [&scannerbot,&parser,&guilds,&mention,&selfuser,&verstr](const message_create_t &evt)
+    auto evtr = [&scannerbot,&parser,&mention,&selfuser](const message_create_t &evt)
     {
         if(selfuser.id != evt.msg.author.id)
         {
@@ -276,6 +276,7 @@ int main(int argl,char**argv)
     };
     scannerbot.on_message_create(evtr);
     scannerbot.on_guild_member_add(memjoin);
+    scannerbot.on_guild_member_remove(memleave);
     scannerbot.start();
     cout << "Scanner Bot v" << verstr << " has begun." << endl;
     startTimeout();

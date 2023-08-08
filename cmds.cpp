@@ -271,11 +271,17 @@ string Takerolecmd::operator()(const message& og, const string* args, size_t siz
 				std::uint64_t id = std::stoul(args[0].substr(2, args[0].size() - 3));
 				string retstr;
 				role_map roles = og.owner->roles_get_sync(og.guild_id);
+				role memtop = highrole(roles, og.member);
     			for(size_t i = 1; i < size; ++i)
 				{
 					oprole = findrole(roles, *og.owner, og.guild_id, args[i]);
 					if(oprole)
-						og.owner->guild_member_remove_role(og.guild_id, id, oprole->id);
+					{
+						if(*oprole < memtop)
+							og.owner->guild_member_remove_role(og.guild_id, id, oprole->id);
+						else
+							retstr += args[i] + " is too high for your rank.\n";
+					}
 					else
 						retstr += args[i] + " could not be found.\n";
 				}
@@ -303,11 +309,17 @@ string Giverolecmd::operator()(const message& og, const string* args, size_t siz
 				std::uint64_t id = std::stoul(args[0].substr(2, args[0].size() - 3));
 				string retstr;
 				role_map roles = og.owner->roles_get_sync(og.guild_id);
+				role memtop = highrole(roles, og.member);
     			for(size_t i = 1; i < size; ++i)
 				{
 					oprole = findrole(roles, *og.owner, og.guild_id, args[i]);
 					if(oprole)
-						og.owner->guild_member_add_role(og.guild_id, id, oprole->id);
+					{
+						if(*oprole < memtop)
+							og.owner->guild_member_add_role(og.guild_id, id, oprole->id);
+						else
+							retstr += args[i] + " is too high for your rank.\n";
+					}
 					else
 						retstr += args[i] + " could not be found.\n";
 				}

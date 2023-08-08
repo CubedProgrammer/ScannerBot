@@ -69,16 +69,20 @@ optional<role> findrole(const role_map& roles, cluster& bot, snowflake guild, st
     return ret;
 }
 
+role highrole(const role_map& roles, const guild_member& mem)
+{
+	role r;
+	for(auto x:mem.roles)
+		r = std::max(roles.at(x), r);
+	return r;
+}
+
 int member_cmpr(cluster& bot, const dpp::guild_member& x, const dpp::guild_member& y)
 {
 	using namespace std;
 	snowflake gid = x.guild_id;
 	auto roles = bot.roles_get_sync(gid);
-	role xhigh = roles.at(gid), yhigh = xhigh;
-	for(auto rid : x.roles)
-		xhigh = max(xhigh, roles.at(rid));
-	for(auto rid : y.roles)
-		yhigh = max(yhigh, roles.at(rid));
+	role xhigh = highrole(roles, x), yhigh = highrole(roles, y);
 	return xhigh > yhigh ? 1 : xhigh < yhigh ? -1 : 0;
 }
 
