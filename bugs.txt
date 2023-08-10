@@ -1,6 +1,7 @@
 Selfrole and autoroles do not update if roles are deleted.
-Return message is currently limited to 2000 characters.
 Restarting the bot causes muted users to never be unmuted.
 Edited messages do not cause users to be muted if it contains a mute word.
 Caching for guild data should use event listeners, not queries.
 Purge command does not take channel overrides into account.
+Muting members who are already muted.
+Capitalization defeats censorship of mute-able words.

@@ -49,6 +49,23 @@ inline bool are_equal_ignore_case(const std::string& l, const std::string& r)
         return false;
 }
 
+#if __cplusplus >= 202002L
+bool badstr(const std::string& msg, auto&& bad)
+#else
+template<typename T>
+bool badstr(const std::string& msg, T&& bad)
+#endif
+{
+	auto tokens = split(msg, "?!,. \n");
+	bool isbad = false;
+	for(std::string s:bad)
+	{
+        if(std::find(tokens.begin(), tokens.end(), s) != tokens.end())
+            isbad = true;
+	}
+	return isbad;
+}
+
 inline std::string numstr(long num, int base)
 {
     static const char digits[] = "0123456789abcdefghijklmnopqrstuvwxyz";

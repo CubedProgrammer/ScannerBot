@@ -37,7 +37,7 @@ using nlohmann::json;
 
 constexpr byte VERSION_MAJOR = (byte)1;
 constexpr byte VERSION_MINOR = (byte)0;
-constexpr byte VERSION_PATCH = (byte)3;
+constexpr byte VERSION_PATCH = (byte)4;
 constexpr const char* VERSION_NAME = "The C++ Update";
 guildmap allguilds;
 gdatamap gdata;
@@ -207,6 +207,17 @@ int main(int argl,char**argv)
             scannerbot.message_create(m);
         }
     };
+    auto edited = [&scannerbot](const message_update_t &evt)
+    {
+    	const string& msg = evt.msg.content;
+        if(badstr(msg, guilds[evt.msg.guild_id]["mutable"]))
+        {
+        	using namespace std::chrono;
+            snowflake gid = evt.msg.guild_id, uid = evt.msg.author.id, rid = (std::uint64_t)guilds[evt.msg.guild_id]["muterole"];
+            int mins = (int)guilds[evt.msg.guild_id]["mutetime"];
+            give_role_temp(scannerbot, gid, uid, rid, duration_cast<system_clock::duration>(minutes(mins)));
+        }
+	};
     auto evtr = [&scannerbot,&parser,&mention,&selfuser](const message_create_t &evt)
     {
         if(selfuser.id != evt.msg.author.id)
@@ -235,25 +246,13 @@ int main(int argl,char**argv)
                 macroobj["SQRT3"] = "1.73205080756887729";
                 macroobj["prefreset"] = "prefix --";
 			}
-            vector<string>words = split(msg, "?!,. \n");
-            bool badmsg = false;
-            for(const auto& m: guilds[evt.msg.guild_id]["mutable"])
+            if(badstr(msg, guilds[evt.msg.guild_id]["mutable"]))
             {
-                string s = (string)m;
-                if(std::find(words.begin(), words.end(), s) != words.end())
-                    badmsg = true;
-            }
-            if(badmsg)
-            {
-                snowflake gid, uid, rid;
-                scannerbot.guild_member_add_role(gid = evt.msg.guild_id, uid = evt.msg.author.id, rid = (std::uint64_t)guilds[evt.msg.guild_id]["muterole"]);
-                evt.send("You used a bad word, you shall now be muted.");
+            	using namespace std::chrono;
+                snowflake gid = evt.msg.guild_id, uid = evt.msg.author.id, rid = (std::uint64_t)guilds[evt.msg.guild_id]["muterole"];
                 int mins = (int)guilds[evt.msg.guild_id]["mutetime"];
-                auto calllater = [&scannerbot, gid, uid, rid]()
-                {
-                    scannerbot.guild_member_remove_role(gid, uid, rid);
-                };
-                setTimeout(calllater, std::chrono::minutes(mins));
+                evt.send("You used a bad word, you shall now be muted.");
+                give_role_temp(scannerbot, gid, uid, rid, duration_cast<system_clock::duration>(minutes(mins)));
             }
             const string &pref = guilds[evt.msg.guild_id]["pref"];
 #if __cplusplus >= 202002L
@@ -270,11 +269,18 @@ int main(int argl,char**argv)
             if(ity == pref.cend())
 #endif
             	sendstr = parser(evt.msg, msg.substr(pref.size()));
-            if(sendstr.size() > 0)
+            if(sendstr.size() > 2000)
+            {
+            	message m;
+            	m.add_file("message.txt", sendstr);
+            	evt.send(m);
+			}
+            else if(sendstr.size() > 0)
                 evt.send(sendstr);
         }
     };
     scannerbot.on_message_create(evtr);
+    scannerbot.on_message_update(edited);
     scannerbot.on_guild_member_add(memjoin);
     scannerbot.on_guild_member_remove(memleave);
     scannerbot.start();

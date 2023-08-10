@@ -10,8 +10,9 @@
 #include<algorithm>
 #include<vector>
 #include<nlohmann/json.hpp>
-#include"str.hpp"
 #include"discord.hpp"
+#include"str.hpp"
+#include"utils.hpp"
 
 using std::optional;
 using std::string;
@@ -36,6 +37,16 @@ bool hasperm(cluster& bot, const guild_member& member, permission perm)
 	for(auto x:member.roles)
 		mperms.add(rmap.at(x).permissions);
 	return mperms.has(perm);
+}
+
+void give_role_temp(cluster& bot, snowflake gid, snowflake uid, snowflake rid, std::chrono::system_clock::duration dura)
+{
+    bot.guild_member_add_role(gid, uid, rid);
+    auto calllater = [&bot, gid, uid, rid]()
+    {
+        bot.guild_member_remove_role(gid, uid, rid);
+    };
+    setTimeout(calllater, dura);
 }
 
 role getrole(cluster& bot, snowflake guild, snowflake value)
