@@ -37,7 +37,7 @@ using nlohmann::json;
 
 constexpr byte VERSION_MAJOR = (byte)1;
 constexpr byte VERSION_MINOR = (byte)0;
-constexpr byte VERSION_PATCH = (byte)4;
+constexpr byte VERSION_PATCH = (byte)5;
 constexpr const char* VERSION_NAME = "The C++ Update";
 guildmap allguilds;
 gdatamap gdata;

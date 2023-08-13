@@ -41,12 +41,20 @@ bool hasperm(cluster& bot, const guild_member& member, permission perm)
 
 void give_role_temp(cluster& bot, snowflake gid, snowflake uid, snowflake rid, std::chrono::system_clock::duration dura)
 {
-    bot.guild_member_add_role(gid, uid, rid);
-    auto calllater = [&bot, gid, uid, rid]()
-    {
-        bot.guild_member_remove_role(gid, uid, rid);
-    };
-    setTimeout(calllater, dura);
+	auto cb = [&bot, gid, uid, rid, dura](const confirmation_callback_t& evt)
+	{
+		const guild_member& mem = std::get<guild_member>(evt.value);
+		if(std::find(mem.roles.cbegin(), mem.roles.cend(), rid) == mem.roles.cend())
+		{
+		    bot.guild_member_add_role(gid, uid, rid);
+		    auto calllater = [&bot, gid, uid, rid]()
+		    {
+		        bot.guild_member_remove_role(gid, uid, rid);
+		    };
+		    setTimeout(calllater, dura);
+		}
+	};
+	bot.guild_get_member(gid, uid, cb);
 }
 
 role getrole(cluster& bot, snowflake guild, snowflake value)

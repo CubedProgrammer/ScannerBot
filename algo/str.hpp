@@ -60,7 +60,7 @@ bool badstr(const std::string& msg, T&& bad)
 	bool isbad = false;
 	for(std::string s:bad)
 	{
-        if(std::find(tokens.begin(), tokens.end(), s) != tokens.end())
+        if(std::find_if(tokens.begin(), tokens.end(), [&s](const std::string& x){return are_equal_ignore_case(s, x);}) != tokens.end())
             isbad = true;
 	}
 	return isbad;
