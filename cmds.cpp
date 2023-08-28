@@ -53,33 +53,39 @@ string Mutecmd::operator()(const message& og, const string* args, size_t size)co
 			else if(args[0].size() > 3 && args[0][1] == '@')
 			{
 				using namespace std::chrono;
-				long unsigned uid = std::stoul(args[0].substr(2, args[0].size() - 3));
-				int mtime = (int)allguilds[gid]["mutetime"];
-				if(size > 1)
-				{
-					string s = args[1];
-					int mult = 1;
-					if(s.back() == 'H' || s.back() == 'h')
-					{
-						mult = 60;
-						s.pop_back();
-					}
-					else if(s.back() == 'D' || s.back() == 'd')
-					{
-						mult = 1440;
-						s.pop_back();
-					}
-					mtime = std::stoi(s) * mult;
-				}
 				cluster& bot = *og.owner;
+				long unsigned uid = std::stoul(args[0].substr(2, args[0].size() - 3));
 				long unsigned rid = (long unsigned)mrole;
-				bot.guild_member_add_role(gid, uid, rid);
-				auto calllater = [&bot, gid, uid, rid]()
+				guild_member mem = bot.guild_get_member_sync(gid, uid);
+				if(find(mem.roles.begin(), mem.roles.end(), rid) == mem.roles.end())
 				{
-					bot.guild_member_remove_role(gid, uid, rid);
-				};
-				setTimeout(calllater, minutes(mtime));
-				return"Successfully muted user.";
+					int mtime = (int)allguilds[gid]["mutetime"];
+					if(size > 1)
+					{
+						string s = args[1];
+						int mult = 1;
+						if(s.back() == 'H' || s.back() == 'h')
+						{
+							mult = 60;
+							s.pop_back();
+						}
+						else if(s.back() == 'D' || s.back() == 'd')
+						{
+							mult = 1440;
+							s.pop_back();
+						}
+						mtime = std::stoi(s) * mult;
+					}
+					bot.guild_member_add_role(gid, uid, rid);
+					auto calllater = [&bot, gid, uid, rid]()
+					{
+						bot.guild_member_remove_role(gid, uid, rid);
+					};
+					setTimeout(calllater, minutes(mtime));
+					return"Successfully muted user.";
+				}
+				else
+					return"User is already muted.";
 			}
 			else
 				return"Mention the user you wish to mute.";
@@ -238,7 +244,7 @@ string Purgecmd::operator()(const message& og, const string* args, size_t size)c
 				for(const auto&[id, msg]: msgmap)
 				{
 					auto tm = to_time(id);
-					if(tm - currtm > 336h)
+					if(currtm - tm > 336h)
 						older.push_back(id);
 					else
 						recent.push_back(id);
