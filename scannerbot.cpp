@@ -207,6 +207,30 @@ int main(int argl,char**argv)
             scannerbot.message_create(m);
         }
     };
+    auto roledel = [](const guild_role_delete_t &evt)
+	{
+    	snowflake gid = evt.deleting_guild->id, rid = evt.role_id;
+    	std::cout << (uint64_t)rid << std::endl;
+    	auto& gdat = guilds[gid];
+    	if(gdat["muterole"] == rid)
+    		gdat["muterole"] = nullptr;
+    	std::size_t ind = -1;
+    	for(std::size_t i=0;i<gdat["autoroles"].size();i++)
+		{
+    		if(gdat["autoroles"][i] == rid)
+    			ind = i;
+		}
+    	if(ind != -1)
+    		gdat["autoroles"].erase(ind);
+    	ind = -1;
+    	for(std::size_t i=0;i<gdat["selfroles"].size();i++)
+		{
+    		if(gdat["selfroles"][i] == rid)
+    			ind = i;
+		}
+    	if(ind != -1)
+    		gdat["selfroles"].erase(ind);
+	};
     auto edited = [&scannerbot](const message_update_t &evt)
     {
     	const string& msg = evt.msg.content;
@@ -283,6 +307,7 @@ int main(int argl,char**argv)
     scannerbot.on_message_update(edited);
     scannerbot.on_guild_member_add(memjoin);
     scannerbot.on_guild_member_remove(memleave);
+    scannerbot.on_guild_role_delete(roledel);
     scannerbot.start();
     cout << "Scanner Bot v" << verstr << " has begun." << endl;
     startTimeout();
