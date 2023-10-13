@@ -1,4 +1,3 @@
-Selfrole and autoroles do not update if roles are deleted.
 Restarting the bot causes muted users to never be unmuted.
 Caching for guild data should use event listeners, not queries.
 Purge command does not take channel overrides into account.

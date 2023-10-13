@@ -263,6 +263,7 @@ int main(int argl,char**argv)
             	guilds[evt.msg.guild_id]["mutable"] = json::array();
             	guilds[evt.msg.guild_id]["mutetime"] = 60;
             	guilds[evt.msg.guild_id]["exitmsg"] = false;
+            	guilds[evt.msg.guild_id]["temprole"] = json::array();
                 json &macroobj = guilds[evt.msg.guild_id]["macros"];
                 macroobj["PI"] = "3.1415926535897932";
                 macroobj["E"] = "2.7182818245904524";

@@ -16,15 +16,16 @@
 
 using std::optional;
 using std::string;
+using std::uint64_t;
 using namespace dpp;
 
 extern std::unordered_map<dpp::snowflake,nlohmann::json>allguilds;
 extern std::unordered_map<dpp::snowflake,dpp::guild>gdata;
 
-std::chrono::time_point<std::chrono::system_clock>to_time(dpp::snowflake id)
+std::chrono::time_point<std::chrono::system_clock>to_time(snowflake id)
 {
 	using namespace std::chrono;
-	std::uint64_t tm = (std::uint64_t)id >> 22;
+	uint64_t tm = (uint64_t)id >> 22;
 	tm += discord_epoch;
 	seconds x(tm);
 	return time_point<system_clock>(duration_cast<system_clock::duration>(x));
@@ -41,14 +42,26 @@ bool hasperm(cluster& bot, const guild_member& member, permission perm)
 
 void give_role_temp(cluster& bot, snowflake gid, snowflake uid, snowflake rid, std::chrono::system_clock::duration dura)
 {
+	using namespace std::chrono;
 	auto cb = [&bot, gid, uid, rid, dura](const confirmation_callback_t& evt)
 	{
 		const guild_member& mem = std::get<guild_member>(evt.value);
 		if(std::find(mem.roles.cbegin(), mem.roles.cend(), rid) == mem.roles.cend())
 		{
 		    bot.guild_member_add_role(gid, uid, rid);
-		    auto calllater = [&bot, gid, uid, rid]()
+			json& templist = allguilds[gid]["temprole"];
+			json tempentry = json::object();
+			tempentry["user"] = (uint64_t)uid;
+			tempentry["role"] = (uint64_t)rid;
+			tempentry["release"] = time_point_cast<seconds>(system_clock::now() + dura).time_since_epoch().count();
+			templist.push_back(tempentry);
+		    auto calllater = [&bot, &templist, gid, uid, rid]()
 		    {
+		    	for(std::size_t i=0;i<templist.size();i++)
+				{
+		    		if((uint64_t)templist[i]["user"] == (uint64_t)uid && (uint64_t)templist[i]["role"] == (uint64_t)rid)
+		    			templist.erase(i);
+				}
 		        bot.guild_member_remove_role(gid, uid, rid);
 		    };
 		    setTimeout(calllater, dura);
@@ -96,7 +109,7 @@ role highrole(const role_map& roles, const guild_member& mem)
 	return r;
 }
 
-int member_cmpr(cluster& bot, const dpp::guild_member& x, const dpp::guild_member& y)
+int member_cmpr(cluster& bot, const guild_member& x, const guild_member& y)
 {
 	using namespace std;
 	snowflake gid = x.guild_id;

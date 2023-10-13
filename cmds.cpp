@@ -76,12 +76,7 @@ string Mutecmd::operator()(const message& og, const string* args, size_t size)co
 						}
 						mtime = std::stoi(s) * mult;
 					}
-					bot.guild_member_add_role(gid, uid, rid);
-					auto calllater = [&bot, gid, uid, rid]()
-					{
-						bot.guild_member_remove_role(gid, uid, rid);
-					};
-					setTimeout(calllater, minutes(mtime));
+	                give_role_temp(bot, gid, uid, rid, duration_cast<system_clock::duration>(minutes(mtime)));
 					return"Successfully muted user.";
 				}
 				else
