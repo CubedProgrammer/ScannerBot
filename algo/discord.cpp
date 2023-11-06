@@ -121,9 +121,22 @@ int member_cmpr(cluster& bot, const guild_member& x, const guild_member& y)
 void fetch_guilds(cluster& bot)
 {
 	snowflake idagain;
+	using namespace std::chrono;
+	time_point<system_clock>currtime = system_clock::now(), removetime;
     for(const auto &[id, j]: allguilds)
     {
 		idagain = id;
+		json& tmproledat = allguilds[id]["temprole"];
+		for(std::size_t i=0;i<tmproledat.size();i++)
+		{
+			json& dat = tmproledat[i];
+			removetime = system_clock::from_time_t((std::time_t)dat["release"]);
+		    auto calllater = [&bot, &dat, idagain]()
+		    {
+		        bot.guild_member_remove_role(idagain, (uint64_t)dat["user"], (uint64_t)dat["role"]);
+		    };
+		    setTimeout(calllater, removetime - currtime);
+		}
 		auto callback = [&bot, idagain](const confirmation_callback_t& res)
 		{
 			guild& g = gdata[idagain] = std::get<guild>(res.value);
@@ -159,12 +172,3 @@ void fetch_guilds(cluster& bot)
         bot.guild_get(id, callback);
     }
 }
-
-
-
-
-
-
-
-
-
