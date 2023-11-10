@@ -37,7 +37,7 @@ using nlohmann::json;
 
 constexpr byte VERSION_MAJOR = (byte)1;
 constexpr byte VERSION_MINOR = (byte)0;
-constexpr byte VERSION_PATCH = (byte)5;
+constexpr byte VERSION_PATCH = (byte)6;
 constexpr const char* VERSION_NAME = "The C++ Update";
 guildmap allguilds;
 gdatamap gdata;
@@ -309,11 +309,11 @@ int main(int argl,char**argv)
     scannerbot.on_guild_member_add(memjoin);
     scannerbot.on_guild_member_remove(memleave);
     scannerbot.on_guild_role_delete(roledel);
-    scannerbot.start();
-    cout << "Scanner Bot v" << verstr << " has begun." << endl;
     startTimeout();
     lastfetch = std::chrono::system_clock::now();
     fetch_guilds(scannerbot);
+    scannerbot.start();
+    cout << "Scanner Bot v" << verstr << " has begun." << endl;
     cin.get();
     save(guilds);
     return 0;

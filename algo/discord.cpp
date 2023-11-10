@@ -131,11 +131,22 @@ void fetch_guilds(cluster& bot)
 		{
 			json& dat = tmproledat[i];
 			removetime = system_clock::from_time_t((std::time_t)dat["release"]);
-		    auto calllater = [&bot, &dat, idagain]()
+		    auto calllater = [&bot, &dat, &tmproledat, idagain]()
 		    {
 		        bot.guild_member_remove_role(idagain, (uint64_t)dat["user"], (uint64_t)dat["role"]);
+		    	for(std::size_t i=0;i<tmproledat.size();i++)
+				{
+		    		if(tmproledat[i] == dat)
+		    		{
+		    			tmproledat.erase(i);
+		    			i = 0xffffffff;
+					}
+				}
 		    };
-		    setTimeout(calllater, removetime - currtime);
+		    if(removetime < currtime)
+		    	calllater();
+		    else
+		    	setTimeout(calllater, removetime - currtime);
 		}
 		auto callback = [&bot, idagain](const confirmation_callback_t& res)
 		{
