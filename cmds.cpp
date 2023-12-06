@@ -221,7 +221,8 @@ string Purgecmd::operator()(const message& og, const string* args, size_t size)c
 	snowflake gid = og.guild_id;
 	if(size > 0)
 	{
-		if(hasperm(*og.owner, og.member, permissions::p_manage_messages))
+		channel_map chmap = og.owner->channels_get_sync(gid);
+		if(hasperm(*og.owner, og.member, permissions::p_manage_messages, chmap[og.channel_id].permission_overwrites))
 		{
 			int cnt = std::stoi(args[0]);
 			if(cnt > 100)

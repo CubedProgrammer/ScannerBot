@@ -33,10 +33,37 @@ std::chrono::time_point<std::chrono::system_clock>to_time(snowflake id)
 
 bool hasperm(cluster& bot, const guild_member& member, permission perm)
 {
+	return hasperm(bot, member, perm, std::vector<permission_overwrite>{});
+}
+
+bool hasperm(cluster& bot, const guild_member& member, permission perm, const std::vector<permission_overwrite>& over)
+{
 	permission mperms;
+	permission roleallow, roledeny;
+	permission memallow, memdeny;
 	auto rmap = bot.roles_get_sync(member.guild_id);
+	for(auto x:over)
+	{
+		if(x.type == ot_role)
+		{
+			if(find(member.roles.cbegin(), member.roles.cend(), x.id) != member.roles.cend())
+			{
+				roleallow.add(x.allow);
+				roledeny.add(x.deny);
+			}
+		}
+		else if(x.id == member.user_id)
+		{
+			memallow = x.allow;
+			memdeny = x.deny;
+		}
+	}
 	for(auto x:member.roles)
 		mperms.add(rmap.at(x).permissions);
+	mperms.remove(roledeny);
+	mperms.add(roleallow);
+	mperms.remove(memdeny);
+	mperms.add(memallow);
 	return mperms.has(perm);
 }
 
