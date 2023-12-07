@@ -38,33 +38,43 @@ bool hasperm(cluster& bot, const guild_member& member, permission perm)
 
 bool hasperm(cluster& bot, const guild_member& member, permission perm, const std::vector<permission_overwrite>& over)
 {
-	permission mperms;
-	permission roleallow, roledeny;
-	permission memallow, memdeny;
-	auto rmap = bot.roles_get_sync(member.guild_id);
-	for(auto x:over)
+	if(gdata[member.guild_id].owner_id == member.user_id)
+		return true;
+	else
 	{
-		if(x.type == ot_role)
+		permission mperms;
+		permission roleallow, roledeny;
+		permission memallow, memdeny;
+		auto rmap = bot.roles_get_sync(member.guild_id);
+		for(auto x:over)
 		{
-			if(find(member.roles.cbegin(), member.roles.cend(), x.id) != member.roles.cend())
+			if(x.type == ot_role)
 			{
-				roleallow.add(x.allow);
-				roledeny.add(x.deny);
+				if(find(member.roles.cbegin(), member.roles.cend(), x.id) != member.roles.cend())
+				{
+					roleallow.add(x.allow);
+					roledeny.add(x.deny);
+				}
+			}
+			else if(x.id == member.user_id)
+			{
+				memallow = x.allow;
+				memdeny = x.deny;
 			}
 		}
-		else if(x.id == member.user_id)
+		for(auto x:member.roles)
+			mperms.add(rmap.at(x).permissions);
+		if(mperms.has(permissions::p_administrator))
+			return true;
+		else
 		{
-			memallow = x.allow;
-			memdeny = x.deny;
+			mperms.remove(roledeny);
+			mperms.add(roleallow);
+			mperms.remove(memdeny);
+			mperms.add(memallow);
+			return mperms.has(perm);
 		}
 	}
-	for(auto x:member.roles)
-		mperms.add(rmap.at(x).permissions);
-	mperms.remove(roledeny);
-	mperms.add(roleallow);
-	mperms.remove(memdeny);
-	mperms.add(memallow);
-	return mperms.has(perm);
 }
 
 void give_role_temp(cluster& bot, snowflake gid, snowflake uid, snowflake rid, std::chrono::system_clock::duration dura)
