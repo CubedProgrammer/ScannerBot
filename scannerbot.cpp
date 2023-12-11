@@ -22,6 +22,7 @@
 #include"algo/str.hpp"
 #include"algo/utils.hpp"
 #include"cmds.hpp"
+#include"SpecialCommand.hpp"
 
 using std::byte;
 using std::endl;
@@ -98,6 +99,7 @@ int main(int argl,char**argv)
     cout << selfuser.id << ' ' << selfuser.username << endl;
     for(const auto &p : guilds)
     	cout << p.first << ' ' << p.second["pref"] << endl;
+    ptrCommand sinhcmd(new VListMathFunction((double(*)(double))std::sinh, "Hyperbolic sine."));
     ptrCommand epochcmd(new Epochcmd());
     ptrCommand mutecmd(new Mutecmd());
     ptrCommand mutetimecmd(new Mutetimecmd());
@@ -142,11 +144,12 @@ int main(int argl,char**argv)
     ptrCommand prefixcmd(new Prefixcmd("Sets the prefix for the bot."));
     ptrCommand productcmd(new Productcmd("Computes the product of all numbers given."));
     ptrCommand sumcmd(new Sumcmd("Computes the sum of all numbers given."));
-    vector<string>cmdnamevec{"epoch", "mute", "mutetime", "mutable", "allrole", "anyrole", "purge", "takerole", "giverole",
+    vector<string>cmdnamevec{"sinh", "epoch", "mute", "mutetime", "mutable", "allrole", "anyrole", "purge", "takerole", "giverole",
     	"macrols", "undef", "define", "muterole", "ban", "kick", "dloptions", "info", "selfrole", "toggleselfrole", "autorole",
 		"atan2", "atan", "acos", "asin", "csc", "sec", "cot", "tan", "cos", "sin", "log", "pow", "harmean", "geomean", "mean",
 		"baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
     vector<ptrCommand>cmdvec;
+    cmdvec.push_back(move(sinhcmd));
     cmdvec.push_back(move(epochcmd));
     cmdvec.push_back(move(mutecmd));
     cmdvec.push_back(move(mutetimecmd));

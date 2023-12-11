@@ -22,7 +22,7 @@ struct VListCommand:public Command
 	VListCommand(VListCommand&& cmd)=default;
 	VListCommand& operator=(const VListCommand& cmd)=default;
 	VListCommand& operator=(VListCommand&& cmd)=default;
-	virtual std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const=0;
+	virtual std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
 	virtual~VListCommand()=default;
 };
 
