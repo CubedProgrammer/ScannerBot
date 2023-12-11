@@ -12,6 +12,14 @@
 #include<chrono>
 #include"CommandParser.hpp"
 
+struct Epochcmd:Command
+{
+	Epochcmd()
+		:Command("Get time since Unix Epoch, specify m, u, or n for unit, or no argument for seconds.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)const;
+};
+
 struct Mutecmd:Command
 {
 	Mutecmd()

@@ -40,6 +40,30 @@ extern guildmap allguilds;
 extern gdatamap gdata;
 std::chrono::time_point<std::chrono::system_clock>lastfetch;
 
+string Epochcmd::operator()(const message& og, const string* args, size_t size)const
+{
+	using namespace std::chrono;
+	auto curr = high_resolution_clock::now().time_since_epoch();
+	long currns = duration_cast<nanoseconds>(curr).count();
+	long denom = 1000000000;
+	if(size > 0)
+	{
+		switch(args[0][0])
+		{
+			case'm':
+				denom = 1000000;
+				break;
+			case'u':
+				denom = 1000;
+				break;
+			default:
+				denom = 1;
+				break;
+		}
+	}
+	return tostr(currns / denom);
+}
+
 string Mutecmd::operator()(const message& og, const string* args, size_t size)const
 {
 	snowflake gid = og.guild_id;
