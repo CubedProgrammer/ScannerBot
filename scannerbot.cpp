@@ -99,6 +99,9 @@ int main(int argl,char**argv)
     cout << selfuser.id << ' ' << selfuser.username << endl;
     for(const auto &p : guilds)
     	cout << p.first << ' ' << p.second["pref"] << endl;
+    ptrCommand atanhcmd(new VListMathFunction((double(*)(double))std::atanh, "Inverse hyperbolic tangent."));
+    ptrCommand acoshcmd(new VListMathFunction((double(*)(double))std::acosh, "Inverse hyperbolic cosine."));
+    ptrCommand asinhcmd(new VListMathFunction((double(*)(double))std::asinh, "Inverse hyperbolic sine."));
     ptrCommand tanhcmd(new VListMathFunction((double(*)(double))std::tanh, "Hyperbolic tangent."));
     ptrCommand coshcmd(new VListMathFunction((double(*)(double))std::cosh, "Hyperbolic cosine."));
     ptrCommand sinhcmd(new VListMathFunction((double(*)(double))std::sinh, "Hyperbolic sine."));
@@ -146,11 +149,14 @@ int main(int argl,char**argv)
     ptrCommand prefixcmd(new Prefixcmd("Sets the prefix for the bot."));
     ptrCommand productcmd(new Productcmd("Computes the product of all numbers given."));
     ptrCommand sumcmd(new Sumcmd("Computes the sum of all numbers given."));
-    vector<string>cmdnamevec{"tanh", "cosh", "sinh", "epoch", "mute", "mutetime", "mutable", "allrole", "anyrole", "purge",
-    	"takerole", "giverole", "macrols", "undef", "define", "muterole", "ban", "kick", "dloptions", "info", "selfrole",
-		"toggleselfrole", "autorole", "atan2", "atan", "acos", "asin", "csc", "sec", "cot", "tan", "cos", "sin", "log", "pow",
-		"harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
+    vector<string>cmdnamevec{"atanh", "acosh", "asinh", "tanh", "cosh", "sinh", "epoch", "mute", "mutetime", "mutable", "allrole",
+    	"anyrole", "purge", "takerole", "giverole", "macrols", "undef", "define", "muterole", "ban", "kick", "dloptions", "info",
+		"selfrole", "toggleselfrole", "autorole", "atan2", "atan", "acos", "asin", "csc", "sec", "cot", "tan", "cos", "sin", "log",
+		"pow", "harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
     vector<ptrCommand>cmdvec;
+    cmdvec.push_back(move(atanhcmd));
+    cmdvec.push_back(move(acoshcmd));
+    cmdvec.push_back(move(asinhcmd));
     cmdvec.push_back(move(tanhcmd));
     cmdvec.push_back(move(coshcmd));
     cmdvec.push_back(move(sinhcmd));
