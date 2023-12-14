@@ -34,7 +34,7 @@ CommandParser::CommandParser(string verstr,const vector<string>& names, vector<p
 		this->cmds[names[i]] = move(cmds[i]);
 }
 
-std::string CommandParser::operator()(const message& og,string cmd)const
+std::string CommandParser::operator()(const message& og,string cmd)
 {
 	vector<string>tokens;
 	string curr;
@@ -111,7 +111,7 @@ void CommandParser::help(string& res, const vector<pair<size_t,size_t>>& pending
 	}
 }
 
-string CommandParser::run(const message& og,string* args, size_t size)const
+string CommandParser::run(const message& og,string* args, size_t size)
 {
 	string res;
 	vector<pair<size_t,size_t>>pending;
@@ -132,7 +132,7 @@ string CommandParser::run(const message& og,string* args, size_t size)const
 			}
 			else
 			{
-				const auto &cmd = *this->cmds.at(cmdname);
+				auto &cmd = *this->cmds.at(cmdname);
 				res = cmd(og, args + pending.back().first + 1, pending.back().second);
 			}
 			pending.pop_back();
@@ -162,7 +162,7 @@ string CommandParser::run(const message& og,string* args, size_t size)const
 			res = "Command not found.";
 		else
 		{
-			const auto &cmd = *this->cmds.at(cmdname);
+			auto &cmd = *this->cmds.at(cmdname);
 			res = cmd(og, args + pending.back().first + 1, pending.back().second);
 		}
 		pending.pop_back();

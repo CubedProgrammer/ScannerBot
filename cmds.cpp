@@ -40,7 +40,12 @@ extern guildmap allguilds;
 extern gdatamap gdata;
 std::chrono::time_point<std::chrono::system_clock>lastfetch;
 
-string Epochcmd::operator()(const message& og, const string* args, size_t size)const
+string Randcmd::operator()(const message& og, const string* args, size_t size)
+{
+	return tostr(dice());
+}
+
+string Epochcmd::operator()(const message& og, const string* args, size_t size)
 {
 	using namespace std::chrono;
 	auto curr = high_resolution_clock::now().time_since_epoch();
@@ -64,7 +69,7 @@ string Epochcmd::operator()(const message& og, const string* args, size_t size)c
 	return tostr(currns / denom);
 }
 
-string Mutecmd::operator()(const message& og, const string* args, size_t size)const
+string Mutecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
@@ -116,7 +121,7 @@ string Mutecmd::operator()(const message& og, const string* args, size_t size)co
 		return"Specify a member to mute.";
 }
 
-string Mutetimecmd::operator()(const message& og, const string* args, size_t size)const
+string Mutetimecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
@@ -145,7 +150,7 @@ string Mutetimecmd::operator()(const message& og, const string* args, size_t siz
 		return tostr(allguilds[gid]["mutetime"]) + " minutes";
 }
 
-string Mutablecmd::operator()(const message& og, const string* args, size_t size)const
+string Mutablecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
@@ -172,7 +177,7 @@ string Mutablecmd::operator()(const message& og, const string* args, size_t size
 		return tostr(allguilds[gid]["mutable"]);
 }
 
-string Allrolecmd::operator()(const message& og, const string* args, size_t size)const
+string Allrolecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
@@ -206,7 +211,7 @@ string Allrolecmd::operator()(const message& og, const string* args, size_t size
 		return"Give a list of roles.";
 }
 
-string Anyrolecmd::operator()(const message& og, const string* args, size_t size)const
+string Anyrolecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
@@ -240,7 +245,7 @@ string Anyrolecmd::operator()(const message& og, const string* args, size_t size
 		return"Give a list of roles.";
 }
 
-string Purgecmd::operator()(const message& og, const string* args, size_t size)const
+string Purgecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
@@ -285,7 +290,7 @@ string Purgecmd::operator()(const message& og, const string* args, size_t size)c
 		return"Specify the number of messages to purge.";
 }
 
-string Takerolecmd::operator()(const message& og, const string* args, size_t size)const
+string Takerolecmd::operator()(const message& og, const string* args, size_t size)
 {
 	if(size >= 2)
 	{
@@ -323,7 +328,7 @@ string Takerolecmd::operator()(const message& og, const string* args, size_t siz
 		return"Name a member and a role to take from that member.";
 }
 
-string Giverolecmd::operator()(const message& og, const string* args, size_t size)const
+string Giverolecmd::operator()(const message& og, const string* args, size_t size)
 {
 	if(size >= 2)
 	{
@@ -361,7 +366,7 @@ string Giverolecmd::operator()(const message& og, const string* args, size_t siz
 		return"Name a member and a role to give to that member.";
 }
 
-string Macrolscmd::operator()(const message& og, const string* args, size_t size)const
+string Macrolscmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	auto& macros = allguilds[gid]["macros"];
@@ -374,7 +379,7 @@ string Macrolscmd::operator()(const message& og, const string* args, size_t size
 	return retstr;
 }
 
-string Undefcmd::operator()(const message& og, const string* args, size_t size)const
+string Undefcmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	auto& macros = allguilds[gid]["macros"];
@@ -386,7 +391,7 @@ string Undefcmd::operator()(const message& og, const string* args, size_t size)c
 	return"Successfully removed macros.";
 }
 
-string Definecmd::operator()(const message& og, const string* args, size_t size)const
+string Definecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	auto& macros = allguilds[gid]["macros"];
@@ -399,7 +404,7 @@ string Definecmd::operator()(const message& og, const string* args, size_t size)
 		return"Give the macro a name and specify what it should expand to.";
 }
 
-string Muterolecmd::operator()(const message& og, const string* args, size_t size)const
+string Muterolecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
@@ -430,7 +435,7 @@ string Muterolecmd::operator()(const message& og, const string* args, size_t siz
 		return tostr(allguilds[gid]["muterole"]);
 }
 
-string Bancmd::operator()(const message& og, const string* args, size_t size)const
+string Bancmd::operator()(const message& og, const string* args, size_t size)
 {
     unsigned failed = 0;
     bool perm = true;
@@ -465,7 +470,7 @@ string Bancmd::operator()(const message& og, const string* args, size_t size)con
 		return"You do not have permission to use this command.";
 }
 
-string Kickcmd::operator()(const message& og, const string* args, size_t size)const
+string Kickcmd::operator()(const message& og, const string* args, size_t size)
 {
     unsigned failed = 0;
     bool perm = true;
@@ -500,7 +505,7 @@ string Kickcmd::operator()(const message& og, const string* args, size_t size)co
 		return"You do not have permission to use this command.";
 }
 
-string DLOptionscmd::operator()(const message& og, const string* args, size_t size)const
+string DLOptionscmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
@@ -525,7 +530,7 @@ string DLOptionscmd::operator()(const message& og, const string* args, size_t si
 		return"You do not have permission to use this command.";
 }
 
-string Infocmd::operator()(const message& og, const string* args, size_t size)const
+string Infocmd::operator()(const message& og, const string* args, size_t size)
 {
 	std::ostringstream oss;
 	cluster &bot = *og.owner;
@@ -611,7 +616,7 @@ string Infocmd::operator()(const message& og, const string* args, size_t size)co
 	return oss.str();
 }
 
-string Selfrolecmd::operator()(const message& og, const string* args, size_t size)const
+string Selfrolecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
@@ -648,7 +653,7 @@ string Selfrolecmd::operator()(const message& og, const string* args, size_t siz
 		return"Name a role to give yourself.";
 }
 
-string Toggleselfrolecmd::operator()(const message& og, const string* args, size_t size)const
+string Toggleselfrolecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
@@ -684,7 +689,7 @@ string Toggleselfrolecmd::operator()(const message& og, const string* args, size
 		return tostr(allguilds[gid]["selfroles"]);
 }
 
-string Autorolecmd::operator()(const message& og, const string* args, size_t size)const
+string Autorolecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
@@ -720,7 +725,7 @@ string Autorolecmd::operator()(const message& og, const string* args, size_t siz
 		return tostr(allguilds[gid]["autoroles"]);
 }
 
-string Atan2cmd::operator()(const message& og, const string* args, size_t size)const
+string Atan2cmd::operator()(const message& og, const string* args, size_t size)
 {
     if(size < 2)
         return "Two arguments are required, y and x.";
@@ -731,7 +736,7 @@ string Atan2cmd::operator()(const message& og, const string* args, size_t size)c
     }
 }
 
-string Atancmd::operator()(const message& og, const string* args, size_t size)const
+string Atancmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -756,7 +761,7 @@ string Atancmd::operator()(const message& og, const string* args, size_t size)co
 	return resstr;
 }
 
-string Acoscmd::operator()(const message& og, const string* args, size_t size)const
+string Acoscmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -781,7 +786,7 @@ string Acoscmd::operator()(const message& og, const string* args, size_t size)co
 	return resstr;
 }
 
-string Asincmd::operator()(const message& og, const string* args, size_t size)const
+string Asincmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -806,7 +811,7 @@ string Asincmd::operator()(const message& og, const string* args, size_t size)co
 	return resstr;
 }
 
-string Csccmd::operator()(const message& og, const string* args, size_t size)const
+string Csccmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -831,7 +836,7 @@ string Csccmd::operator()(const message& og, const string* args, size_t size)con
 	return resstr;
 }
 
-string Seccmd::operator()(const message& og, const string* args, size_t size)const
+string Seccmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -856,7 +861,7 @@ string Seccmd::operator()(const message& og, const string* args, size_t size)con
 	return resstr;
 }
 
-string Cotcmd::operator()(const message& og, const string* args, size_t size)const
+string Cotcmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -881,7 +886,7 @@ string Cotcmd::operator()(const message& og, const string* args, size_t size)con
 	return resstr;
 }
 
-string Tancmd::operator()(const message& og, const string* args, size_t size)const
+string Tancmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -906,7 +911,7 @@ string Tancmd::operator()(const message& og, const string* args, size_t size)con
 	return resstr;
 }
 
-string Coscmd::operator()(const message& og, const string* args, size_t size)const
+string Coscmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -931,7 +936,7 @@ string Coscmd::operator()(const message& og, const string* args, size_t size)con
 	return resstr;
 }
 
-string Sincmd::operator()(const message& og, const string* args, size_t size)const
+string Sincmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -956,7 +961,7 @@ string Sincmd::operator()(const message& og, const string* args, size_t size)con
 	return resstr;
 }
 
-string Logcmd::operator()(const message& og, const string* args, size_t size)const
+string Logcmd::operator()(const message& og, const string* args, size_t size)
 {
     if(size == 0)
         return"Provide the base and then the power.";
@@ -972,7 +977,7 @@ string Logcmd::operator()(const message& og, const string* args, size_t size)con
     }
 }
 
-string Powcmd::operator()(const message& og, const string* args, size_t size)const
+string Powcmd::operator()(const message& og, const string* args, size_t size)
 {
     if(size == 0)
         return"Provide the base and then the exponent.";
@@ -988,7 +993,7 @@ string Powcmd::operator()(const message& og, const string* args, size_t size)con
     }
 }
 
-string HMeancmd::operator()(const message& og, const string* args, size_t size)const
+string HMeancmd::operator()(const message& og, const string* args, size_t size)
 {
     double num = 0;
     string resstr;
@@ -1010,7 +1015,7 @@ string HMeancmd::operator()(const message& og, const string* args, size_t size)c
 	return resstr;
 }
 
-string GMeancmd::operator()(const message& og, const string* args, size_t size)const
+string GMeancmd::operator()(const message& og, const string* args, size_t size)
 {
     double num = 1;
     string resstr;
@@ -1032,7 +1037,7 @@ string GMeancmd::operator()(const message& og, const string* args, size_t size)c
 	return resstr;
 }
 
-string AMeancmd::operator()(const message& og, const string* args, size_t size)const
+string AMeancmd::operator()(const message& og, const string* args, size_t size)
 {
     double num = 0;
     string resstr;
@@ -1054,7 +1059,7 @@ string AMeancmd::operator()(const message& og, const string* args, size_t size)c
 	return resstr;
 }
 
-string Baseconvcmd::operator()(const message& og, const string* args, size_t size)const
+string Baseconvcmd::operator()(const message& og, const string* args, size_t size)
 {
     if(size < 3)
         return "Three arguments are required. Number, base the number is in, base the number is to be displayed in.";
@@ -1071,7 +1076,7 @@ string Baseconvcmd::operator()(const message& og, const string* args, size_t siz
     }
 }
 
-string Factorcmd::operator()(const message& og, const string* args, size_t size)const
+string Factorcmd::operator()(const message& og, const string* args, size_t size)
 {
     long num = 0;
     string resstr;
@@ -1105,7 +1110,7 @@ string Factorcmd::operator()(const message& og, const string* args, size_t size)
 	return resstr;
 }
 
-string Primecmd::operator()(const message& og, const string* args, size_t size)const
+string Primecmd::operator()(const message& og, const string* args, size_t size)
 {
     long num = 0;
     string resstr;
@@ -1130,7 +1135,7 @@ string Primecmd::operator()(const message& og, const string* args, size_t size)c
 	return resstr;
 }
 
-string Gcdcmd::operator()(const message& og, const string* args, size_t size)const
+string Gcdcmd::operator()(const message& og, const string* args, size_t size)
 {
     long num = 0, next = 0;
     string resstr;
@@ -1154,7 +1159,7 @@ string Gcdcmd::operator()(const message& og, const string* args, size_t size)con
 	return resstr;
 }
 
-string Modulocmd::operator()(const message& og, const string* args, size_t size)const
+string Modulocmd::operator()(const message& og, const string* args, size_t size)
 {
 	double q = 0;
 	string resstr = "0";
@@ -1185,7 +1190,7 @@ string Modulocmd::operator()(const message& og, const string* args, size_t size)
 	return resstr;
 }
 
-string Quotientcmd::operator()(const message& og, const string* args, size_t size)const
+string Quotientcmd::operator()(const message& og, const string* args, size_t size)
 {
 	double q = 0;
 	string resstr = "0";
@@ -1216,7 +1221,7 @@ string Quotientcmd::operator()(const message& og, const string* args, size_t siz
 	return resstr;
 }
 
-string Prefixcmd::operator()(const message& og, const string* args, size_t size)const
+string Prefixcmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
@@ -1238,7 +1243,7 @@ string Prefixcmd::operator()(const message& og, const string* args, size_t size)
 		return(string)allguilds[gid]["pref"];
 }
 
-string Productcmd::operator()(const message& og, const string* args, size_t size)const
+string Productcmd::operator()(const message& og, const string* args, size_t size)
 {
 	double product = 1;
 	string resstr = "0";
@@ -1259,7 +1264,7 @@ string Productcmd::operator()(const message& og, const string* args, size_t size
 	return resstr;
 }
 
-string Sumcmd::operator()(const message& og, const string* args, size_t size)const
+string Sumcmd::operator()(const message& og, const string* args, size_t size)
 {
 	double sum = 0;
 	string resstr = "0";

@@ -27,7 +27,7 @@ struct MathToStrFunc
 };
 VListCommand::VListCommand(function<string(const string&)>op, string desc)
 	:op(move(op)), Command(move(desc)){}
-string VListCommand::operator()(const dpp::message& og, const string* args, size_t size)const
+string VListCommand::operator()(const dpp::message& og, const string* args, size_t size)
 {
 	string retstr;
 	for(unsigned long i=0;i<size;i++)
