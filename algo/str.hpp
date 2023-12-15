@@ -124,6 +124,7 @@ template<typename T>
 std::string tostr(T&& x)
 {
 	std::ostringstream oss;
+	oss.precision(16);
 	oss << x;
 	return oss.str();
 }

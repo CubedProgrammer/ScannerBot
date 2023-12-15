@@ -42,7 +42,30 @@ std::chrono::time_point<std::chrono::system_clock>lastfetch;
 
 string Randcmd::operator()(const message& og, const string* args, size_t size)
 {
-	return tostr(dice());
+	string ret;
+	std::uint64_t num, cnt = 1;
+	std::uint64_t upper, lower = 0;
+	switch(size)
+	{
+		default:
+			cnt = toint(args[2]);
+		case 2:
+			lower = toint(args[0]);
+			++args;
+		case 1:
+			upper = toint(args[0]);
+			for(std::uint64_t i=0;i<cnt;i++)
+			{
+				num = dice() % (upper - lower) + lower;
+				ret += tostr(num) + '\n';
+			}
+			break;
+		case 0:
+			num = dice() & 0x1fffffffffffff;
+			ret = tostr((double)num / 0x20000000000000);
+			break;
+	}
+	return ret;
 }
 
 string Epochcmd::operator()(const message& og, const string* args, size_t size)
