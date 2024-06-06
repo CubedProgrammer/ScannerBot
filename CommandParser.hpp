@@ -30,7 +30,7 @@ struct Command
 
 using ptrCommand = std::unique_ptr<Command>;
 using cmdmap = std::unordered_map<std::string,ptrCommand>;
-using guildmap = std::unordered_map<dpp::snowflake,json>;
+using guildmap = std::unordered_map<dpp::snowflake,nlohmann::json>;
 using gdatamap = std::unordered_map<dpp::snowflake,dpp::guild>;
 
 class CommandParser

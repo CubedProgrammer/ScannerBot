@@ -13,6 +13,30 @@
 #include<random>
 #include"CommandParser.hpp"
 
+struct Findusercmd:Command
+{
+	Findusercmd()
+		:Command("Look up a user by ID.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size);
+};
+
+struct RecallMessagecmd:Command
+{
+	RecallMessagecmd()
+		:Command("Links to a saved message by name.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size);
+};
+
+struct SaveMessagecmd:Command
+{
+	SaveMessagecmd()
+		:Command("Remember a link to a message, similar to pinning a message.")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size);
+};
+
 struct Randcmd:Command
 {
 	std::mt19937_64 dice;

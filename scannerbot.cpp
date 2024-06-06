@@ -37,9 +37,9 @@ using std::vector;
 using nlohmann::json;
 
 constexpr byte VERSION_MAJOR = (byte)1;
-constexpr byte VERSION_MINOR = (byte)0;
-constexpr byte VERSION_PATCH = (byte)6;
-constexpr const char* VERSION_NAME = "The C++ Update";
+constexpr byte VERSION_MINOR = (byte)1;
+constexpr byte VERSION_PATCH = (byte)0;
+constexpr const char* VERSION_NAME = "The Mathematics Update";
 guildmap allguilds;
 gdatamap gdata;
 extern std::chrono::time_point<std::chrono::system_clock>lastfetch;
@@ -99,6 +99,9 @@ int main(int argl,char**argv)
     cout << selfuser.id << ' ' << selfuser.username << endl;
     for(const auto &p : guilds)
     	cout << p.first << ' ' << p.second["pref"] << endl;
+    ptrCommand findusercmd(new Findusercmd());
+    ptrCommand recallmsgcmd(new RecallMessagecmd());
+    ptrCommand savemsgcmd(new SaveMessagecmd());
     ptrCommand randcmd(new Randcmd());
     ptrCommand atanhcmd(new VListMathFunction((double(*)(double))std::atanh, "Inverse hyperbolic tangent."));
     ptrCommand acoshcmd(new VListMathFunction((double(*)(double))std::acosh, "Inverse hyperbolic cosine."));
@@ -150,62 +153,65 @@ int main(int argl,char**argv)
     ptrCommand prefixcmd(new Prefixcmd("Sets the prefix for the bot."));
     ptrCommand productcmd(new Productcmd("Computes the product of all numbers given."));
     ptrCommand sumcmd(new Sumcmd("Computes the sum of all numbers given."));
-    vector<string>cmdnamevec{"rand", "atanh", "acosh", "asinh", "tanh", "cosh", "sinh", "epoch", "mute", "mutetime", "mutable", "allrole",
-    	"anyrole", "purge", "takerole", "giverole", "macrols", "undef", "define", "muterole", "ban", "kick", "dloptions", "info",
-		"selfrole", "toggleselfrole", "autorole", "atan2", "atan", "acos", "asin", "csc", "sec", "cot", "tan", "cos", "sin", "log",
-		"pow", "harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
+    vector<string>cmdnamevec{"finduser", "recallmsg", "savemsg", "rand", "atanh", "acosh", "asinh", "tanh", "cosh", "sinh", "epoch", "mute",
+    	"mutetime", "mutable", "allrole", "anyrole", "purge", "takerole", "giverole", "macrols", "undef", "define", "muterole", "ban", "kick",
+		"dloptions", "info", "selfrole", "toggleselfrole", "autorole", "atan2", "atan", "acos", "asin", "csc", "sec", "cot", "tan", "cos", "sin",
+		"log", "pow", "harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
     vector<ptrCommand>cmdvec;
-    cmdvec.push_back(move(randcmd));
-    cmdvec.push_back(move(atanhcmd));
-    cmdvec.push_back(move(acoshcmd));
-    cmdvec.push_back(move(asinhcmd));
-    cmdvec.push_back(move(tanhcmd));
-    cmdvec.push_back(move(coshcmd));
-    cmdvec.push_back(move(sinhcmd));
-    cmdvec.push_back(move(epochcmd));
-    cmdvec.push_back(move(mutecmd));
-    cmdvec.push_back(move(mutetimecmd));
-    cmdvec.push_back(move(mutablecmd));
-    cmdvec.push_back(move(allrolecmd));
-    cmdvec.push_back(move(anyrolecmd));
-    cmdvec.push_back(move(purgecmd));
-    cmdvec.push_back(move(takerolecmd));
-    cmdvec.push_back(move(giverolecmd));
-    cmdvec.push_back(move(macrolscmd));
-    cmdvec.push_back(move(undefcmd));
-    cmdvec.push_back(move(definecmd));
-    cmdvec.push_back(move(muterolecmd));
-    cmdvec.push_back(move(bancmd));
-    cmdvec.push_back(move(kickcmd));
-    cmdvec.push_back(move(dloptionscmd));
-    cmdvec.push_back(move(infocmd));
-    cmdvec.push_back(move(selfrolecmd));
-    cmdvec.push_back(move(toggleselfrolecmd));
-    cmdvec.push_back(move(autorolecmd));
-    cmdvec.push_back(move(atan2cmd));
-    cmdvec.push_back(move(atancmd));
-    cmdvec.push_back(move(acoscmd));
-    cmdvec.push_back(move(asincmd));
-    cmdvec.push_back(move(csccmd));
-    cmdvec.push_back(move(seccmd));
-    cmdvec.push_back(move(cotcmd));
-    cmdvec.push_back(move(tancmd));
-    cmdvec.push_back(move(coscmd));
-    cmdvec.push_back(move(sincmd));
-    cmdvec.push_back(move(logcmd));
-    cmdvec.push_back(move(powcmd));
-    cmdvec.push_back(move(hmeancmd));
-    cmdvec.push_back(move(gmeancmd));
-    cmdvec.push_back(move(ameancmd));
-    cmdvec.push_back(move(baseconvcmd));
-    cmdvec.push_back(move(factorcmd));
-    cmdvec.push_back(move(primecmd));
-    cmdvec.push_back(move(gcdcmd));
-    cmdvec.push_back(move(modulocmd));
-    cmdvec.push_back(move(quotientcmd));
-    cmdvec.push_back(move(prefixcmd));
-    cmdvec.push_back(move(productcmd));
-    cmdvec.push_back(move(sumcmd));
+    cmdvec.push_back(std::move(findusercmd));
+    cmdvec.push_back(std::move(recallmsgcmd));
+    cmdvec.push_back(std::move(savemsgcmd));
+    cmdvec.push_back(std::move(randcmd));
+    cmdvec.push_back(std::move(atanhcmd));
+    cmdvec.push_back(std::move(acoshcmd));
+    cmdvec.push_back(std::move(asinhcmd));
+    cmdvec.push_back(std::move(tanhcmd));
+    cmdvec.push_back(std::move(coshcmd));
+    cmdvec.push_back(std::move(sinhcmd));
+    cmdvec.push_back(std::move(epochcmd));
+    cmdvec.push_back(std::move(mutecmd));
+    cmdvec.push_back(std::move(mutetimecmd));
+    cmdvec.push_back(std::move(mutablecmd));
+    cmdvec.push_back(std::move(allrolecmd));
+    cmdvec.push_back(std::move(anyrolecmd));
+    cmdvec.push_back(std::move(purgecmd));
+    cmdvec.push_back(std::move(takerolecmd));
+    cmdvec.push_back(std::move(giverolecmd));
+    cmdvec.push_back(std::move(macrolscmd));
+    cmdvec.push_back(std::move(undefcmd));
+    cmdvec.push_back(std::move(definecmd));
+    cmdvec.push_back(std::move(muterolecmd));
+    cmdvec.push_back(std::move(bancmd));
+    cmdvec.push_back(std::move(kickcmd));
+    cmdvec.push_back(std::move(dloptionscmd));
+    cmdvec.push_back(std::move(infocmd));
+    cmdvec.push_back(std::move(selfrolecmd));
+    cmdvec.push_back(std::move(toggleselfrolecmd));
+    cmdvec.push_back(std::move(autorolecmd));
+    cmdvec.push_back(std::move(atan2cmd));
+    cmdvec.push_back(std::move(atancmd));
+    cmdvec.push_back(std::move(acoscmd));
+    cmdvec.push_back(std::move(asincmd));
+    cmdvec.push_back(std::move(csccmd));
+    cmdvec.push_back(std::move(seccmd));
+    cmdvec.push_back(std::move(cotcmd));
+    cmdvec.push_back(std::move(tancmd));
+    cmdvec.push_back(std::move(coscmd));
+    cmdvec.push_back(std::move(sincmd));
+    cmdvec.push_back(std::move(logcmd));
+    cmdvec.push_back(std::move(powcmd));
+    cmdvec.push_back(std::move(hmeancmd));
+    cmdvec.push_back(std::move(gmeancmd));
+    cmdvec.push_back(std::move(ameancmd));
+    cmdvec.push_back(std::move(baseconvcmd));
+    cmdvec.push_back(std::move(factorcmd));
+    cmdvec.push_back(std::move(primecmd));
+    cmdvec.push_back(std::move(gcdcmd));
+    cmdvec.push_back(std::move(modulocmd));
+    cmdvec.push_back(std::move(quotientcmd));
+    cmdvec.push_back(std::move(prefixcmd));
+    cmdvec.push_back(std::move(productcmd));
+    cmdvec.push_back(std::move(sumcmd));
     CommandParser parser(verstr, cmdnamevec, cmdvec);
     auto memjoin = [&scannerbot](const guild_member_add_t &evt)
     {
@@ -217,7 +223,7 @@ int main(int argl,char**argv)
     {
         json& guild_dat = guilds[evt.removing_guild->id];
         guild& g = *evt.removing_guild;
-        user& u = *evt.removed;
+        const user& u = evt.removed;
         if(guild_dat["exitmsg"])
         {
             message m(g.system_channel_id, u.username + " has left.");
@@ -281,6 +287,8 @@ int main(int argl,char**argv)
             	guilds[evt.msg.guild_id]["mutetime"] = 60;
             	guilds[evt.msg.guild_id]["exitmsg"] = false;
             	guilds[evt.msg.guild_id]["temprole"] = json::array();
+            	guilds[evt.msg.guild_id]["saved_message_ids"] = json::object();
+            	guilds[evt.msg.guild_id]["saved_messages"] = json::object();
                 json &macroobj = guilds[evt.msg.guild_id]["macros"];
                 macroobj["PI"] = "3.1415926535897932";
                 macroobj["E"] = "2.7182818245904524";

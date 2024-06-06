@@ -50,7 +50,7 @@ bool hasperm(cluster& bot, const guild_member& member, permission perm, const st
 		{
 			if(x.type == ot_role)
 			{
-				if(find(member.roles.cbegin(), member.roles.cend(), x.id) != member.roles.cend())
+				if(find(member.get_roles().cbegin(), member.get_roles().cend(), x.id) == member.get_roles().cend())
 				{
 					roleallow.add(x.allow);
 					roledeny.add(x.deny);
@@ -62,7 +62,7 @@ bool hasperm(cluster& bot, const guild_member& member, permission perm, const st
 				memdeny = x.deny;
 			}
 		}
-		for(auto x:member.roles)
+		for(auto x:member.get_roles())
 			mperms.add(rmap.at(x).permissions);
 		if(mperms.has(permissions::p_administrator))
 			return true;
@@ -83,7 +83,7 @@ void give_role_temp(cluster& bot, snowflake gid, snowflake uid, snowflake rid, s
 	auto cb = [&bot, gid, uid, rid, dura](const confirmation_callback_t& evt)
 	{
 		const guild_member& mem = std::get<guild_member>(evt.value);
-		if(std::find(mem.roles.cbegin(), mem.roles.cend(), rid) == mem.roles.cend())
+		if(find(mem.get_roles().cbegin(), mem.get_roles().cend(), rid) == mem.get_roles().cend())
 		{
 		    bot.guild_member_add_role(gid, uid, rid);
 			json& templist = allguilds[gid]["temprole"];
@@ -141,7 +141,7 @@ optional<role> findrole(const role_map& roles, cluster& bot, snowflake guild, st
 role highrole(const role_map& roles, const guild_member& mem)
 {
 	role r;
-	for(auto x:mem.roles)
+	for(auto x:mem.get_roles())
 		r = std::max(roles.at(x), r);
 	return r;
 }
@@ -202,9 +202,9 @@ void fetch_guilds(cluster& bot)
 			};
 			auto tcallback = [&g](const confirmation_callback_t& res)
 			{
-				const thread_map& tmap = std::get<active_threads>(res.value).threads;
+				/*const dpp::active_threads& tmap = std::get<dpp::active_threads>(res.value);
 				for(const auto&[id, v]:tmap)
-					g.threads.push_back(id);
+					g.threads.push_back(id);*/
 			};
 			auto ecallback = [&g](const confirmation_callback_t& res)
 			{

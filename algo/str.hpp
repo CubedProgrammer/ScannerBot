@@ -11,8 +11,11 @@
 #define ALGO_STR_HPP_
 #include<algorithm>
 #include<cctype>
+#include<cstdint>
 #include<sstream>
+#include<type_traits>
 #include<vector>
+#include<dpp/dpp.h>
 
 inline std::vector<std::string>split(const std::string& str, const std::string& pattern)
 {
@@ -47,6 +50,33 @@ inline bool are_equal_ignore_case(const std::string& l, const std::string& r)
     }
     else
         return false;
+}
+
+namespace nlohmann
+{
+	template<typename OS>
+#if __cplusplus >= 202002L
+		requires std::is_base_of_v<std::ostream, OS>
+	OS&
+#else
+	std::enable_if_t<std::is_base_of_v<std::ostream, OS>, OS>&
+#endif
+	operator<<(OS& os, const nlohmann::json& j)
+	{
+		return static_cast<OS&>(static_cast<std::ostream&>(os) << j);
+	}
+}
+
+template<typename OS>
+#if __cplusplus >= 202002L
+	requires std::is_base_of_v<std::ostream, OS>
+OS&
+#else
+std::enable_if_t<std::is_base_of_v<std::ostream, OS>, OS>&
+#endif
+operator<<(OS& os, const dpp::user& u)
+{
+	return static_cast<OS&>(os << std::uint64_t(u.id) << ' ' << u.username << ' ' << u.get_avatar_url());
 }
 
 #if __cplusplus >= 202002L
@@ -119,7 +149,7 @@ inline double tonum(const std::string& str)
 	else
 		return std::stod(str);
 }
-
+static_assert(std::is_convertible_v<nlohmann::json, dpp::user>);
 template<typename T>
 std::string tostr(T&& x)
 {

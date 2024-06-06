@@ -40,6 +40,76 @@ extern guildmap allguilds;
 extern gdatamap gdata;
 std::chrono::time_point<std::chrono::system_clock>lastfetch;
 
+string Findusercmd::operator()(const message& og, const string* args, size_t size)
+{
+	snowflake uid;
+	cluster& bot = *og.owner;
+	std::ostringstream oss;
+	for(unsigned long i=0;i<size;i++)
+	{
+		uid = snowflake(std::stol(args[i]));
+		oss << bot.user_get_cached_sync(uid) << '\n';
+	}
+	return oss.str();
+}
+
+string RecallMessagecmd::operator()(const message& og, const string* args, size_t size)
+{
+	auto &saved = allguilds[og.guild_id]["saved_message_ids"];
+	std::ostringstream oss;
+	if(size == 0)
+	{
+		for(auto&[name, msg]:saved.items())
+			oss << name << ": " << msg << '\n';
+	}
+	else
+	{
+		auto it = saved.find(args[0]);
+		if(it == saved.end())
+			oss << "Could not find that message.";
+		else
+			oss << *it;
+	}
+	return oss.str();
+}
+
+string SaveMessagecmd::operator()(const message& og, const string* args, size_t size)
+{
+	string ret("You do not have permission to use this command.");
+	if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+	{
+		if(size < 1)
+			ret = "Grab the message link.";
+		else
+		{
+			auto &saved = allguilds[og.guild_id]["saved_message_ids"];
+			string link = args[0];
+			string name = size < 2 ? "message " + numstr(saved.size() + 1, 10) : args[1];
+			auto slash = link.rfind('/');
+			if(slash == string::npos)
+				ret = "Invalid message link.";
+			else
+			{
+				link[slash] = ' ';
+				slash = link.rfind('/');
+				if(slash == string::npos)
+					ret = "Invalid message link.";
+				else
+				{
+					std::istringstream iss(link.substr(slash + 1));
+					std::uint64_t chid, mid;
+					iss >> chid >> mid;
+					saved[name] = json::array();
+					saved[name].push_back(chid);
+					saved[name].push_back(mid);
+					ret = "Successfully recorded message.";
+				}
+			}
+		}
+	}
+	return ret;
+}
+
 string Randcmd::operator()(const message& og, const string* args, size_t size)
 {
 	string ret;
@@ -109,7 +179,7 @@ string Mutecmd::operator()(const message& og, const string* args, size_t size)
 				long unsigned uid = std::stoul(args[0].substr(2, args[0].size() - 3));
 				long unsigned rid = (long unsigned)mrole;
 				guild_member mem = bot.guild_get_member_sync(gid, uid);
-				if(find(mem.roles.begin(), mem.roles.end(), rid) == mem.roles.end())
+				if(find(mem.get_roles().begin(), mem.get_roles().end(), rid) == mem.get_roles().end())
 				{
 					int mtime = (int)allguilds[gid]["mutetime"];
 					if(size > 1)
@@ -225,7 +295,7 @@ string Allrolecmd::operator()(const message& og, const string* args, size_t size
 		retstr += "Here is the list of members.\n";
 		for(const auto& [id, m]: gmems)
 		{
-			if(has_all(m.roles.cbegin(), m.roles.cend(), rolelist.begin(), rolelist.end()))
+			if(has_all(m.get_roles().cbegin(), m.get_roles().cend(), rolelist.begin(), rolelist.end()))
 				retstr += tostr((std::uint64_t)id) + ' ' + m.get_user()->username + '\n';
 		}
 		return retstr;
@@ -259,7 +329,7 @@ string Anyrolecmd::operator()(const message& og, const string* args, size_t size
 		retstr += "Here is the list of members.\n";
 		for(const auto& [id, m]: gmems)
 		{
-			if(has_any(m.roles.cbegin(), m.roles.cend(), rolelist.begin(), rolelist.end()))
+			if(has_any(m.get_roles().cbegin(), m.get_roles().cend(), rolelist.begin(), rolelist.end()))
 				retstr += tostr((std::uint64_t)id) + ' ' + m.get_user()->username + '\n';
 		}
 		return retstr;
@@ -597,7 +667,7 @@ string Infocmd::operator()(const message& og, const string* args, size_t size)
 							mem = bot.guild_get_member_sync(gid, id);
 							oss << "ID: " << luid << '\n';
 							oss << "Joined at: " << mem.joined_at << '\n';
-							oss << "Number of roles: " << mem.roles.size() << '\n';
+							oss << "Number of roles: " << mem.get_roles().size() << '\n';
 						}
 				}
 			}
@@ -658,7 +728,7 @@ string Selfrolecmd::operator()(const message& og, const string* args, size_t siz
 				continue;
 			}
 			numid = (std::uint64_t)roleid->id;
-			auto& memrole = og.member.roles;
+			auto& memrole = og.member.get_roles();
 			auto it = find(sroles.begin(), sroles.end(), numid);
 			if(it == sroles.end())
 			{
