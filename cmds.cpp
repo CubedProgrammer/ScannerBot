@@ -40,6 +40,45 @@ extern guildmap allguilds;
 extern gdatamap gdata;
 std::chrono::time_point<std::chrono::system_clock>lastfetch;
 
+string DLMessagecmd::operator()(const message& og, const string* args, size_t size)
+{
+	string ret = "Specify the number of messages to download, up to 100, and optionally the channels to download from.";
+	if(size > 0)
+	{
+		unsigned cnt = std::stoi(args[0]);
+		vector<snowflake>chIDs;
+		snowflake before = og.id;
+		for(size_t i = 1; i < size; i++)
+			chIDs.push_back((snowflake)std::stoul(args[i]));
+		if(chIDs.size() == 0)
+			chIDs.push_back(og.channel_id);
+		ret = "Downloading messages... this may take a while.";
+		auto& bot = *og.owner;
+		for(auto &i : chIDs)
+		{
+			auto cb = [&bot, dlch = i, msgch = og.channel_id](const confirmation_callback_t& evt)
+			{
+				message m(msgch, std::to_string(uint64_t(dlch)));
+				if(evt.is_error())
+					m.content = evt.get_error().message;
+				else
+				{
+					const auto& v = std::get<message_map>(evt.value);
+					message_file_data d;
+					d.name = "messages.txt";
+					d.mimetype = "txt";
+					for(auto& [id, msg] : v)
+						d.content += msg.content + '\n';
+					m.file_data.push_back(std::move(d));
+				}
+				bot.message_create(m);
+			};
+			bot.messages_get(i, snowflake(0), before, snowflake(0), cnt, cb);
+		}
+	}
+	return ret;
+}
+
 string Findusercmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake uid;

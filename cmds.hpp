@@ -13,6 +13,14 @@
 #include<random>
 #include"CommandParser.hpp"
 
+struct DLMessagecmd:Command
+{
+	DLMessagecmd()
+		:Command("Downloads a certain number of messages from channels or the current channel. Usage: <count> channelIDs...")
+	{}
+	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size);
+};
+
 struct Findusercmd:Command
 {
 	Findusercmd()

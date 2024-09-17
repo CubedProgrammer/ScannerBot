@@ -99,6 +99,7 @@ int main(int argl,char**argv)
     cout << selfuser.id << ' ' << selfuser.username << endl;
     for(const auto &p : guilds)
     	cout << p.first << ' ' << p.second["pref"] << endl;
+    ptrCommand dlmessagecmd(new DLMessagecmd());
     ptrCommand findusercmd(new Findusercmd());
     ptrCommand recallmsgcmd(new RecallMessagecmd());
     ptrCommand savemsgcmd(new SaveMessagecmd());
@@ -153,11 +154,12 @@ int main(int argl,char**argv)
     ptrCommand prefixcmd(new Prefixcmd("Sets the prefix for the bot."));
     ptrCommand productcmd(new Productcmd("Computes the product of all numbers given."));
     ptrCommand sumcmd(new Sumcmd("Computes the sum of all numbers given."));
-    vector<string>cmdnamevec{"finduser", "recallmsg", "savemsg", "rand", "atanh", "acosh", "asinh", "tanh", "cosh", "sinh", "epoch", "mute",
+    vector<string>cmdnamevec{"dlmsg", "finduser", "recallmsg", "savemsg", "rand", "atanh", "acosh", "asinh", "tanh", "cosh", "sinh", "epoch", "mute",
     	"mutetime", "mutable", "allrole", "anyrole", "purge", "takerole", "giverole", "macrols", "undef", "define", "muterole", "ban", "kick",
 		"dloptions", "info", "selfrole", "toggleselfrole", "autorole", "atan2", "atan", "acos", "asin", "csc", "sec", "cot", "tan", "cos", "sin",
 		"log", "pow", "harmean", "geomean", "mean", "baseconv", "factor", "prime", "gcd", "remainder", "quotient", "prefix", "product", "sum"};
     vector<ptrCommand>cmdvec;
+    cmdvec.push_back(std::move(dlmessagecmd));
     cmdvec.push_back(std::move(findusercmd));
     cmdvec.push_back(std::move(recallmsgcmd));
     cmdvec.push_back(std::move(savemsgcmd));
