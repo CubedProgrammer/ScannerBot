@@ -220,7 +220,7 @@ string Mutecmd::operator()(const message& og, const string* args, size_t size)
 				guild_member mem = bot.guild_get_member_sync(gid, uid);
 				if(find(mem.get_roles().begin(), mem.get_roles().end(), rid) == mem.get_roles().end())
 				{
-					int mtime = (int)allguilds[gid]["mutetime"];
+            		int mtime = get_mute_time(allguilds[gid], (snowflake)uid);
 					if(size > 1)
 					{
 						string s = args[1];
@@ -238,14 +238,23 @@ string Mutecmd::operator()(const message& og, const string* args, size_t size)
 						mtime = std::stoi(s) * mult;
 					}
 	                give_role_temp(bot, gid, uid, rid, duration_cast<system_clock::duration>(minutes(mtime)));
-					og.owner->guild_member_move(snowflake(0), gid, snowflake(uid));
+					bot.guild_member_move(snowflake(0), gid, snowflake(uid));
 					return"Successfully muted user.";
 				}
 				else
-					return"User is already muted.";
+				{
+					auto pred = [uid, rid](const nlohmann::json& val)
+					{
+						return uint64_t(val["user"]) == uid && uint64_t(val["role"]) == rid;
+					};
+					auto&tmpr = allguilds[gid]["temprole"];
+					tmpr.erase(std::remove_if(tmpr.begin(), tmpr.end(), pred), tmpr.end());
+					bot.guild_member_remove_role(gid, uid, rid);
+					return"Successfully unmuted user.";
+				}
 			}
 			else
-				return"Mention the user you wish to mute.";
+				return"Mention the user you wish to (un)mute.";
 		}
 		else
 			return"You do not have permission to use this command.";
@@ -261,26 +270,41 @@ string Mutetimecmd::operator()(const message& og, const string* args, size_t siz
 	{
 		if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
 		{
-			string s = args[0];
-			int mult = 1;
-			if(s.back() == 'H' || s.back() == 'h')
+			auto &arr = allguilds[gid]["mutetime"];
+			arr.clear();
+			for(size_t i = 0; i < size; i++)
 			{
-				mult = 60;
-				s.pop_back();
+				string s = args[i];
+				int mult = 1;
+				if(s.back() == 'H' || s.back() == 'h')
+				{
+					mult = 60;
+					s.pop_back();
+				}
+				else if(s.back() == 'D' || s.back() == 'd')
+				{
+					mult = 1440;
+					s.pop_back();
+				}
+				arr.push_back(std::stoi(s) * mult);
 			}
-			else if(s.back() == 'D' || s.back() == 'd')
-			{
-				mult = 1440;
-				s.pop_back();
-			}
-			allguilds[gid]["mutetime"] = std::stoi(s) * mult;
 			return"Successfully set the new mute time.";
 		}
 		else
 			return"You do not have permission to use this command.";
 	}
 	else
-		return tostr(allguilds[gid]["mutetime"]) + " minutes";
+	{
+		string ret = tostr(allguilds[gid]["mutetime"]) + " minutes";
+		for(size_t i = 0; i < allguilds[gid]["temprole"].size(); i++)
+		{
+			using namespace std::chrono;
+			auto &v = allguilds[gid]["temprole"][i];
+			if(allguilds[gid]["muterole"] == v["role"] && uint64_t(v["user"]) == uint64_t(og.member.user_id))
+				ret += " total\n" + std::to_string(uint64_t(v["release"]) - duration_cast<seconds>(system_clock::now().time_since_epoch()).count()) + " seconds remaining.";
+		}
+		return ret;
+	}
 }
 
 string Mutablecmd::operator()(const message& og, const string* args, size_t size)

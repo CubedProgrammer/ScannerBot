@@ -66,7 +66,7 @@ struct Epochcmd:Command
 struct Mutecmd:Command
 {
 	Mutecmd()
-		:Command("Mutes a member for a specified amount of time, first argument must be a mention to the member.")
+		:Command("Mutes a member for a specified amount of time, first argument must be a mention to the member. Unmutes already muted members.")
 	{}
 	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size);
 };
