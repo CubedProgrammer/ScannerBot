@@ -68,7 +68,7 @@ string RecallMessagecmd::operator()(const message& og, const string* args, size_
 		if(it == saved.end())
 			oss << "Could not find that message.";
 		else
-			oss << *it;
+			oss << "https://discord.com/channels/" << std::uint64_t(og.guild_id) << '/' << (*it)[0] << '/' << (*it)[1];
 	}
 	return oss.str();
 }
@@ -199,6 +199,7 @@ string Mutecmd::operator()(const message& og, const string* args, size_t size)
 						mtime = std::stoi(s) * mult;
 					}
 	                give_role_temp(bot, gid, uid, rid, duration_cast<system_clock::duration>(minutes(mtime)));
+					og.owner->guild_member_move(snowflake(0), gid, snowflake(uid));
 					return"Successfully muted user.";
 				}
 				else
@@ -637,6 +638,7 @@ string Infocmd::operator()(const message& og, const string* args, size_t size)
 	{
 		role_map rmap = bot.roles_get_sync(gid);
 		std::regex digitonly("[^0-9]");
+		string avatarURL;
 		for(size_t i = 0; i < size; ++i)
 		{
 			if(args[i].size() > 4)
@@ -668,6 +670,10 @@ string Infocmd::operator()(const message& og, const string* args, size_t size)
 							oss << "ID: " << luid << '\n';
 							oss << "Joined at: " << mem.joined_at << '\n';
 							oss << "Number of roles: " << mem.get_roles().size() << '\n';
+							avatarURL = mem.get_avatar_url();
+							if(avatarURL.size() == 0)
+								avatarURL = mem.get_user()->get_avatar_url();
+							oss << avatarURL << '\n';
 						}
 				}
 			}

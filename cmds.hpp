@@ -32,7 +32,7 @@ struct RecallMessagecmd:Command
 struct SaveMessagecmd:Command
 {
 	SaveMessagecmd()
-		:Command("Remember a link to a message, similar to pinning a message.")
+		:Command("Remember a link to a message, message link is first argument and name is second, similar to pinning a message. Use a memorable name.")
 	{}
 	std::string operator()(const dpp::message& og, const std::string* args, std::size_t size);
 };

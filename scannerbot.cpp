@@ -263,6 +263,7 @@ int main(int argl,char**argv)
             snowflake gid = evt.msg.guild_id, uid = evt.msg.author.id, rid = (std::uint64_t)guilds[evt.msg.guild_id]["muterole"];
             int mins = (int)guilds[evt.msg.guild_id]["mutetime"];
             give_role_temp(scannerbot, gid, uid, rid, duration_cast<system_clock::duration>(minutes(mins)));
+            scannerbot.guild_member_move(snowflake(0), gid, uid);
         }
 	};
     auto evtr = [&scannerbot,&parser,&mention,&selfuser](const message_create_t &evt)
@@ -303,6 +304,7 @@ int main(int argl,char**argv)
                 int mins = (int)guilds[evt.msg.guild_id]["mutetime"];
                 evt.send("You used a bad word, you shall now be muted.");
                 give_role_temp(scannerbot, gid, uid, rid, duration_cast<system_clock::duration>(minutes(mins)));
+                scannerbot.guild_member_move(snowflake(0), gid, uid);
             }
             const string &pref = guilds[evt.msg.guild_id]["pref"];
 #if __cplusplus >= 202002L
