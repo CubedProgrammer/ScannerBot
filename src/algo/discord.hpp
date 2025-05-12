@@ -16,6 +16,7 @@
 
 constexpr long discord_epoch = 1420070400000;
 
+int get_mute_time(nlohmann::json& dat, dpp::snowflake user);
 std::chrono::time_point<std::chrono::system_clock>to_time(dpp::snowflake id);
 dpp::task<bool>hasperm(dpp::cluster& bot, const dpp::guild_member& member, dpp::permission perm);
 dpp::task<bool>hasperm(dpp::cluster& bot, const dpp::guild_member& member, dpp::permission perm, const std::vector<dpp::permission_overwrite>& over);

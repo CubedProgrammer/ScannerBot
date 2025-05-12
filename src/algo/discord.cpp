@@ -23,6 +23,22 @@ using namespace dpp;
 extern std::unordered_map<dpp::snowflake,nlohmann::json>allguilds;
 extern std::unordered_map<dpp::snowflake,dpp::guild>gdata;
 
+int get_mute_time(nlohmann::json& dat, snowflake user)
+{
+	std::size_t offense = 0;
+    auto &offenseMap = dat["muteoff"];
+    string uidstr = std::to_string(uint64_t(user));
+    auto it = offenseMap.find(uidstr);
+    if(it != offenseMap.end())
+    	offense = unsigned(*it);
+    else
+    	offenseMap[uidstr] = 0;
+	auto &times = dat["mutetime"];
+	offense = std::min(offense, times.size() - 1);
+    offenseMap[uidstr] = offense + 1;
+    return(int)times[offense];
+}
+
 std::chrono::time_point<std::chrono::system_clock>to_time(snowflake id)
 {
 	using namespace std::chrono;

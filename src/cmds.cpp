@@ -43,7 +43,47 @@ using namespace dpp;
 extern guildmap allguilds;
 extern gdatamap gdata;
 std::chrono::time_point<std::chrono::system_clock>lastfetch;
-task<string> Findusercmd::operator()(const message& og, const string* args, size_t size)
+
+task<string> DLMessagecmd::operator()(const message& og, const string* args, size_t size)
+{
+	string ret = "Specify the number of messages to download, up to 100, and optionally the channels to download from.";
+	if(size > 0)
+	{
+		unsigned cnt = std::stoi(args[0]);
+		vector<snowflake>chIDs;
+		snowflake before = og.id;
+		for(size_t i = 1; i < size; i++)
+			chIDs.push_back((snowflake)std::stoul(args[i]));
+		if(chIDs.size() == 0)
+			chIDs.push_back(og.channel_id);
+		ret = "Downloading messages... this may take a while.";
+		auto& bot = *og.owner;
+		for(auto &i : chIDs)
+		{
+			auto cb = [&bot, dlch = i, msgch = og.channel_id](const confirmation_callback_t& evt)
+			{
+				message m(msgch, std::to_string(uint64_t(dlch)));
+				if(evt.is_error())
+					m.content = evt.get_error().message;
+				else
+				{
+					const auto& v = std::get<message_map>(evt.value);
+					message_file_data d;
+					d.name = "messages.txt";
+					d.mimetype = "txt";
+					for(auto& [id, msg] : v)
+						d.content += msg.content + '\n';
+					m.file_data.push_back(std::move(d));
+				}
+				bot.message_create(m);
+			};
+			bot.messages_get(i, snowflake(0), before, snowflake(0), cnt, cb);
+		}
+	}
+	co_return ret;
+}
+
+task<string>Findusercmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake uid;
 	cluster& bot = *og.owner;
@@ -56,6 +96,7 @@ task<string> Findusercmd::operator()(const message& og, const string* args, size
 	}
 	co_return oss.str();
 }
+
 task<string> RecallMessagecmd::operator()(const message& og, const string* args, size_t size)
 {
 	auto &saved = allguilds[og.guild_id]["saved_message_ids"];
@@ -71,7 +112,7 @@ task<string> RecallMessagecmd::operator()(const message& og, const string* args,
 		if(it == saved.end())
 			oss << "Could not find that message.";
 		else
-			oss << *it;
+			oss << "https://discord.com/channels/" << std::uint64_t(og.guild_id) << '/' << (*it)[0] << '/' << (*it)[1];
 	}
 	co_return oss.str();
 }
@@ -181,7 +222,7 @@ task<string> Mutecmd::operator()(const message& og, const string* args, size_t s
 				guild_member mem = get<guild_member>(ret.value);
 				if(find(mem.get_roles().begin(), mem.get_roles().end(), rid) == mem.get_roles().end())
 				{
-					int mtime = (int)allguilds[gid]["mutetime"];
+            		int mtime = get_mute_time(allguilds[gid], (snowflake)uid);
 					if(size > 1)
 					{
 						string s = args[1];
@@ -199,13 +240,23 @@ task<string> Mutecmd::operator()(const message& og, const string* args, size_t s
 						mtime = std::stoi(s) * mult;
 					}
 	                give_role_temp(bot, gid, uid, rid, duration_cast<system_clock::duration>(minutes(mtime)));
+					bot.guild_member_move(snowflake(0), gid, snowflake(uid));
 					co_return"Successfully muted user.";
 				}
 				else
-					co_return"User is already muted.";
+				{
+					auto pred = [uid, rid](const nlohmann::json& val)
+					{
+						return uint64_t(val["user"]) == uid && uint64_t(val["role"]) == rid;
+					};
+					auto&tmpr = allguilds[gid]["temprole"];
+					tmpr.erase(std::remove_if(tmpr.begin(), tmpr.end(), pred), tmpr.end());
+					bot.guild_member_remove_role(gid, uid, rid);
+					co_return"Successfully unmuted user.";
+				}
 			}
 			else
-				co_return"Mention the user you wish to mute.";
+				co_return"Mention the user you wish to (un)mute.";
 		}
 		else
 			co_return"You do not have permission to use this command.";
@@ -213,6 +264,7 @@ task<string> Mutecmd::operator()(const message& og, const string* args, size_t s
 	else
 		co_return"Specify a member to mute.";
 }
+
 task<string> Mutetimecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
@@ -220,27 +272,43 @@ task<string> Mutetimecmd::operator()(const message& og, const string* args, size
 	{
 		if(co_await hasperm(*og.owner, og.member, permissions::p_manage_guild))
 		{
-			string s = args[0];
-			int mult = 1;
-			if(s.back() == 'H' || s.back() == 'h')
+			auto &arr = allguilds[gid]["mutetime"];
+			arr.clear();
+			for(size_t i = 0; i < size; i++)
 			{
-				mult = 60;
-				s.pop_back();
+				string s = args[i];
+				int mult = 1;
+				if(s.back() == 'H' || s.back() == 'h')
+				{
+					mult = 60;
+					s.pop_back();
+				}
+				else if(s.back() == 'D' || s.back() == 'd')
+				{
+					mult = 1440;
+					s.pop_back();
+				}
+				arr.push_back(std::stoi(s) * mult);
 			}
-			else if(s.back() == 'D' || s.back() == 'd')
-			{
-				mult = 1440;
-				s.pop_back();
-			}
-			allguilds[gid]["mutetime"] = std::stoi(s) * mult;
 			co_return"Successfully set the new mute time.";
 		}
 		else
 			co_return"You do not have permission to use this command.";
 	}
 	else
-		co_return tostr(allguilds[gid]["mutetime"]) + " minutes";
+	{
+		string ret = tostr(allguilds[gid]["mutetime"]) + " minutes";
+		for(size_t i = 0; i < allguilds[gid]["temprole"].size(); i++)
+		{
+			using namespace std::chrono;
+			auto &v = allguilds[gid]["temprole"][i];
+			if(allguilds[gid]["muterole"] == v["role"] && uint64_t(v["user"]) == uint64_t(og.member.user_id))
+				ret += " total\n" + std::to_string(uint64_t(v["release"]) - duration_cast<seconds>(system_clock::now().time_since_epoch()).count()) + " seconds remaining.";
+		}
+		co_return ret;
+	}
 }
+
 task<string> Mutablecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
@@ -635,6 +703,7 @@ task<string> Infocmd::operator()(const message& og, const string* args, size_t s
 		confirmation_callback_t cct = co_await bot.co_roles_get(gid);
 		role_map rmap = get<role_map>(cct.value);
 		std::regex digitonly("[^0-9]");
+		string avatarURL;
 		for(size_t i = 0; i < size; ++i)
 		{
 			if(args[i].size() > 4)
@@ -666,6 +735,10 @@ task<string> Infocmd::operator()(const message& og, const string* args, size_t s
 							oss << "ID: " << luid << '\n';
 							oss << "Joined at: " << mem.joined_at << '\n';
 							oss << "Number of roles: " << mem.get_roles().size() << '\n';
+							avatarURL = mem.get_avatar_url();
+							if(avatarURL.size() == 0)
+								avatarURL = mem.get_user()->get_avatar_url();
+							oss << avatarURL << '\n';
 						}
 				}
 			}

@@ -13,6 +13,14 @@
 #include<random>
 #include"CommandParser.hpp"
 
+struct DLMessagecmd:Command
+{
+	DLMessagecmd()
+		:Command("Downloads a certain number of messages from channels or the current channel. Usage: <count> channelIDs...")
+	{}
+	dpp::task<std::string>operator()(const dpp::message& og, const std::string* args, std::size_t size);
+};
+
 struct Findusercmd:Command
 {
 	Findusercmd()
@@ -32,7 +40,7 @@ struct RecallMessagecmd:Command
 struct SaveMessagecmd:Command
 {
 	SaveMessagecmd()
-		:Command("Remember a link to a message, similar to pinning a message.")
+		:Command("Remember a link to a message, message link is first argument and name is second, similar to pinning a message. Use a memorable name.")
 	{}
 	dpp::task<std::string>operator()(const dpp::message& og, const std::string* args, std::size_t size);
 };
@@ -58,7 +66,7 @@ struct Epochcmd:Command
 struct Mutecmd:Command
 {
 	Mutecmd()
-		:Command("Mutes a member for a specified amount of time, first argument must be a mention to the member.")
+		:Command("Mutes a member for a specified amount of time, first argument must be a mention to the member. Unmutes already muted members.")
 	{}
 	dpp::task<std::string>operator()(const dpp::message& og, const std::string* args, std::size_t size);
 };
