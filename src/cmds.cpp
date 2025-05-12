@@ -8,6 +8,10 @@
 // You should have received a copy of the GNU General Public License along with ScannerBot. If not, see <https://www.gnu.org/licenses/>. 
 
 #include<cmath>
+#include <dpp/channel.h>
+#include <dpp/guild.h>
+#include <dpp/restresults.h>
+#include <dpp/role.h>
 #include<map>
 #include<numeric>
 #include<regex>
@@ -39,8 +43,7 @@ using namespace dpp;
 extern guildmap allguilds;
 extern gdatamap gdata;
 std::chrono::time_point<std::chrono::system_clock>lastfetch;
-
-string Findusercmd::operator()(const message& og, const string* args, size_t size)
+task<string> Findusercmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake uid;
 	cluster& bot = *og.owner;
@@ -48,12 +51,12 @@ string Findusercmd::operator()(const message& og, const string* args, size_t siz
 	for(unsigned long i=0;i<size;i++)
 	{
 		uid = snowflake(std::stol(args[i]));
-		oss << bot.user_get_cached_sync(uid) << '\n';
+		confirmation_callback_t ret = co_await bot.co_user_get_cached(uid);
+		oss << get<user_identified>(ret.value) << '\n';
 	}
-	return oss.str();
+	co_return oss.str();
 }
-
-string RecallMessagecmd::operator()(const message& og, const string* args, size_t size)
+task<string> RecallMessagecmd::operator()(const message& og, const string* args, size_t size)
 {
 	auto &saved = allguilds[og.guild_id]["saved_message_ids"];
 	std::ostringstream oss;
@@ -70,13 +73,12 @@ string RecallMessagecmd::operator()(const message& og, const string* args, size_
 		else
 			oss << *it;
 	}
-	return oss.str();
+	co_return oss.str();
 }
-
-string SaveMessagecmd::operator()(const message& og, const string* args, size_t size)
+task<string> SaveMessagecmd::operator()(const message& og, const string* args, size_t size)
 {
 	string ret("You do not have permission to use this command.");
-	if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+	if(co_await hasperm(*og.owner, og.member, permissions::p_manage_guild))
 	{
 		if(size < 1)
 			ret = "Grab the message link.";
@@ -107,10 +109,9 @@ string SaveMessagecmd::operator()(const message& og, const string* args, size_t 
 			}
 		}
 	}
-	return ret;
+	co_return ret;
 }
-
-string Randcmd::operator()(const message& og, const string* args, size_t size)
+task<string> Randcmd::operator()(const message& og, const string* args, size_t size)
 {
 	string ret;
 	std::uint64_t num, cnt = 1;
@@ -135,10 +136,9 @@ string Randcmd::operator()(const message& og, const string* args, size_t size)
 			ret = tostr((double)num / 0x20000000000000);
 			break;
 	}
-	return ret;
+	co_return ret;
 }
-
-string Epochcmd::operator()(const message& og, const string* args, size_t size)
+task<string> Epochcmd::operator()(const message& og, const string* args, size_t size)
 {
 	using namespace std::chrono;
 	auto curr = high_resolution_clock::now().time_since_epoch();
@@ -159,26 +159,26 @@ string Epochcmd::operator()(const message& og, const string* args, size_t size)
 				break;
 		}
 	}
-	return tostr(currns / denom);
+	co_return tostr(currns / denom);
 }
-
-string Mutecmd::operator()(const message& og, const string* args, size_t size)
+task<string> Mutecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
 	{
-		if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+		if(co_await hasperm(*og.owner, og.member, permissions::p_manage_guild))
 		{
 			auto& mrole = allguilds[gid]["muterole"];
 			if(mrole.is_null())
-				return"Mute role has not been set, use the muterole command to set a mute role.";
+				co_return"Mute role has not been set, use the muterole command to set a mute role.";
 			else if(args[0].size() > 3 && args[0][1] == '@')
 			{
 				using namespace std::chrono;
 				cluster& bot = *og.owner;
 				long unsigned uid = std::stoul(args[0].substr(2, args[0].size() - 3));
 				long unsigned rid = (long unsigned)mrole;
-				guild_member mem = bot.guild_get_member_sync(gid, uid);
+				confirmation_callback_t ret = co_await bot.co_guild_get_member(gid, uid);
+				guild_member mem = get<guild_member>(ret.value);
 				if(find(mem.get_roles().begin(), mem.get_roles().end(), rid) == mem.get_roles().end())
 				{
 					int mtime = (int)allguilds[gid]["mutetime"];
@@ -199,27 +199,26 @@ string Mutecmd::operator()(const message& og, const string* args, size_t size)
 						mtime = std::stoi(s) * mult;
 					}
 	                give_role_temp(bot, gid, uid, rid, duration_cast<system_clock::duration>(minutes(mtime)));
-					return"Successfully muted user.";
+					co_return"Successfully muted user.";
 				}
 				else
-					return"User is already muted.";
+					co_return"User is already muted.";
 			}
 			else
-				return"Mention the user you wish to mute.";
+				co_return"Mention the user you wish to mute.";
 		}
 		else
-			return"You do not have permission to use this command.";
+			co_return"You do not have permission to use this command.";
 	}
 	else
-		return"Specify a member to mute.";
+		co_return"Specify a member to mute.";
 }
-
-string Mutetimecmd::operator()(const message& og, const string* args, size_t size)
+task<string> Mutetimecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
 	{
-		if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+		if(co_await hasperm(*og.owner, og.member, permissions::p_manage_guild))
 		{
 			string s = args[0];
 			int mult = 1;
@@ -234,21 +233,20 @@ string Mutetimecmd::operator()(const message& og, const string* args, size_t siz
 				s.pop_back();
 			}
 			allguilds[gid]["mutetime"] = std::stoi(s) * mult;
-			return"Successfully set the new mute time.";
+			co_return"Successfully set the new mute time.";
 		}
 		else
-			return"You do not have permission to use this command.";
+			co_return"You do not have permission to use this command.";
 	}
 	else
-		return tostr(allguilds[gid]["mutetime"]) + " minutes";
+		co_return tostr(allguilds[gid]["mutetime"]) + " minutes";
 }
-
-string Mutablecmd::operator()(const message& og, const string* args, size_t size)
+task<string> Mutablecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
 	{
-		if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+		if(co_await hasperm(*og.owner, og.member, permissions::p_manage_guild))
 		{
 			auto& m = allguilds[gid]["mutable"];
 			json str;
@@ -261,16 +259,15 @@ string Mutablecmd::operator()(const message& og, const string* args, size_t size
 				else
 					m.erase(it);
 			}
-			return"Updated mute words.";
+			co_return"Updated mute words.";
 		}
 		else
-			return"You do not have permission to use this command.";
+			co_return"You do not have permission to use this command.";
 	}
 	else
-		return tostr(allguilds[gid]["mutable"]);
+		co_return tostr(allguilds[gid]["mutable"]);
 }
-
-string Allrolecmd::operator()(const message& og, const string* args, size_t size)
+task<string> Allrolecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
@@ -279,8 +276,10 @@ string Allrolecmd::operator()(const message& og, const string* args, size_t size
 		std::optional<role>roleid;
 		string retstr;
 		vector<snowflake>rolelist;
-		auto gmems = bot.guild_get_members_sync(gid, 999, 0);
-		role_map roles = og.owner->roles_get_sync(og.guild_id);
+		confirmation_callback_t cct = co_await bot.co_guild_get_members(gid, 999, 0);
+		guild_member_map gmems = get<guild_member_map>(cct.value);
+		cct = co_await og.owner->co_roles_get(og.guild_id);
+		role_map roles = get<role_map>(cct.value);
 		for(size_t i = 0; i < size; ++i)
 		{
 			roleid = findrole(roles, *og.owner, gid, args[i]);
@@ -298,13 +297,12 @@ string Allrolecmd::operator()(const message& og, const string* args, size_t size
 			if(has_all(m.get_roles().cbegin(), m.get_roles().cend(), rolelist.begin(), rolelist.end()))
 				retstr += tostr((std::uint64_t)id) + ' ' + m.get_user()->username + '\n';
 		}
-		return retstr;
+		co_return retstr;
 	}
 	else
-		return"Give a list of roles.";
+		co_return"Give a list of roles.";
 }
-
-string Anyrolecmd::operator()(const message& og, const string* args, size_t size)
+task<string> Anyrolecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
@@ -313,8 +311,10 @@ string Anyrolecmd::operator()(const message& og, const string* args, size_t size
 		std::optional<role>roleid;
 		string retstr;
 		vector<snowflake>rolelist;
-		auto gmems = bot.guild_get_members_sync(gid, 999, 0);
-		role_map roles = og.owner->roles_get_sync(og.guild_id);
+		confirmation_callback_t cct = co_await bot.co_guild_get_members(gid, 999, 0);
+		auto gmems = get<guild_member_map>(cct.value);
+		cct = co_await og.owner->co_roles_get(og.guild_id);
+		role_map roles = get<role_map>(cct.value);
 		for(size_t i = 0; i < size; ++i)
 		{
 			roleid = findrole(roles, *og.owner, gid, args[i]);
@@ -332,31 +332,32 @@ string Anyrolecmd::operator()(const message& og, const string* args, size_t size
 			if(has_any(m.get_roles().cbegin(), m.get_roles().cend(), rolelist.begin(), rolelist.end()))
 				retstr += tostr((std::uint64_t)id) + ' ' + m.get_user()->username + '\n';
 		}
-		return retstr;
+		co_return retstr;
 	}
 	else
-		return"Give a list of roles.";
+		co_return"Give a list of roles.";
 }
-
-string Purgecmd::operator()(const message& og, const string* args, size_t size)
+task<string> Purgecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
 	{
-		channel_map chmap = og.owner->channels_get_sync(gid);
-		if(hasperm(*og.owner, og.member, permissions::p_manage_messages, chmap[og.channel_id].permission_overwrites))
+		confirmation_callback_t cct = co_await og.owner->co_channels_get(gid);
+		channel_map chmap = get<channel_map>(cct.value);
+		if(co_await hasperm(*og.owner, og.member, permissions::p_manage_messages, chmap[og.channel_id].permission_overwrites))
 		{
 			int cnt = std::stoi(args[0]);
 			if(cnt > 100)
-				return"No more than one hundred messages.";
+				co_return"No more than one hundred messages.";
 			else if(cnt < 2)
-				return"At least one message.";
+				co_return"At least one message.";
 			else
 			{
 				using namespace std::chrono;
 				using namespace std::chrono_literals;
 				cluster& bot = *og.owner;
-				auto msgmap = bot.messages_get_sync(og.channel_id, 0, og.id, 0, cnt);
+				confirmation_callback_t cct = co_await bot.co_messages_get(og.channel_id, 0, og.id, 0, cnt);
+				auto msgmap = get<message_map>(cct.value);
 				vector<snowflake>recent, older;
 				auto currtm = to_time(og.id);
 				for(const auto&[id, msg]: msgmap)
@@ -368,33 +369,33 @@ string Purgecmd::operator()(const message& og, const string* args, size_t size)
 						recent.push_back(id);
 				}
 				if(recent.size() > 1)
-					bot.message_delete_bulk_sync(recent, og.channel_id);
+					co_await bot.co_message_delete_bulk(recent, og.channel_id);
 				else if(recent.size() == 1)
-					bot.message_delete_sync(recent[0], og.channel_id);
+					co_await bot.co_message_delete(recent[0], og.channel_id);
 				for(auto id: older)
-					bot.message_delete_sync(id, og.channel_id);
-				return"Purged messages successfully.";
+					co_await bot.co_message_delete(id, og.channel_id);
+				co_return"Purged messages successfully.";
 			}
 		}
 		else
-			return"You do not have permission to use this command.";
+			co_return"You do not have permission to use this command.";
 	}
 	else
-		return"Specify the number of messages to purge.";
+		co_return"Specify the number of messages to purge.";
 }
-
-string Takerolecmd::operator()(const message& og, const string* args, size_t size)
+task<string> Takerolecmd::operator()(const message& og, const string* args, size_t size)
 {
 	if(size >= 2)
 	{
-		if(hasperm(*og.owner, og.member, permissions::p_manage_roles))
+		if(co_await hasperm(*og.owner, og.member, permissions::p_manage_roles))
 		{
 			if(args[0][1] == '@')
 			{
 				std::optional<role>oprole;
 				std::uint64_t id = std::stoul(args[0].substr(2, args[0].size() - 3));
 				string retstr;
-				role_map roles = og.owner->roles_get_sync(og.guild_id);
+				confirmation_callback_t cct = co_await og.owner->co_roles_get(og.guild_id);
+				role_map roles = get<role_map>(cct.value);
 				role memtop = highrole(roles, og.member);
     			for(size_t i = 1; i < size; ++i)
 				{
@@ -409,30 +410,30 @@ string Takerolecmd::operator()(const message& og, const string* args, size_t siz
 					else
 						retstr += args[i] + " could not be found.\n";
 				}
-				return retstr.size() ? retstr : "Succesfully updated member.";
+				co_return retstr.size() ? retstr : "Succesfully updated member.";
 			}
 			else
-				return"Mention the user you wish to take the role from.";
+				co_return"Mention the user you wish to take the role from.";
 		}
 		else
-			return"You do not have permission to use this command.";
+			co_return"You do not have permission to use this command.";
 	}
 	else
-		return"Name a member and a role to take from that member.";
+		co_return"Name a member and a role to take from that member.";
 }
-
-string Giverolecmd::operator()(const message& og, const string* args, size_t size)
+task<string> Giverolecmd::operator()(const message& og, const string* args, size_t size)
 {
 	if(size >= 2)
 	{
-		if(hasperm(*og.owner, og.member, permissions::p_manage_roles))
+		if(co_await hasperm(*og.owner, og.member, permissions::p_manage_roles))
 		{
 			if(args[0][1] == '@')
 			{
 				std::optional<role>oprole;
 				std::uint64_t id = std::stoul(args[0].substr(2, args[0].size() - 3));
 				string retstr;
-				role_map roles = og.owner->roles_get_sync(og.guild_id);
+				confirmation_callback_t cct = co_await og.owner->co_roles_get(og.guild_id);
+				role_map roles = get<role_map>(cct.value);
 				role memtop = highrole(roles, og.member);
     			for(size_t i = 1; i < size; ++i)
 				{
@@ -447,19 +448,18 @@ string Giverolecmd::operator()(const message& og, const string* args, size_t siz
 					else
 						retstr += args[i] + " could not be found.\n";
 				}
-				return retstr.size() ? retstr : "Succesfully updated member.";
+				co_return retstr.size() ? retstr : "Succesfully updated member.";
 			}
 			else
-				return"Mention the user you wish to give the role to.";
+				co_return"Mention the user you wish to give the role to.";
 		}
 		else
-			return"You do not have permission to use this command.";
+			co_return"You do not have permission to use this command.";
 	}
 	else
-		return"Name a member and a role to give to that member.";
+		co_return"Name a member and a role to give to that member.";
 }
-
-string Macrolscmd::operator()(const message& og, const string* args, size_t size)
+task<string> Macrolscmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	auto& macros = allguilds[gid]["macros"];
@@ -469,10 +469,9 @@ string Macrolscmd::operator()(const message& og, const string* args, size_t size
 		string name = it.key(), expand = (string)it.value();
 		retstr += name + ' ' + expand + '\n';
 	}
-	return retstr;
+	co_return retstr;
 }
-
-string Undefcmd::operator()(const message& og, const string* args, size_t size)
+task<string> Undefcmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	auto& macros = allguilds[gid]["macros"];
@@ -481,35 +480,33 @@ string Undefcmd::operator()(const message& og, const string* args, size_t size)
 		string name = args[i].substr(1);
 		macros.erase(name);
 	}
-	return"Successfully removed macros.";
+	co_return"Successfully removed macros.";
 }
-
-string Definecmd::operator()(const message& og, const string* args, size_t size)
+task<string> Definecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	auto& macros = allguilds[gid]["macros"];
 	if(size >= 2)
 	{
 		macros[args[0]] = args[1];
-		return"Defined new macro.";
+		co_return"Defined new macro.";
 	}
 	else
-		return"Give the macro a name and specify what it should expand to.";
+		co_return"Give the macro a name and specify what it should expand to.";
 }
-
-string Muterolecmd::operator()(const message& og, const string* args, size_t size)
+task<string> Muterolecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
 	{
-		if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+		if(co_await hasperm(*og.owner, og.member, permissions::p_manage_guild))
 		{
 			auto& mrole = allguilds[gid]["muterole"];
 			json numid;
-			std::optional<role>roleid = findrole(*og.owner, gid, args[0]);
+			std::optional<role>roleid = co_await findrole(*og.owner, gid, args[0]);
 			if(!roleid)
 			{
-				return args[0] + " could not be found,\n";
+				co_return args[0] + " could not be found,\n";
 			}
 			else
 			{
@@ -518,23 +515,22 @@ string Muterolecmd::operator()(const message& og, const string* args, size_t siz
 					mrole = nullptr;
 				else
 					mrole = numid;
-				return"Successfully updated muterole.";
+				co_return"Successfully updated muterole.";
 			}
 		}
 		else
-			return"You do not have permission to use this command.";
+			co_return"You do not have permission to use this command.";
 	}
 	else
-		return tostr(allguilds[gid]["muterole"]);
+		co_return tostr(allguilds[gid]["muterole"]);
 }
-
-string Bancmd::operator()(const message& og, const string* args, size_t size)
+task<string> Bancmd::operator()(const message& og, const string* args, size_t size)
 {
     unsigned failed = 0;
     bool perm = true;
 	long unsigned luid;
 	snowflake id;
-	if(hasperm(*og.owner, og.member, permissions::p_ban_members))
+	if(co_await hasperm(*og.owner, og.member, permissions::p_ban_members))
     {
 		string retstr;
         for(size_t i = 0; i < size; ++i)
@@ -544,7 +540,9 @@ string Bancmd::operator()(const message& og, const string* args, size_t size)
 			{
 				luid = std::stoul(arg.substr(2, arg.size() - 3));
 				id = luid;
-				if(member_cmpr(*og.owner, og.member, og.owner->guild_get_member_sync(og.guild_id, id)) > 0)
+				confirmation_callback_t cct = co_await og.owner->co_guild_get_member(og.guild_id, id);
+				guild_member mem = get<guild_member>(cct.value);
+				if(co_await member_cmpr(*og.owner, og.member, mem) > 0)
 					og.owner->guild_ban_add(og.guild_id, id);
 				else
 				{
@@ -557,19 +555,18 @@ string Bancmd::operator()(const message& og, const string* args, size_t size)
         }
         if(perm)
         	retstr += failed ? tostr(failed) + " failed, you must ping the users." : "Successfully banned them.";
-		return retstr;
+		co_return retstr;
     }
 	else
-		return"You do not have permission to use this command.";
+		co_return"You do not have permission to use this command.";
 }
-
-string Kickcmd::operator()(const message& og, const string* args, size_t size)
+task<string> Kickcmd::operator()(const message& og, const string* args, size_t size)
 {
     unsigned failed = 0;
     bool perm = true;
 	long unsigned luid;
 	snowflake id;
-	if(hasperm(*og.owner, og.member, permissions::p_kick_members))
+	if(co_await hasperm(*og.owner, og.member, permissions::p_kick_members))
     {
 		string retstr;
         for(size_t i = 0; i < size; ++i)
@@ -579,7 +576,9 @@ string Kickcmd::operator()(const message& og, const string* args, size_t size)
 			{
 				luid = std::stoul(arg.substr(2, arg.size() - 3));
 				id = luid;
-				if(member_cmpr(*og.owner, og.member, og.owner->guild_get_member_sync(og.guild_id, id)) > 0)
+				confirmation_callback_t cct = co_await og.owner->co_guild_get_member(og.guild_id, id);
+				guild_member mem = get<guild_member>(cct.value);
+				if(co_await member_cmpr(*og.owner, og.member, mem) > 0)
 					og.owner->guild_member_kick(og.guild_id, id);
 				else
 				{
@@ -592,16 +591,15 @@ string Kickcmd::operator()(const message& og, const string* args, size_t size)
         }
         if(perm)
         	retstr += failed ? tostr(failed) + " failed, you must ping the users." : "Successfully kicked them.";
-		return retstr;
+		co_return retstr;
     }
 	else
-		return"You do not have permission to use this command.";
+		co_return"You do not have permission to use this command.";
 }
-
-string DLOptionscmd::operator()(const message& og, const string* args, size_t size)
+task<string> DLOptionscmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
-	if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+	if(co_await hasperm(*og.owner, og.member, permissions::p_manage_guild))
 	{
 		auto& options = allguilds[gid];
 		std::ostringstream oss;
@@ -617,13 +615,12 @@ string DLOptionscmd::operator()(const message& og, const string* args, size_t si
 		std::cout << 3;
 		og.owner->message_create(m);
 		std::cout << 4;
-		return"";
+		co_return"";
 	}
 	else
-		return"You do not have permission to use this command.";
+		co_return"You do not have permission to use this command.";
 }
-
-string Infocmd::operator()(const message& og, const string* args, size_t size)
+task<string> Infocmd::operator()(const message& og, const string* args, size_t size)
 {
 	std::ostringstream oss;
 	cluster &bot = *og.owner;
@@ -635,7 +632,8 @@ string Infocmd::operator()(const message& og, const string* args, size_t size)
 	channel ch;
 	if(size > 0)
 	{
-		role_map rmap = bot.roles_get_sync(gid);
+		confirmation_callback_t cct = co_await bot.co_roles_get(gid);
+		role_map rmap = get<role_map>(cct.value);
 		std::regex digitonly("[^0-9]");
 		for(size_t i = 0; i < size; ++i)
 		{
@@ -647,7 +645,7 @@ string Infocmd::operator()(const message& og, const string* args, size_t size)
 				switch(args[i][1])
 				{
 					case '#':
-						ch = bot.channel_get_sync(id);
+						ch = get<channel>((co_await bot.co_channel_get(id)).value);
 						oss << "ID: " << luid << '\n';
 						oss << "Member Count: " << ch.get_members().size() << '\n';
 						oss << "Rate Limit in Seconds: " << ch.rate_limit_per_user << '\n';
@@ -664,7 +662,7 @@ string Infocmd::operator()(const message& og, const string* args, size_t size)
 						}
 						else
 						{
-							mem = bot.guild_get_member_sync(gid, id);
+							mem = get<guild_member>((co_await bot.co_guild_get_member(gid, id)).value);
 							oss << "ID: " << luid << '\n';
 							oss << "Joined at: " << mem.joined_at << '\n';
 							oss << "Number of roles: " << mem.get_roles().size() << '\n';
@@ -690,7 +688,8 @@ string Infocmd::operator()(const message& og, const string* args, size_t size)
 		long channelcnt = currguild.channels.size();
 		long threadcnt = currguild.threads.size();
 		long emojicnt = currguild.emojis.size();
-		long memcnt = bot.guild_get_members_sync(gid, 999, 0).size();
+		confirmation_callback_t cct = co_await bot.co_guild_get_members(gid, 999, 0);
+		long memcnt = get<guild_member_map>(cct.value).size();
 		oss << "Name: " << currguild.name << '\n';
 		oss << currguild.description << '\n';
 		oss << "Roles: " << rolecnt << '\n';
@@ -706,10 +705,9 @@ string Infocmd::operator()(const message& og, const string* args, size_t size)
 		oss << "Icon URL: " << currguild.get_icon_url() << '\n';
 		oss << "Splash URL: " << currguild.get_splash_url() << '\n';
 	}
-	return oss.str();
+	co_return oss.str();
 }
-
-string Selfrolecmd::operator()(const message& og, const string* args, size_t size)
+task<string> Selfrolecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
@@ -718,7 +716,8 @@ string Selfrolecmd::operator()(const message& og, const string* args, size_t siz
 		json numid;
 		std::optional<role>roleid;
 		string retstr;
-		role_map roles = og.owner->roles_get_sync(og.guild_id);
+		confirmation_callback_t cct = co_await og.owner->co_roles_get(og.guild_id);
+		role_map roles = get<role_map>(cct.value);
 		for(size_t i = 0; i < size; ++i)
 		{
 			roleid = findrole(roles, *og.owner, gid, args[i]);
@@ -740,24 +739,24 @@ string Selfrolecmd::operator()(const message& og, const string* args, size_t siz
 			else
 				og.owner->guild_member_remove_role(og.guild_id, og.author.id, roleid->id);
 		}
-		return retstr.size() ? retstr : "Successfully updated your roles.";
+		co_return retstr.size() ? retstr : "Successfully updated your roles.";
 	}
 	else
-		return"Name a role to give yourself.";
+		co_return"Name a role to give yourself.";
 }
-
-string Toggleselfrolecmd::operator()(const message& og, const string* args, size_t size)
+task<string> Toggleselfrolecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
 	{
-		if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+		if(co_await hasperm(*og.owner, og.member, permissions::p_manage_guild))
 		{
 			auto& sroles = allguilds[gid]["selfroles"];
 			json numid;
 			std::optional<role>roleid;
 			string retstr;
-			role_map roles = og.owner->roles_get_sync(og.guild_id);
+			confirmation_callback_t cct = co_await og.owner->co_roles_get(og.guild_id);
+			role_map roles = get<role_map>(cct.value);
 			for(size_t i = 0; i < size; ++i)
 			{
 				roleid = findrole(roles, *og.owner, gid, args[i]);
@@ -773,27 +772,27 @@ string Toggleselfrolecmd::operator()(const message& og, const string* args, size
 				else
 					sroles.erase(it);
 			}
-			return retstr.size() ? retstr : "Successfully toggled selfroles.";
+			co_return retstr.size() ? retstr : "Successfully toggled selfroles.";
 		}
 		else
-			return"You do not have permission to use this command.";
+			co_return"You do not have permission to use this command.";
 	}
 	else
-		return tostr(allguilds[gid]["selfroles"]);
+		co_return tostr(allguilds[gid]["selfroles"]);
 }
-
-string Autorolecmd::operator()(const message& og, const string* args, size_t size)
+task<string> Autorolecmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
 	{
-		if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+		if(co_await hasperm(*og.owner, og.member, permissions::p_manage_guild))
 		{
 			auto& aroles = allguilds[gid]["autoroles"];
 			json numid;
 			std::optional<role>roleid;
 			string retstr;
-			role_map roles = og.owner->roles_get_sync(og.guild_id);
+			confirmation_callback_t cct = co_await og.owner->co_roles_get(og.guild_id);
+			role_map roles = get<role_map>(cct.value);
 			for(size_t i = 0; i < size; ++i)
 			{
 				roleid = findrole(roles, *og.owner, gid, args[i]);
@@ -809,27 +808,25 @@ string Autorolecmd::operator()(const message& og, const string* args, size_t siz
 				else
 					aroles.erase(it);
 			}
-			return retstr.size() ? retstr : "Successfully toggled autoroles.";
+			co_return retstr.size() ? retstr : "Successfully toggled autoroles.";
 		}
 		else
-			return"You do not have permission to use this command.";
+			co_return"You do not have permission to use this command.";
 	}
 	else
-		return tostr(allguilds[gid]["autoroles"]);
+		co_return tostr(allguilds[gid]["autoroles"]);
 }
-
-string Atan2cmd::operator()(const message& og, const string* args, size_t size)
+task<string> Atan2cmd::operator()(const message& og, const string* args, size_t size)
 {
     if(size < 2)
-        return "Two arguments are required, y and x.";
+        co_return "Two arguments are required, y and x.";
     else
     {
         double x = tonum(args[1]), y = tonum(args[0]);
-		return tostr(std::atan2(y, x));
+		co_return tostr(std::atan2(y, x));
     }
 }
-
-string Atancmd::operator()(const message& og, const string* args, size_t size)
+task<string> Atancmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -851,10 +848,9 @@ string Atancmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr += e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string Acoscmd::operator()(const message& og, const string* args, size_t size)
+task<string> Acoscmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -876,10 +872,9 @@ string Acoscmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr += e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string Asincmd::operator()(const message& og, const string* args, size_t size)
+task<string> Asincmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -901,10 +896,9 @@ string Asincmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr += e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string Csccmd::operator()(const message& og, const string* args, size_t size)
+task<string> Csccmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -926,10 +920,9 @@ string Csccmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr += e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string Seccmd::operator()(const message& og, const string* args, size_t size)
+task<string> Seccmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -951,10 +944,9 @@ string Seccmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr += e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string Cotcmd::operator()(const message& og, const string* args, size_t size)
+task<string> Cotcmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -976,10 +968,9 @@ string Cotcmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr += e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string Tancmd::operator()(const message& og, const string* args, size_t size)
+task<string> Tancmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -1001,10 +992,9 @@ string Tancmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr += e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string Coscmd::operator()(const message& og, const string* args, size_t size)
+task<string> Coscmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -1026,10 +1016,9 @@ string Coscmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr += e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string Sincmd::operator()(const message& og, const string* args, size_t size)
+task<string> Sincmd::operator()(const message& og, const string* args, size_t size)
 {
 	double num = 0;
     string resstr;
@@ -1051,42 +1040,39 @@ string Sincmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr += e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string Logcmd::operator()(const message& og, const string* args, size_t size)
+task<string> Logcmd::operator()(const message& og, const string* args, size_t size)
 {
     if(size == 0)
-        return"Provide the base and then the power.";
+        co_return"Provide the base and then the power.";
     else
     {
         if(size == 1)
-            return tostr(std::log(tonum(args[0])));
+            co_return tostr(std::log(tonum(args[0])));
         else
         {
             double base = tonum(args[0]), p = tonum(args[1]);
-            return tostr(std::log(p) / std::log(base));
+            co_return tostr(std::log(p) / std::log(base));
         }
     }
 }
-
-string Powcmd::operator()(const message& og, const string* args, size_t size)
+task<string> Powcmd::operator()(const message& og, const string* args, size_t size)
 {
     if(size == 0)
-        return"Provide the base and then the exponent.";
+        co_return"Provide the base and then the exponent.";
     else
     {
         if(size == 1)
-            return tostr(std::exp(tonum(args[0])));
+            co_return tostr(std::exp(tonum(args[0])));
         else
         {
             double base = tonum(args[0]), exp = tonum(args[1]);
-            return tostr(std::pow(base, exp));
+            co_return tostr(std::pow(base, exp));
         }
     }
 }
-
-string HMeancmd::operator()(const message& og, const string* args, size_t size)
+task<string> HMeancmd::operator()(const message& og, const string* args, size_t size)
 {
     double num = 0;
     string resstr;
@@ -1105,10 +1091,9 @@ string HMeancmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr = tostr(num) + e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string GMeancmd::operator()(const message& og, const string* args, size_t size)
+task<string> GMeancmd::operator()(const message& og, const string* args, size_t size)
 {
     double num = 1;
     string resstr;
@@ -1127,10 +1112,9 @@ string GMeancmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr = tostr(num) + e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string AMeancmd::operator()(const message& og, const string* args, size_t size)
+task<string> AMeancmd::operator()(const message& og, const string* args, size_t size)
 {
     double num = 0;
     string resstr;
@@ -1149,27 +1133,25 @@ string AMeancmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr = tostr(num) + e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string Baseconvcmd::operator()(const message& og, const string* args, size_t size)
+task<string> Baseconvcmd::operator()(const message& og, const string* args, size_t size)
 {
     if(size < 3)
-        return "Three arguments are required. Number, base the number is in, base the number is to be displayed in.";
+        co_return "Three arguments are required. Number, base the number is in, base the number is to be displayed in.";
     else
     {
         int from = toint(args[1]), to = toint(args[2]);
         if(from >= 2 && from <= 36 && to >= 2 && to <= 36)
         {
             long num = std::stol(args[0], nullptr, from);
-            return numstr(num, to);
+            co_return numstr(num, to);
         }
         else
-            return "Base must be in the interval [2,36].";
+            co_return "Base must be in the interval [2,36].";
     }
 }
-
-string Factorcmd::operator()(const message& og, const string* args, size_t size)
+task<string> Factorcmd::operator()(const message& og, const string* args, size_t size)
 {
     long num = 0;
     string resstr;
@@ -1200,10 +1182,9 @@ string Factorcmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr = oss.str() + e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string Primecmd::operator()(const message& og, const string* args, size_t size)
+task<string> Primecmd::operator()(const message& og, const string* args, size_t size)
 {
     long num = 0;
     string resstr;
@@ -1225,10 +1206,9 @@ string Primecmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr += e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string Gcdcmd::operator()(const message& og, const string* args, size_t size)
+task<string> Gcdcmd::operator()(const message& og, const string* args, size_t size)
 {
     long num = 0, next = 0;
     string resstr;
@@ -1249,10 +1229,9 @@ string Gcdcmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr = tostr(num) + e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string Modulocmd::operator()(const message& og, const string* args, size_t size)
+task<string> Modulocmd::operator()(const message& og, const string* args, size_t size)
 {
 	double q = 0;
 	string resstr = "0";
@@ -1280,10 +1259,9 @@ string Modulocmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr = e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string Quotientcmd::operator()(const message& og, const string* args, size_t size)
+task<string> Quotientcmd::operator()(const message& og, const string* args, size_t size)
 {
 	double q = 0;
 	string resstr = "0";
@@ -1311,32 +1289,30 @@ string Quotientcmd::operator()(const message& og, const string* args, size_t siz
 	{
 		resstr = e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string Prefixcmd::operator()(const message& og, const string* args, size_t size)
+task<string> Prefixcmd::operator()(const message& og, const string* args, size_t size)
 {
 	snowflake gid = og.guild_id;
 	if(size > 0)
 	{
-		if(hasperm(*og.owner, og.member, permissions::p_manage_guild))
+		if(co_await hasperm(*og.owner, og.member, permissions::p_manage_guild))
 		{
 			if(args[0].size() <= 3)
 			{
 				allguilds[gid]["pref"] = *args;
-				return"New prefix has been set.";
+				co_return"New prefix has been set.";
 			}
 			else
-				return"Prefix must be no more than three characters.";
+				co_return"Prefix must be no more than three characters.";
 		}
 		else
-			return"You do not have permission to use this command.";
+			co_return"You do not have permission to use this command.";
 	}
 	else
-		return(string)allguilds[gid]["pref"];
+		co_return(string)allguilds[gid]["pref"];
 }
-
-string Productcmd::operator()(const message& og, const string* args, size_t size)
+task<string> Productcmd::operator()(const message& og, const string* args, size_t size)
 {
 	double product = 1;
 	string resstr = "0";
@@ -1354,10 +1330,9 @@ string Productcmd::operator()(const message& og, const string* args, size_t size
 	{
 		resstr = tostr(product) + e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }
-
-string Sumcmd::operator()(const message& og, const string* args, size_t size)
+task<string> Sumcmd::operator()(const message& og, const string* args, size_t size)
 {
 	double sum = 0;
 	string resstr = "0";
@@ -1375,5 +1350,5 @@ string Sumcmd::operator()(const message& og, const string* args, size_t size)
 	{
 		resstr = tostr(sum) + e.what() + " out of range."s;
 	}
-	return resstr;
+	co_return resstr;
 }

@@ -34,7 +34,7 @@ CommandParser::CommandParser(string verstr,const vector<string>& names, vector<p
 		this->cmds[names[i]] = move(cmds[i]);
 }
 
-std::string CommandParser::operator()(const message& og,string cmd)
+task<string> CommandParser::operator()(const message& og,string cmd)
 {
 	vector<string>tokens;
 	string curr;
@@ -83,15 +83,15 @@ std::string CommandParser::operator()(const message& og,string cmd)
 		tokens.push_back(curr);
 	try
 	{
-		return this->run(og, tokens.data(),tokens.size());
+		co_return co_await this->run(og, tokens.data(),tokens.size());
 	}
 	catch(std::invalid_argument&e)
 	{
-		return e.what() + " invalid argument"s;
+		co_return e.what() + " invalid argument"s;
 	}
 	catch(std::exception&e)
 	{
-		return"Exception occurred: "s + e.what();
+		co_return"Exception occurred: "s + e.what();
 	}
 }
 
@@ -111,7 +111,7 @@ void CommandParser::help(string& res, const vector<pair<size_t,size_t>>& pending
 	}
 }
 
-string CommandParser::run(const message& og,string* args, size_t size)
+task<string>CommandParser::run(const message& og,string* args, size_t size)
 {
 	string res;
 	vector<pair<size_t,size_t>>pending;
@@ -133,7 +133,7 @@ string CommandParser::run(const message& og,string* args, size_t size)
 			else
 			{
 				auto &cmd = *this->cmds.at(cmdname);
-				res = cmd(og, args + pending.back().first + 1, pending.back().second);
+				res = co_await cmd(og, args + pending.back().first + 1, pending.back().second);
 			}
 			pending.pop_back();
 			if(pending.size() > 0)
@@ -163,11 +163,11 @@ string CommandParser::run(const message& og,string* args, size_t size)
 		else
 		{
 			auto &cmd = *this->cmds.at(cmdname);
-			res = cmd(og, args + pending.back().first + 1, pending.back().second);
+			res = co_await cmd(og, args + pending.back().first + 1, pending.back().second);
 		}
 		pending.pop_back();
 		if(pending.size() > 0)
 			args[pending.back().second+pending.back().first] = move(res);
 	}
-	return res;
+	co_return res;
 }

@@ -24,7 +24,7 @@ struct Command
 	Command(Command&& cmd)=default;
 	Command& operator=(const Command& cmd)=default;
 	Command& operator=(Command&& cmd)=default;
-	virtual std::string operator()(const dpp::message& og, const std::string* args, std::size_t size)=0;
+	virtual dpp::task<std::string> operator()(const dpp::message& og, const std::string* args, std::size_t size)=0;
 	virtual~Command()=default;
 };
 
@@ -44,9 +44,9 @@ public:
 	CommandParser()=default;
 	CommandParser& operator=(const CommandParser& cmd)=default;
 	CommandParser& operator=(CommandParser&& cmd)=default;
-	std::string operator()(const dpp::message& og, std::string cmd);
+	dpp::task<std::string>operator()(const dpp::message& og, std::string cmd);
 	void help(std::string& res, const std::vector<std::pair<std::size_t,std::size_t>>& pending, std::string *args)const;
-	std::string run(const dpp::message& og,std::string* args, std::size_t size);
+	dpp::task<std::string>run(const dpp::message& og,std::string* args, std::size_t size);
 };
 
 #endif

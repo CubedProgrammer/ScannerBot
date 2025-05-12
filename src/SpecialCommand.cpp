@@ -15,7 +15,7 @@ struct MathToStrFunc
 	function<double(double)>func;
 	MathToStrFunc()=default;
 	MathToStrFunc(function<double(double)>f)
-		:func(move(f)) {}
+		:func(std::move(f)) {}
 	MathToStrFunc(const MathToStrFunc& cmd)=default;
 	MathToStrFunc(MathToStrFunc&& cmd)=default;
 	MathToStrFunc& operator=(const MathToStrFunc& cmd)=default;
@@ -26,8 +26,8 @@ struct MathToStrFunc
 	}
 };
 VListCommand::VListCommand(function<string(const string&)>op, string desc)
-	:op(move(op)), Command(move(desc)){}
-string VListCommand::operator()(const dpp::message& og, const string* args, size_t size)
+	:op(std::move(op)), Command(std::move(desc)){}
+dpp::task<string>VListCommand::operator()(const dpp::message& og, const string* args, size_t size)
 {
 	string retstr;
 	for(unsigned long i=0;i<size;i++)
@@ -35,7 +35,7 @@ string VListCommand::operator()(const dpp::message& og, const string* args, size
 		retstr += op(args[i]);
 		retstr += '\n';
 	}
-	return retstr;
+	co_return retstr;
 }
 VListMathFunction::VListMathFunction(function<double(double)>op, string desc)
-	:VListCommand(MathToStrFunc(move(op)), move(desc)){}
+	:VListCommand(MathToStrFunc(std::move(op)), std::move(desc)){}

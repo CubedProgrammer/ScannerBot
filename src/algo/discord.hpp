@@ -17,14 +17,14 @@
 constexpr long discord_epoch = 1420070400000;
 
 std::chrono::time_point<std::chrono::system_clock>to_time(dpp::snowflake id);
-bool hasperm(dpp::cluster& bot, const dpp::guild_member& member, dpp::permission perm);
-bool hasperm(dpp::cluster& bot, const dpp::guild_member& member, dpp::permission perm, const std::vector<dpp::permission_overwrite>& over);
+dpp::task<bool>hasperm(dpp::cluster& bot, const dpp::guild_member& member, dpp::permission perm);
+dpp::task<bool>hasperm(dpp::cluster& bot, const dpp::guild_member& member, dpp::permission perm, const std::vector<dpp::permission_overwrite>& over);
 void give_role_temp(dpp::cluster& bot, dpp::snowflake gid, dpp::snowflake uid, dpp::snowflake rid, std::chrono::system_clock::duration dura);
-dpp::role getrole(dpp::cluster& bot, dpp::snowflake guild, dpp::snowflake value);
-std::optional<dpp::role> findrole(dpp::cluster& bot, dpp::snowflake guild, std::string value);
+dpp::task<dpp::role>getrole(dpp::cluster& bot, dpp::snowflake guild, dpp::snowflake value);
+dpp::task<std::optional<dpp::role>> findrole(dpp::cluster& bot, dpp::snowflake guild, std::string value);
 std::optional<dpp::role> findrole(const dpp::role_map& roles, dpp::cluster& bot, dpp::snowflake guild, std::string value);
 dpp::role highrole(const dpp::role_map& roles, const dpp::guild_member& mem);
-int member_cmpr(dpp::cluster& bot, const dpp::guild_member& x, const dpp::guild_member& y);
+dpp::task<int>member_cmpr(dpp::cluster& bot, const dpp::guild_member& x, const dpp::guild_member& y);
 void fetch_guilds(dpp::cluster& bot);
 
 #endif

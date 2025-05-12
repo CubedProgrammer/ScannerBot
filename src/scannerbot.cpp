@@ -14,6 +14,7 @@
 #include<iostream>
 #include<stdexcept>
 #include<sstream>
+#include <sys/types.h>
 #include<unordered_map>
 #include<vector>
 #include<nlohmann/json.hpp>
@@ -83,7 +84,7 @@ string get_version_string(byte major, byte minor, byte patch)
 
 void save(const guildmap &map);
 
-int main(int argl,char**argv)
+dpp::task<void>run()
 {
     using namespace dpp;
     using namespace std::string_literals;
@@ -94,7 +95,8 @@ int main(int argl,char**argv)
     allguilds = load_guilds();
     auto &guilds = allguilds;
     cluster scannerbot(bot_token, i_all_intents);
-    auto selfuser = scannerbot.current_user_get_sync();
+    auto selfuserVariant = co_await scannerbot.co_current_user_get();
+    auto selfuser = get<user_identified>(selfuserVariant.value);
     string mention = selfuser.get_mention();
     cout << selfuser.id << ' ' << selfuser.username << endl;
     for(const auto &p : guilds)
@@ -221,8 +223,8 @@ int main(int argl,char**argv)
     };
     auto memleave = [&scannerbot](const guild_member_remove_t &evt)
     {
-        json& guild_dat = guilds[evt.removing_guild->id];
-        guild& g = *evt.removing_guild;
+        json& guild_dat = guilds[evt.removing_guild.id];
+        const guild& g = evt.removing_guild;
         const user& u = evt.removed;
         if(guild_dat["exitmsg"])
         {
@@ -232,15 +234,15 @@ int main(int argl,char**argv)
     };
     auto roledel = [](const guild_role_delete_t &evt)
 	{
-    	snowflake gid = evt.deleting_guild->id, rid = evt.role_id;
-    	std::cout << (uint64_t)rid << std::endl;
+    	snowflake gid = evt.deleting_guild.id, rid = evt.role_id;
+    	std::cout << static_cast<uint64_t>(rid) << std::endl;
     	auto& gdat = guilds[gid];
-    	if(gdat["muterole"] == rid)
+    	if(gdat["muterole"] == static_cast<uint64_t>(rid))
     		gdat["muterole"] = nullptr;
     	std::size_t ind = -1;
     	for(std::size_t i=0;i<gdat["autoroles"].size();i++)
 		{
-    		if(gdat["autoroles"][i] == rid)
+    		if(gdat["autoroles"][i] == static_cast<uint64_t>(rid))
     			ind = i;
 		}
     	if(ind != -1)
@@ -248,7 +250,7 @@ int main(int argl,char**argv)
     	ind = -1;
     	for(std::size_t i=0;i<gdat["selfroles"].size();i++)
 		{
-    		if(gdat["selfroles"][i] == rid)
+    		if(gdat["selfroles"][i] == static_cast<uint64_t>(rid))
     			ind = i;
 		}
     	if(ind != -1)
@@ -265,7 +267,7 @@ int main(int argl,char**argv)
             give_role_temp(scannerbot, gid, uid, rid, duration_cast<system_clock::duration>(minutes(mins)));
         }
 	};
-    auto evtr = [&scannerbot,&parser,&mention,&selfuser](const message_create_t &evt)
+    auto evtr = [&scannerbot,&parser,&mention,&selfuser](const message_create_t &evt) -> task<void>
     {
         if(selfuser.id != evt.msg.author.id)
         {
@@ -311,14 +313,14 @@ int main(int argl,char**argv)
             auto itx = mention.size() > msg.size() ? mention.cbegin() : std::mismatch(mention.cbegin(), mention.cend(), msg.cbegin()).first;
             if(itx == mention.cend())
 #endif
-            	sendstr = parser(evt.msg, msg.substr(mention.size()));
+            	sendstr = co_await parser(evt.msg, msg.substr(mention.size()));
 #if __cplusplus >= 202002L
             if(msg.starts_with(pref))
 #else
             auto ity = pref.size() > msg.size() ? pref.cbegin() : std::mismatch(pref.cbegin(), pref.cend(), msg.cbegin()).first;
             if(ity == pref.cend())
 #endif
-            	sendstr = parser(evt.msg, msg.substr(pref.size()));
+            	sendstr = co_await parser(evt.msg, msg.substr(pref.size()));
             if(sendstr.size() > 2000)
             {
             	message m;
@@ -339,8 +341,13 @@ int main(int argl,char**argv)
     fetch_guilds(scannerbot);
     scannerbot.start();
     cout << "Scanner Bot v" << verstr << " has begun." << endl;
-    cin.get();
-    save(guilds);
+}
+
+int main(int argl,char**argv)
+{
+    auto t = run();
+    t.sync_wait();
+    save(allguilds);
     return 0;
 }
 

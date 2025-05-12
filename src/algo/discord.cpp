@@ -8,6 +8,7 @@
 // You should have received a copy of the GNU General Public License along with ScannerBot. If not, see <https://www.gnu.org/licenses/>. 
 
 #include<algorithm>
+#include <dpp/restresults.h>
 #include<vector>
 #include<nlohmann/json.hpp>
 #include"discord.hpp"
@@ -31,21 +32,22 @@ std::chrono::time_point<std::chrono::system_clock>to_time(snowflake id)
 	return time_point<system_clock>(duration_cast<system_clock::duration>(x));
 }
 
-bool hasperm(cluster& bot, const guild_member& member, permission perm)
+task<bool>hasperm(cluster& bot, const guild_member& member, permission perm)
 {
-	return hasperm(bot, member, perm, std::vector<permission_overwrite>{});
+	co_return co_await hasperm(bot, member, perm, std::vector<permission_overwrite>{});
 }
 
-bool hasperm(cluster& bot, const guild_member& member, permission perm, const std::vector<permission_overwrite>& over)
+task<bool>hasperm(cluster& bot, const guild_member& member, permission perm, const std::vector<permission_overwrite>& over)
 {
 	if(gdata[member.guild_id].owner_id == member.user_id)
-		return true;
+		co_return true;
 	else
 	{
 		permission mperms;
 		permission roleallow, roledeny;
 		permission memallow, memdeny;
-		auto rmap = bot.roles_get_sync(member.guild_id);
+		confirmation_callback_t cct = co_await bot.co_roles_get(member.guild_id);
+		auto rmap = get<role_map>(cct.value);
 		for(auto x:over)
 		{
 			if(x.type == ot_role)
@@ -65,14 +67,14 @@ bool hasperm(cluster& bot, const guild_member& member, permission perm, const st
 		for(auto x:member.get_roles())
 			mperms.add(rmap.at(x).permissions);
 		if(mperms.has(permissions::p_administrator))
-			return true;
+			co_return true;
 		else
 		{
 			mperms.remove(roledeny);
 			mperms.add(roleallow);
 			mperms.remove(memdeny);
 			mperms.add(memallow);
-			return mperms.has(perm);
+			co_return mperms.has(perm);
 		}
 	}
 }
@@ -107,14 +109,18 @@ void give_role_temp(cluster& bot, snowflake gid, snowflake uid, snowflake rid, s
 	bot.guild_get_member(gid, uid, cb);
 }
 
-role getrole(cluster& bot, snowflake guild, snowflake value)
+task<role>getrole(cluster& bot, snowflake guild, snowflake value)
 {
-	return bot.roles_get_sync(guild).at(value);
+	confirmation_callback_t cct = co_await bot.co_roles_get(guild);
+	const auto& roles = get<role_map>(cct.value);
+	co_return roles.at(value);
 }
 
-optional<role> findrole(cluster& bot, snowflake guild, string value)
+task<optional<role>>findrole(cluster& bot, snowflake guild, string value)
 {
-	return findrole(bot.roles_get_sync(guild), bot, guild, value);
+	confirmation_callback_t cct = co_await bot.co_roles_get(guild);
+	const auto& roles = get<role_map>(cct.value);
+	co_return findrole(roles, bot, guild, value);
 }
 
 optional<role> findrole(const role_map& roles, cluster& bot, snowflake guild, string value)
@@ -146,13 +152,14 @@ role highrole(const role_map& roles, const guild_member& mem)
 	return r;
 }
 
-int member_cmpr(cluster& bot, const guild_member& x, const guild_member& y)
+task<int>member_cmpr(cluster& bot, const guild_member& x, const guild_member& y)
 {
 	using namespace std;
 	snowflake gid = x.guild_id;
-	auto roles = bot.roles_get_sync(gid);
+	confirmation_callback_t cct = co_await bot.co_roles_get(gid);
+	const auto& roles = get<role_map>(cct.value);
 	role xhigh = highrole(roles, x), yhigh = highrole(roles, y);
-	return xhigh > yhigh ? 1 : xhigh < yhigh ? -1 : 0;
+	co_return xhigh > yhigh ? 1 : xhigh < yhigh ? -1 : 0;
 }
 
 void fetch_guilds(cluster& bot)
